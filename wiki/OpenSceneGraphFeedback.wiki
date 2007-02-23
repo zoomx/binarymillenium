@@ -1,13 +1,12 @@
 #summary Modified OSG examples using glReadPixels
+#labels Featured,Phase-Deploy
 
 = Introduction =
 
-Add your content here.
+This is a video of this program and another feedback program in action:
+http://video.google.com/videoplay?docid=-4613378742254751736
 
+I built this using OpenSceneGraph 1.2 in Cygwin.
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
