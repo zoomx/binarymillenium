@@ -24,6 +24,13 @@ The regular OpenGL context code is much simpler, it's done with
 
 Where image is an Osg::Image.  It also has a callback and other details which are the same as in the osgprerender example, where I started from.
 
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap1b.jpg
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap2b.jpg
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap3b.jpg
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap4b.jpg
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap5b.jpg
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap6b.jpg
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap7b.jpg
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap8b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/wxfeedback1.png
 
-http://binarymillenium.googlecode.com/svn/wiki/images/Mirrorball_by_binarymillenium.jpg
