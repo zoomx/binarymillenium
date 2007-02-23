@@ -2,7 +2,7 @@
 
 Screencap is a frei0r plugin that uses wxWindows to help grab a portion of the screen and use it as an image source in Gephex or any other app that supports frei0r.  This means that not only can you do standard feedback as seen in the linked image below, but you can use any application as an image source: formats of video that you can't play inside whatever frei0r app you're using can be just captured (though perhaps very inefficiently).  Another fun thing to do is to use a paint program as an image source. 
 
-http://img144.imagevenue.com/img.php?image=61465_screencap_122_1lo.JPG
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap.jpg
 
 = Details =
 
