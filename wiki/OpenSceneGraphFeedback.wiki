@@ -14,7 +14,7 @@ I built this using OpenSceneGraph 1.2 in Cygwin.
 
 See http://binarymillenium.blogspot.com/2007/02/screen-capture-with-wxwindows.html for details on the screen capture code.
 
-The regular OpenGL context code is much simple, it's done with
+The regular OpenGL context code is much simpler, it's done with
 
             image->readPixels( startx, 
                     starty,
@@ -23,5 +23,4 @@ The regular OpenGL context code is much simple, it's done with
                     GL_RGB,GL_UNSIGNED_BYTE);
 
 Where image is an Osg::Image.  It also has a callback and other details which are the same as in the osgprerender example, where I started from.
-
 
