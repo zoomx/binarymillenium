@@ -5,6 +5,39 @@
 
 A demonstration of using the current rendered opengl screen as a texture within the same scene.
 
+= Windows Instructions =
+
+Download the executable:
+
+http://binarymillenium.googlecode.com/svn/trunk/osg_feedback/CYGWIN32.Opt/osgprerender.exe
+
+Unzip the required Cygwin and OSG libraries into the same directory:
+
+http://binarymillenium.googlecode.com/files/cyg_osg_misc_dlls.zip
+
+http://binarymillenium.googlecode.com/files/cyg_osg_1_2_plugins.zip
+
+
+You'll need some kind of loadable content to be able to see anything, try 
+
+http://www.openscenegraph.org/downloads/data/OpenSceneGraph-Data-1.1.zip
+
+or something else.
+
+Run cmd.exe and cd into the proper directory.
+
+Run 
+osgprerender.exe osgcool.osg 
+(where osgcool.osg could be any supported 3D model to be used in the scene)
+or use the following to take the texture from the desktop:
+osgprerender.exe osgcool.osg --directwximage
+
+
+
+= Build From Source Instructions =
+
+TBD
+
 = Details =
 
 This is a video of this program and another feedback program in action:
@@ -33,4 +66,5 @@ http://binarymillenium.googlecode.com/svn/wiki/images/screencap6b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap7b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap8b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/wxfeedback1.png
+
 
