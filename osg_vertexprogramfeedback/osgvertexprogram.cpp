@@ -1,3 +1,11 @@
+/*
+ * binarymillenium 2007
+ * modified from osgvertexprogram source
+ *
+ * If the original file is public domain, then my version is GPL,
+ * otherwise the license is whatever the original license requires.
+ */
+
 #include <sstream>
 
 #include <osg/Vec3>
@@ -329,7 +337,7 @@ osg::Node* addRefractStateSet(osg::Node* node,osg::Image* image)
 
     osg::TextureCubeMap* reflectmap = readCubeMap(image);
 
-#if 0
+#if 1 
     stateset->setTextureAttributeAndModes( 0, reflectmap, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE );
     stateset->setTextureAttributeAndModes( 1, reflectmap, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE );
     
@@ -493,7 +501,7 @@ bool saveimages = false;
 
         {
         image->readPixels(0,0,512,512, GL_RGB,GL_UNSIGNED_BYTE);
-#if 0
+#if 1 
         unsigned char* data = image->data();
         float sum = 0;
         for (int i = 0; i < 512*512; i++) {
