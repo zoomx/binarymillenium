@@ -41,7 +41,9 @@ osgprerender.exe osgcool.osg --directwximage
 
 = Build From Source Instructions =
 
-TBD
+Modified osgprerender source is here:
+
+http://binarymillenium.googlecode.com/svn/trunk/osg_vertexprogramfeedback/
 
 = Details =
 
@@ -68,4 +70,3 @@ http://binarymillenium.googlecode.com/svn/wiki/images/screencap6b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap7b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap8b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/wxfeedback1.png
-
