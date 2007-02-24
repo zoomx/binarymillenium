@@ -5,6 +5,21 @@ Screencap is a frei0r plugin that uses wxWindows to help grab a portion of the s
 
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap.jpg
 
+= Windows Instructions = 
+
+Install 7-zip http://www.7-zip.org/
+Install Gephex http://www.gephex.org/download/win32/gephex-0.4.3b.rar 
+    Use 7-zip to unrar it
+Unzip http://binarymillenium.googlecode.com/files/screencap-0.0.1.zip
+    Put the dll in the gephex/dlls/modules directory.
+    Put the bmscreencap files in the gephex/graphs directory.
+Unzip http://binarymillenium.googlecode.com/files/wx_dlls.zip into the gephex/bin dir.
+
+Run gephex/bin/gephex-gui.exe
+    After a few moments you can double click on graphs and select bmscreencap.
+    Run the graph by selecting start/stop rendering from the menu
+
+
 = Details =
 
 
