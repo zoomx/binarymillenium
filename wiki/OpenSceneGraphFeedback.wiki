@@ -7,9 +7,7 @@ A demonstration of using the current rendered opengl screen as a texture within 
 
 
 This is a video of this program and another feedback program in action:
-{{{
-<embed style="width:400px; height:326px;" id="VideoPlayback" type="application/x-shockwave-flash" src="http://video.google.com/googleplayer.swf?docId=-4613378742254751736&hl=en" flashvars=""> </embed>
-}}}
+
 http://video.google.com/videoplay?docid=-4613378742254751736
 
 
@@ -56,11 +54,13 @@ See http://binarymillenium.blogspot.com/2007/02/screen-capture-with-wxwindows.ht
 
 The regular OpenGL context code is much simpler, it's done with
 
+{{{
             image->readPixels( startx, 
                     starty,
                     tex_width, 
                     tex_height, 
                     GL_RGB,GL_UNSIGNED_BYTE);
+}}}
 
 Where image is an Osg::Image.  It also has a callback and other details which are the same as in the osgprerender example, where I started from.
 
