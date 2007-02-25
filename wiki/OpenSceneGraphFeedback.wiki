@@ -10,6 +10,7 @@ This is a video of this program and another feedback program in action:
 
 http://video.google.com/videoplay?docid=-4613378742254751736
 
+http://binarymillenium.googlecode.com/svn/wiki/images/screencap2b.jpg
 
 = Windows Instructions =
 
@@ -65,7 +66,7 @@ The regular OpenGL context code is much simpler, it's done with
 Where image is an Osg::Image.  It also has a callback and other details which are the same as in the osgprerender example, where I started from.
 
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap1b.jpg
-http://binarymillenium.googlecode.com/svn/wiki/images/screencap2b.jpg
+
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap3b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap4b.jpg
 http://binarymillenium.googlecode.com/svn/wiki/images/screencap5b.jpg
