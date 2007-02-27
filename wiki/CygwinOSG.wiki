@@ -35,6 +35,8 @@ to your PATH environmental variable, and
 /usr/local/OpenSceneGraph/lib and /usr/local/OpenSceneGraph/lib/osgPlugins
 to your LD_LIBRARY_PATH if not already present.
 
+{{{
 export PATH=$PATH:/usr/local/OpenSceneGraph/bin:/usr/local/lib/:/usr/local/Producer/bin
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/OpenSceneGraph/lib:/usr/local/OpenSceneGraph/lib/osgPlugins
+}}}
