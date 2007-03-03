@@ -9,11 +9,13 @@ Instructions for building and running OSG 1.2 on Cygwin.
 
 Install the following with the Cygwin setup.exe installer:
 
+{{{
 libfreetype2-devel
 libjpeg-devel
 libpng
 libtiff-devel
 libungif
+}}}
 
 Download OSG 1.2
 
