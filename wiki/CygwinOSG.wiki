@@ -9,6 +9,15 @@ Instructions for building and running OSG 1.2 on Cygwin.
 
 Install the following with the Cygwin setup.exe installer:
 
+General dev
+{{{
+gcc-core  3.4.4-3
+gcc-g++
+make
+(and all dependencies these automatically invoke)
+}}}
+
+OSG specific
 {{{
 libfreetype2-devel
 libjpeg-devel
