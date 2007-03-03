@@ -9,11 +9,13 @@ Instructions for building and running OSG 1.2 on Cygwin.
 
 Install the following with the Cygwin setup.exe installer:
 
-General dev
+General 
 {{{
 gcc-core  3.4.4-3
 gcc-g++
 make
+rxvt
+vim
 (and all dependencies these automatically invoke)
 }}}
 
