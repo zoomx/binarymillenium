@@ -16,6 +16,7 @@ gcc-g++
 make
 opengl
 rxvt
+unzip
 vim
 (and all dependencies these automatically invoke)
 }}}
