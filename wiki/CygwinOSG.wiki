@@ -60,7 +60,9 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/OpenSceneGraph/lib:/usr/local
 
 I tried building the 2/23 nightly tarballs an got these errors (under Vista)
 
-{{{make[3]: Entering directory `/cygdrive/c/Users/lucasw/own/Producer-1.1.0-200702232325/src/Producer/CYGWIN_NT-6.032.Opt'
+
+{{{
+make[3]: Entering directory `/cygdrive/c/Users/bm/own/Producer-1.1.0-200702232325/src/Producer/CYGWIN_NT-6.032.Opt'
 c++  -O2 -W -Wall  -shared -Wl,--export-all-symbols -Wl,--out-implib,libProducer.dll.a InputArea.o VisualChooser.o RenderSurface.o Keyboa                    rdMouse.o Keyboard.o Trackball.o RenderSurface_X11.o RenderSurface_Win32.o RenderSurface_OSX_CGL.o RenderSurface_OSX_AGL.o Window3D.o Cam                    era.o CameraGroup.o CameraConfig.o Timer.o Version.o ConfigLexer.o ConfigParser.o WGLExtensions.o System.o Utils.o PipeTimer.o        -lO                    penThreads -o cygProducer.dll
 VisualChooser.o:VisualChooser.cpp:(.text+0x1479): undefined reference to `_ChoosePixelFormat@8'
 VisualChooser.o:VisualChooser.cpp:(.text+0x154e): undefined reference to `_DescribePixelFormat@16'
@@ -140,10 +142,11 @@ Utils.o:Utils.cpp:(.text+0xd): undefined reference to `_wglGetProcAddress@4'
 Creating library file: libProducer.dll.a
 collect2: ld returned 1 exit status
 make[3]: *** [cygProducer.dll] Error 1
-make[3]: Leaving directory `/cygdrive/c/Users/lucasw/own/Producer-1.1.0-200702232325/src/Producer/CYGWIN_NT-6.032.Opt'
+make[3]: Leaving directory `/cygdrive/c/Users/bm/own/Producer-1.1.0-200702232325/src/Producer/CYGWIN_NT-6.032.Opt'
 make[2]: *** [cygProducer.dll.opt] Error 2
-make[2]: Leaving directory `/cygdrive/c/Users/lucasw/own/Producer-1.1.0-200702232325/src/Producer'
+make[2]: Leaving directory `/cygdrive/c/Users/bm/own/Producer-1.1.0-200702232325/src/Producer'
 make[1]: *** [default] Error 1
-make[1]: Leaving directory `/cygdrive/c/Users/lucasw/own/Producer-1.1.0-200702232325/src'
+make[1]: Leaving directory `/cygdrive/c/Users/bm/own/Producer-1.1.0-200702232325/src'
 make: *** [default] Error 1
+
 }}}
