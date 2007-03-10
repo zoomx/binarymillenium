@@ -26,17 +26,24 @@
 #include <osgProducer/Viewer>
 #include <osgProducer/ViewerEventHandler>
 
+#ifdef USEWX
 #include "wx/wx.h"
 #include "wx/dcgraph.h"
 #include "wx/rawbmp.h"
+#endif
 
 namespace {
 	bool saveimage = false;
     
     bool usereadpixels = true;
+
+#ifdef USEWX
     bool savewximage = false;
     bool directwximage = false;
-    
+    wxBitmap*     bmp;
+    HBITMAP bitmap = NULL;
+    #endif
+
     int sx,sy;
     unsigned int swidth, sheight;
 
@@ -45,8 +52,6 @@ namespace {
    
 	float repeatx = 2.0f;
 	float repeaty = 2.0f;
-    wxBitmap*     bmp;
-    HBITMAP bitmap = NULL;
 
 	float sin_amp = 0.25f;
 	float sin_period = 7.3f;
@@ -54,6 +59,7 @@ namespace {
     int compat_counter= 0;
 }
 
+#ifdef USEWX
 void wxScreenCapture(wxDC& dc)
 {
     int sizeX = 0;
@@ -125,7 +131,7 @@ void wxScreenCapture(wxDC& dc)
         bmp->SaveFile( wxT("/cygdrive/b/text.bmp"), wxBITMAP_TYPE_BMP);
     }
 }
-
+#endif
 
 void screenCapture(osgProducer::Viewer* viewer, const std::string filename)
 {
@@ -596,9 +602,12 @@ int main( int argc, char **argv )
 
     bool useImage = true;
     while (arguments.read("--image")) { useImage = true; }
-    
+   
+   #ifdef USEWX
     while (arguments.read("--savewximage")) { savewximage   = true; }
     while (arguments.read("--directwximage")) { directwximage = true; }
+  #endif
+  
     while (arguments.read("--glimage")) { usereadpixels = true; }
     
     bool useTextureRectangle = false;
@@ -671,11 +680,12 @@ int main( int argc, char **argv )
 
     //CaptureDriver* captureDriver = new DSHOWCaptureDriver();
 
+#ifdef USEWX
     wxInitialize();
     wxPaintDC pdc;
     wxDC &dc = pdc ;
     bmp = new wxBitmap;
-    
+    #endif
 
 
     // create the windows and run the threads.
@@ -706,6 +716,7 @@ int main( int argc, char **argv )
             frameNum++;
         }
 
+#ifdef USEWX
         wxScreenCapture(dc);
 
         if (savewximage == true) {
@@ -724,7 +735,8 @@ int main( int argc, char **argv )
                 img_data[i*4+3] = 1.0;
             }
 
-        } else if ( (directwximage == true)){
+        } else
+        if ( (directwximage == true)){
             /// get image from desktop in wxBitmap format, 
             // convert it to osg::Image format
             wxAlphaPixelData rawbmp(*bmp, wxPoint(0,0), 
@@ -748,7 +760,9 @@ int main( int argc, char **argv )
                     p.MoveTo(rawbmp, j, tex_height-1-i);
                 }
             }
-        } else if (usereadpixels) {
+        } else 
+        #endif
+        if (usereadpixels) {
             /// get image from osg context screen
             unsigned startx = 0;//  (sx+swidth)/2  - tex_width/2;
             unsigned starty = 0; //(sy+sheight)/2 - tex_height/;
@@ -770,8 +784,9 @@ int main( int argc, char **argv )
     // wait for all the clean up frame to complete.
     viewer.sync();
 
-
+#ifdef USEWX
     wxUninitialize();
+#endif
 
     return 0;
 }
