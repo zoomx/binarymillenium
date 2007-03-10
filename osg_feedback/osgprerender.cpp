@@ -36,6 +36,7 @@ namespace {
 	bool saveimage = false;
     
     bool usereadpixels = true;
+    bool usex11 = false;
 
 #ifdef USEWX
     bool savewximage = false;
@@ -609,6 +610,7 @@ int main( int argc, char **argv )
   #endif
   
     while (arguments.read("--glimage")) { usereadpixels = true; }
+    while (arguments.read("--x11")) { usex11 = true; }
     
     bool useTextureRectangle = false;
     while (arguments.read("--texture-rectangle")) { useTextureRectangle = true; }
@@ -691,6 +693,12 @@ int main( int argc, char **argv )
     // create the windows and run the threads.
     viewer.realize();
 
+#ifdef USEX11
+Display *dpy;
+        dpy = XOpenDisplay(NULL);
+XImage *ximage = NULL;
+#endif
+
 
     int frameNum = 0;
 
@@ -716,6 +724,50 @@ int main( int argc, char **argv )
             frameNum++;
         }
 
+#ifdef USEX11
+   if (usex11) {
+ 
+        ximage = XGetImage(dpy, RootWindow(dpy, DefaultScreen(dpy)) ,
+                 0, 0,
+                 tex_width, tex_height, AllPlanes, ZPixmap);
+                 if (!ximage) {
+                        std::cerr << "XGetImage failed" << std::endl;
+                    } 
+
+       // std::cerr << ximage->red_mask << std::endl;
+
+            image->allocateImage(tex_width, tex_height, 1, GL_RGBA, GL_FLOAT);
+float* img_data = (float*)image->data();
+  
+
+   for (unsigned i = 0; (i < tex_height); i++) {
+   for (unsigned j = 0; (j < tex_width); j++) {
+                    int ind = i*tex_width + j;
+                    //std::cerr << ind << std::endl;
+                    bool flip = ((i > tex_height/4-1) && (i < 3*tex_height/4) &&
+                                 (j > tex_width/4-1)  && (j < 3*tex_width/4));
+                    flip = !flip;
+                    unsigned long thepix = XGetPixel(ximage, j,i); //ximage->data + ind*3; 
+                    unsigned long red = (thepix & ximage->red_mask) >> 16;
+                    unsigned long green = (thepix & ximage->green_mask) >> 8;
+                    unsigned long blue = (thepix & ximage->blue_mask) >> 0;
+
+                    float r = red / 255.0;
+                    float g = green / 255.0;
+                    float b = blue / 255.0;
+                    img_data[ind*4]   = flip ? r : 1-r;
+                    img_data[ind*4+1] = flip ? g : 1-g;
+                    img_data[ind*4+2] = flip ? b : 1-b;
+                    img_data[ind*4+3] = 1.0;
+
+                }
+            }
+
+    XDestroyImage(ximage);
+    
+
+   } else 
+#endif
 #ifdef USEWX
         wxScreenCapture(dc);
 

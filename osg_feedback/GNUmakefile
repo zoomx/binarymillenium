@@ -14,6 +14,8 @@ LIBS     +=  -losgProducer -lProducer -losgText -losgGA -losgDB -losgUtil -losg 
 #LIBS     +=  -lwx_base-2.8 -lwx_msw_core-2.8 
 #INC +=  -DUSEWX $(X_INC) -DOS_WIN32 -I/cygdrive/c/lucasw/wxWidgets-2.8.0/lib/wx/include/msw-ansi-release-2.8 -I/cygdrive/c/lucasw/wxWidgets-2.8.0/include
 
+INC += -DUSEX11
+
 INSTFILES = \
 	$(CXXFILES)\
 	GNUmakefile.inst=GNUmakefile
