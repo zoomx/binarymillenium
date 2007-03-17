@@ -43,7 +43,7 @@ namespace {
     bool directwximage = false;
     wxBitmap*     bmp;
     HBITMAP bitmap = NULL;
-    #endif
+#endif
 
     int sx,sy;
     unsigned int swidth, sheight;
@@ -58,6 +58,9 @@ namespace {
 	float sin_period = 7.3f;
 
     int compat_counter= 0;
+
+
+    osg::Texture* texture = 0;
 }
 
 #ifdef USEWX
@@ -299,7 +302,8 @@ struct MyCameraPostDrawCallback : public osg::CameraNode::DrawCallback
             
             int row_start = _image->t()/4;
             int row_end = 3*row_start;
-            
+           
+
             // and then invert these pixels
             for(int r=row_start; r<row_end; ++r)
             {
@@ -332,7 +336,7 @@ osg::Node* createPreRenderSubGraph(osg::Node* subgraph, unsigned tex_width, unsi
     osg::Group* parent = new osg::Group;
 
     // texture to render to and to use for rendering of flag.
-    osg::Texture* texture = 0;
+    //osg::Texture* texture = 0;
 
     if (useTextureRectangle)
     {
@@ -419,7 +423,6 @@ osg::Vec3 origin(-width/2.0,height*1.2,-height/2.0);
 
         polyGeom->setTexCoordArray(0,texcoords);
 
-
         osg::Vec4Array* colors = new osg::Vec4Array;
         colors->push_back(osg::Vec4(1.0f,1.0f,1.0f,1.0f));
         polyGeom->setColorArray(colors);
@@ -431,8 +434,7 @@ osg::Vec3 origin(-width/2.0,height*1.2,-height/2.0);
         // StateSet to contain the Texture StateAttribute.
         osg::StateSet* stateset = new osg::StateSet;
 
-	stateset->setRenderBinDetails(-1,"RenderBin");
-
+    	stateset->setRenderBinDetails(-1,"RenderBin");
 
         stateset->setTextureAttributeAndModes(0, texture,osg::StateAttribute::ON);
 
@@ -553,6 +555,8 @@ public:
         }
         return true;
     }
+
+
 };
 
 
@@ -636,9 +640,11 @@ int main( int argc, char **argv )
     }
 #endif
 
-   
+  
+    osg::Group* rootNode = new osg::Group();
+
+
     osg::MatrixTransform* loadedModelTransform = new osg::MatrixTransform;
-    
     // load the nodes from the commandline arguments.
     osg::Node* loadedModel = osgDB::readNodeFiles(arguments);
     if (!loadedModel)
@@ -646,17 +652,16 @@ int main( int argc, char **argv )
        // return 1;
     } else {
     
-    // create a transform to spin the model.
+        // create a transform to spin the model.
 
         loadedModelTransform->addChild(loadedModel);
+    
+    
+            osg::NodeCallback* nc = new osg::AnimationPathCallback(loadedModelTransform->getBound().center(),osg::Vec3(0.0f,0.0f,1.0f),osg::inDegrees(45.0f));
+        //loadedModelTransform->setUpdateCallback(nc);
 
-        osg::NodeCallback* nc = new osg::AnimationPathCallback(loadedModelTransform->getBound().center(),osg::Vec3(0.0f,0.0f,1.0f),osg::inDegrees(45.0f));
-        loadedModelTransform->setUpdateCallback(nc);
 
     }
-
-    osg::Group* rootNode = new osg::Group();
-
 
     /////////////////////////////	
     osg::Image* image = new osg::Image;
@@ -669,8 +674,53 @@ int main( int argc, char **argv )
     //transform->addChild(feedbackObject);
 
     //rootNode->addChild(transform);
-    rootNode->addChild(feedbackObject);
+    //rootNode->addChild(feedbackObject);
     ////////////////////////////////// 
+ 
+        if (loadedModel) {
+  osg::Group* group = dynamic_cast<osg::Group*>(loadedModel);
+  osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
+
+    osg::Vec3Array* vecs;
+    //osg::Vec3 bottom = origin;
+
+    if(geode) {
+       osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
+       if(mesh) {
+            vecs = (dynamic_cast<osg::Vec3Array*>(mesh->getVertexArray()));
+       } else {
+            osg::notify(osg::WARN) << mesh << ": mesh " << " was expected to contain a single drawable" << std::endl;
+            return NULL;
+       }
+       
+       
+       osg::Vec2Array* texcoords = new osg::Vec2Array;
+       
+       for (unsigned i = 0; i < vecs->getNumElements(); i++) {
+
+            texcoords->push_back(osg::Vec2( (*vecs)[i].x(),(*vecs)[i].z() ) );
+
+       }
+      
+      mesh->setTexCoordArray(0,texcoords);
+
+        osg::StateSet* stateset = new osg::StateSet;
+
+    	stateset->setRenderBinDetails(-1,"RenderBin");
+
+        stateset->setTextureAttributeAndModes(0, texture,osg::StateAttribute::ON);
+
+        mesh->setStateSet(stateset);
+
+
+
+    } else {
+        osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
+        return NULL;
+    }
+
+    }
+
 
     rootNode->addChild(loadedModelTransform);
 
@@ -752,6 +802,7 @@ float* img_data = (float*)image->data();
                     unsigned long green = (thepix & ximage->green_mask) >> 8;
                     unsigned long blue = (thepix & ximage->blue_mask) >> 0;
 
+                    flip = true;
                     float r = red / 255.0;
                     float g = green / 255.0;
                     float b = blue / 255.0;
