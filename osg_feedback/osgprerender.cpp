@@ -12,6 +12,7 @@
 #include <osg/Depth>
 #include <osg/Billboard>
 #include <osg/Material>
+#include <osg/PositionAttitudeTransform>
 
 #include <osgGA/TrackballManipulator>
 #include <osgGA/FlightManipulator>
@@ -51,8 +52,8 @@ namespace {
     unsigned tex_width = 512;
     unsigned tex_height = 512;
    
-	float repeatx = 2.0f;
-	float repeaty = 2.0f;
+	float repeatx = 1.0f;
+	float repeaty = 1.0f;
 
 	float sin_amp = 0.25f;
 	float sin_period = 7.3f;
@@ -61,7 +62,74 @@ namespace {
 
 
     osg::Texture* texture = 0;
+
+
+float randomf(float min = -0.5f, float max = 0.5f)
+{
+    float src = (rand()%1000000)/1e6;
+
+    return src*(max-min)+min;
 }
+
+}
+
+
+
+void assignTexture(osg::Node* loadedModel, osg::Texture* texture,
+                    float oxMin=0.0f, float oxMax=1.0f,
+                    float ozMin=0.0f, float ozMax=1.0f)
+  {
+    osg::Group* group = dynamic_cast<osg::Group*>(loadedModel);
+    osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
+
+    osg::Vec3Array* vecs;
+    //osg::Vec3 bottom = origin;
+
+    if(geode) {
+       osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
+       if(!mesh) {
+            osg::notify(osg::WARN) << mesh << ": mesh " << " was expected to contain a single drawable" << std::endl;
+            return;
+       }
+        
+
+       vecs = (dynamic_cast<osg::Vec3Array*>(mesh->getVertexArray()));
+       
+       osg::Vec2Array* texcoords = new osg::Vec2Array;
+      
+       osg::BoundingBox bnd = mesh->getBound();
+        
+       float xMin = bnd.xMin();
+       float xMax = bnd.xMax();
+       float zMin = bnd.zMin();
+       float zMax = bnd.zMax();
+
+       for (unsigned i = 0; i < vecs->getNumElements(); i++) {
+            float x = (*vecs)[i].x();
+            float z = (*vecs)[i].z();
+            texcoords->push_back(osg::Vec2(oxMin/oxMax + ((x-xMin)/(xMax-xMin))/(oxMax*0.333), 
+                                           ozMin/ozMax + ((z-zMin)/(zMax-zMin))/(ozMax*0.333) ) );
+       }
+
+        /// do I need to delete texcoords after this?
+      mesh->setTexCoordArray(0,texcoords);
+
+        osg::StateSet* stateset = new osg::StateSet;
+
+    	stateset->setRenderBinDetails(-1,"RenderBin");
+
+        stateset->setTextureAttributeAndModes(0, texture,osg::StateAttribute::ON);
+
+        mesh->setStateSet(stateset);
+
+
+
+    } else {
+        osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
+        return;
+    }
+
+    }
 
 #ifdef USEWX
 void wxScreenCapture(wxDC& dc)
@@ -556,7 +624,6 @@ public:
         return true;
     }
 
-
 };
 
 
@@ -664,9 +731,12 @@ int main( int argc, char **argv )
     }
 
     /////////////////////////////	
+   //osg::Node* obj =  osgDB::readNodeFile("sphere3.obj");
+
+
     osg::Image* image = new osg::Image;
 
-    osg::Node* feedbackObject = createPreRenderSubGraph(loadedModelTransform,tex_width,tex_height, 
+    osg::Node* feedbackObject = createPreRenderSubGraph(loadedModel,tex_width,tex_height, 
             renderImplementation, image, useImage, useTextureRectangle, useHDR);
 
     //osg::Transform* transform = new MoveEarthySkyWithEyePointTransform;
@@ -675,53 +745,28 @@ int main( int argc, char **argv )
 
     //rootNode->addChild(transform);
     //rootNode->addChild(feedbackObject);
+    
     ////////////////////////////////// 
- 
-        if (loadedModel) {
-  osg::Group* group = dynamic_cast<osg::Group*>(loadedModel);
-  osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
-
-    osg::Vec3Array* vecs;
-    //osg::Vec3 bottom = origin;
-
-    if(geode) {
-       osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
-       if(mesh) {
-            vecs = (dynamic_cast<osg::Vec3Array*>(mesh->getVertexArray()));
-       } else {
-            osg::notify(osg::WARN) << mesh << ": mesh " << " was expected to contain a single drawable" << std::endl;
-            return NULL;
-       }
-       
-       
-       osg::Vec2Array* texcoords = new osg::Vec2Array;
-       
-       for (unsigned i = 0; i < vecs->getNumElements(); i++) {
-
-            texcoords->push_back(osg::Vec2( (*vecs)[i].x(),(*vecs)[i].z() ) );
-
-       }
-      
-      mesh->setTexCoordArray(0,texcoords);
-
-        osg::StateSet* stateset = new osg::StateSet;
-
-    	stateset->setRenderBinDetails(-1,"RenderBin");
-
-        stateset->setTextureAttributeAndModes(0, texture,osg::StateAttribute::ON);
-
-        mesh->setStateSet(stateset);
 
 
+    for (int i = 0; i<40; i++) {
+        osg::Vec3 pos = osg::Vec3(randomf(),randomf()/2.0f,randomf());
 
-    } else {
-        osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
-        return NULL;
+        float size = 17.0;
+        pos = pos*size;
+       // osg::Node* obj2 =  osgDB::readNodeFile("sphere3.obj");
+        osg::Node* obj2 = osgDB::readNodeFiles(arguments);
+        assignTexture(obj2,texture, 
+                 pos.x()+size/2.0, size/2,
+                 pos.z()+size/2.0, size/2 
+                 );
+        
+        osg::PositionAttitudeTransform* posatt = new osg::PositionAttitudeTransform;
+        posatt->addChild(obj2);
+        posatt->setPosition(pos);
+        rootNode->addChild(posatt);
     }
-
-    }
-
-
+    
     rootNode->addChild(loadedModelTransform);
 
     // add model to the viewer.
@@ -737,7 +782,7 @@ int main( int argc, char **argv )
     wxPaintDC pdc;
     wxDC &dc = pdc ;
     bmp = new wxBitmap;
-    #endif
+#endif
 
 
     // create the windows and run the threads.
@@ -865,6 +910,7 @@ float* img_data = (float*)image->data();
             }
         } else 
         #endif
+
         if (usereadpixels) {
             /// get image from osg context screen
             unsigned startx = 0;//  (sx+swidth)/2  - tex_width/2;
