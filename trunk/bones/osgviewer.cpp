@@ -38,6 +38,12 @@
 
 namespace {
 
+
+double perlinNoise(float x, int period);
+double perlinNoise(float x);
+
+
+
 class bone 
 {
 public:
@@ -48,9 +54,50 @@ bone()
     pos = new osg::PositionAttitudeTransform;
 
     objpos = new osg::PositionAttitudeTransform;
-    objpos->addChild(osgDB::readNodeFile("sphere3.obj"));
+    
+   // osg::Node* 
+    object = (osgDB::readNodeFile("sphere3.obj"));
+    objpos->addChild(object);
+
     att->addChild(objpos);
     att->addChild(pos);
+
+    parent = NULL;
+
+	osg::Group* group = dynamic_cast<osg::Group*>(object);
+	osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
+	
+	osg::Vec3Array* vecs;
+    osg::BoundingBox bnd;
+	
+	if(geode) {
+		osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
+		if(mesh) {
+			vecs     = dynamic_cast<osg::Vec3Array*>( mesh->getVertexArray() );
+			
+            origVecs = new osg::Vec3Array(*vecs, osg::CopyOp::DEEP_COPY_ALL);
+            
+            bnd = mesh->getBound();
+		
+		} else {
+			osg::notify(osg::WARN) << mesh << ": mesh " << " was expected to contain a single drawable" << std::endl;
+			return;
+		}
+	} else {
+		osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
+		return;
+	}
+
+	for (unsigned i = 0; i < vecs->getNumElements(); i++) {
+	
+       float zMin = bnd.zMin();
+       float zMax = bnd.zMax();
+
+        float weight = ((*vecs)[i].z() - zMin)/(zMax-zMin);
+        if (weight > 0.5) {weight = (weight-0.5)*0.01; } else {weight = 0;} 
+
+        parentWeights.push_back( weight );
+    }
 
     /// causing mem dumps
     if (0) {
@@ -66,21 +113,86 @@ bone()
     }
 }
 
-osg::PositionAttitudeTransform* pos;
-/// position of object, should be halfway between origin of att and pos
-osg::PositionAttitudeTransform* objpos;
-osg::PositionAttitudeTransform* att;
 
-bone* parent;
-std::vector<bone*> children;
+void update(float preIncr)
+{
 
+            float incr = preIncr;
+            
+            float rotX = 2.0*M_PI * perlinNoise(incr); 
+            float rotY = 2.0*M_PI * perlinNoise(incr+1e5);
+            float rotZ = 2.0*M_PI * perlinNoise(incr+2e5);
+            
+            osg::Quat quat = osg::Quat(
+                              rotX, osg::Vec3(1,0,0),
+                              rotY, osg::Vec3(0,1,0),
+                              rotZ, osg::Vec3(0,0,1) );
+            att->setAttitude(quat);
+    
+
+    if (parent == NULL) return;
+
+
+	osg::Group* group = dynamic_cast<osg::Group*>(object);
+	osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
+	
+	osg::Vec3Array* vecs;
+	
+    osg::Geometry* mesh;
+	if(geode) {
+		mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
+		if(mesh) {
+			vecs = (dynamic_cast<osg::Vec3Array*>(mesh->getVertexArray()));
+		
+		} else {
+			osg::notify(osg::WARN) << mesh << ": mesh " 
+                    << " was expected to contain a single drawable" << std::endl;
+			return;
+		}
+	} else {
+		osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
+		return;
+	}
+
+       
+        osg::Matrixd rot(att->getAttitude() );
+        rot.invert(rot);
+        
+	    for (unsigned i = 0; i < vecs->getNumElements() &&
+                                    parentWeights.size() ; i++) {
+
+            osg::Vec3d parentPos = rot.postMult( (*vecs)[i] );	
+            osg::Vec3d newPos = parentPos*parentWeights[i] + (*vecs)[i]*(1.0-parentWeights[i]);
+            (*vecs)[i] = newPos;
+        }
+
+	mesh->setVertexArray(vecs);
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////
+
+    osg::PositionAttitudeTransform* pos;
+    /// position of object, should be halfway between origin of att and pos
+    osg::PositionAttitudeTransform* objpos;
+    osg::PositionAttitudeTransform* att;
+
+
+	osg::Vec3Array* origVecs;
+
+    bone* parent;
+    std::vector<bone*> children;
+
+    osg::Node* object;
+
+    std::vector<float> parentWeights;
 
 	/// a line to show the spring
 	line springLine;
 	osg::Geode* drawableGeode;
 	
-
-
 };
 
 std::vector<bone*> allBones;
@@ -124,22 +236,14 @@ bone* makeRandomBone(int numChildren)
     newBone->objpos->setAttitude(attitude);
 
     newBone->objpos->setPosition(pos*0.5f);
-    newBone->objpos->setScale(osg::Vec3(pos.length()/12.0,pos.length()/12.0,pos.length()/2.2));
-   
+    newBone->objpos->setScale(osg::Vec3(pos.length()/12.0,pos.length()/12.0,pos.length()/2.2)); 
     }
 
-    osg::Vec3 attitude = osg::Vec3(random(),random(),random());
 
-    attitude = attitude *2.0*M_PI;
-
-    osg::Quat quat = osg::Quat(
-                              attitude.x(), osg::Vec3(1,0,0),
-                              attitude.y(), osg::Vec3(0,1,0),
-                              attitude.z(), osg::Vec3(0,0,1) );
-   // newBone->att->setAttitude(quat);
 
     for (int i = 0; i< numChildren; i++) {
         bone* childBone = makeRandomBone(rand()%numChildren);
+        childBone->parent = newBone;
         newBone->children.push_back(childBone);
         newBone->pos->addChild(childBone->att);
     }
@@ -288,6 +392,15 @@ osg::Node* createLights(osg::StateSet* rootStateSet, osg::Vec4 pos, osg::Vec4 di
                  0.2*perlinNoise(x,32)  +
                 0.06*perlinNoise(x,16)  );
     }
+}  // end namespace
+
+void updateBones(float preIncr)
+{
+
+    for (unsigned j = 1; j < allBones.size(); j++) {
+                 
+            allBones[j]->update(preIncr + j*1000.0);
+     }
 }
 
 int main( int argc, char **argv )
@@ -307,7 +420,10 @@ int main( int argc, char **argv )
     arguments.getApplicationUsage()->addCommandLineOption("--help-keys","Display keyboard & mouse bindings available");
     arguments.getApplicationUsage()->addCommandLineOption("--help-all","Display all command line, env vars and keyboard & mouse bindigs.");
     
-
+    
+    int numLimbs = 5; 
+    while (arguments.read("--limbs", numLimbs)) {}
+    
     // construct the viewer.
     osgProducer::Viewer viewer(arguments);
 
@@ -375,7 +491,7 @@ int main( int argc, char **argv )
     // pass the loaded scene graph to the viewer.
     viewer.setSceneData(scene);
 
-    bone* rootBone = makeRandomBone(3);
+    bone* rootBone = makeRandomBone(numLimbs);
     std::cout << "allBones.size() " << allBones.size() << std::endl;
     scene->addChild(rootBone->att);
 
@@ -399,25 +515,11 @@ int main( int argc, char **argv )
         viewer.frame();
    
    		usleep(500);
-		
-        preIncr += 0.05;
+
+        preIncr += 0.005;
+        updateBones(preIncr);
         
-        for (unsigned j = 1; j < allBones.size(); j++) {
-            
-            float incr = preIncr + j*1000.0;
-            
-            float rotX = 2.0*M_PI * perlinNoise(incr); 
-            float rotY = 2.0*M_PI * perlinNoise(incr+1e5);
-            float rotZ = 2.0*M_PI * perlinNoise(incr+2e5);
-            
-            osg::Quat quat = osg::Quat(
-                              rotX, osg::Vec3(1,0,0),
-                              rotY, osg::Vec3(0,1,0),
-                              rotZ, osg::Vec3(0,0,1) );
-            allBones[j]->att->setAttitude(quat);
-
-
-        }
+        
 
 
 		if (0) {
