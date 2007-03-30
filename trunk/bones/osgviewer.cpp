@@ -48,6 +48,10 @@ class bone
 {
 public:
 
+    float rotX; 
+    float rotY;
+    float rotZ;
+
 bone()
 { 
     att = new osg::PositionAttitudeTransform;
@@ -56,7 +60,7 @@ bone()
     objpos = new osg::PositionAttitudeTransform;
     
    // osg::Node* 
-    object = (osgDB::readNodeFile("sphere3.obj"));
+    object = (osgDB::readNodeFile("sphere1.obj"));
     objpos->addChild(object);
 
     att->addChild(objpos);
@@ -93,8 +97,11 @@ bone()
        float zMin = bnd.zMin();
        float zMax = bnd.zMax();
 
-        float weight = ((*vecs)[i].z() - zMin)/(zMax-zMin);
-        if (weight > 0.5) {weight = (weight-0.5)*0.01; } else {weight = 0;} 
+        float weight = ( zMax - (*vecs)[i].z() )/(zMax-zMin);
+        //std::cout << weight << std::endl;
+        //if (weight > 0.5) { weight = (weight-0.5)*0.1; } else {weight = 0;} 
+        //weight *= 0.001;
+        //weight =1;
 
         parentWeights.push_back( weight );
     }
@@ -116,22 +123,20 @@ bone()
 
 void update(float preIncr)
 {
+    float incr = preIncr;
 
-            float incr = preIncr;
-            
-            float rotX = 2.0*M_PI * perlinNoise(incr); 
-            float rotY = 2.0*M_PI * perlinNoise(incr+1e5);
-            float rotZ = 2.0*M_PI * perlinNoise(incr+2e5);
-            
-            osg::Quat quat = osg::Quat(
-                              rotX, osg::Vec3(1,0,0),
-                              rotY, osg::Vec3(0,1,0),
-                              rotZ, osg::Vec3(0,0,1) );
-            att->setAttitude(quat);
+    rotX = 0; //2.0*M_PI * perlinNoise(incr); 
+    rotY += 0.001; //2.0*M_PI * perlinNoise(incr+1e5)/2000.0;
+    rotZ = 0;// 2.0*M_PI * perlinNoise(incr+2e5);
+
+    osg::Quat quat = osg::Quat(
+            rotX, osg::Vec3(1,0,0),
+            rotY, osg::Vec3(0,1,0),
+            rotZ, osg::Vec3(0,0,1) );
+    att->setAttitude(quat);
     
 
     if (parent == NULL) return;
-
 
 	osg::Group* group = dynamic_cast<osg::Group*>(object);
 	osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
@@ -154,16 +159,22 @@ void update(float preIncr)
 		return;
 	}
 
-       
+      
+        bool doBones = true;
+        if (doBones) {
         osg::Matrixd rot(att->getAttitude() );
         rot.invert(rot);
+        osg::Matrixd rot2(objpos->getAttitude() );
+        rot2.invert(rot2);
         
 	    for (unsigned i = 0; i < vecs->getNumElements() &&
                                     parentWeights.size() ; i++) {
 
-            osg::Vec3d parentPos = rot.postMult( (*vecs)[i] );	
-            osg::Vec3d newPos = parentPos*parentWeights[i] + (*vecs)[i]*(1.0-parentWeights[i]);
+            osg::Vec3d parentPos = rot.postMult( (*origVecs)[i] );
+            parentPos = rot2.postMult( parentPos );
+            osg::Vec3d newPos = parentPos*parentWeights[i] + (*origVecs)[i]*(1.0-parentWeights[i]);
             (*vecs)[i] = newPos;
+        }
         }
 
 	mesh->setVertexArray(vecs);
@@ -211,38 +222,41 @@ bone* makeRandomBone(int numChildren)
     /// this should be handled elsewhere
     allBones.push_back(newBone);
 
-    osg::Vec3 pos = osg::Vec3(random(),random(),random() )*15.0f;
+    //osg::Vec3 pos = osg::Vec3(random(),random(),random() )*15.0f;
+    osg::Vec3 pos = osg::Vec3(1.0,0,0 )*15.0f;
     //osg::Vec3 pos = osg::Vec3(0.0,1.0,1.0)*15.0f;
     newBone->pos->setPosition(pos);
     newBone->springLine.end = pos;
 
-    {
-    /// lookAt
-    osg::Vec3 out = pos;
-    out.normalize();
-    
-    osg::Vec3 up = osg::Vec3(0,1,0);
-    osg::Vec3 right = out^up;
-    right.normalize();
-    
-    up = right^out;
-    up.normalize(); 
-    
-    osg::Matrixd temp;
-    temp.makeLookAt(osg::Vec3(0,0,0),pos,up);
-    temp.invert(temp);
-    osg::Quat attitude;
-    attitude.set(temp);
-    newBone->objpos->setAttitude(attitude);
+    if (1) {
+        /// lookAt
+        osg::Vec3 out = pos;
+        out.normalize();
 
-    newBone->objpos->setPosition(pos*0.5f);
-    newBone->objpos->setScale(osg::Vec3(pos.length()/12.0,pos.length()/12.0,pos.length()/2.2)); 
+        osg::Vec3 up = osg::Vec3(0,1,0);
+        osg::Vec3 right = out^up;
+        right.normalize();
+
+        up = right^out;
+        up.normalize(); 
+
+        osg::Matrixd temp;
+        temp.makeLookAt(osg::Vec3(0,0,0),pos,up);
+        temp.invert(temp);
+        osg::Quat attitude;
+        attitude.set(temp);
+        
+        newBone->objpos->setAttitude(attitude);
+        newBone->objpos->setPosition(pos*0.5f);
+        //newBone->objpos->setScale(osg::Vec3(pos.length()/12.0,pos.length()/12.0,pos.length()/2.2)); 
+        newBone->objpos->setScale(osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0)); 
     }
 
 
-
-    for (int i = 0; i< numChildren; i++) {
-        bone* childBone = makeRandomBone(rand()%numChildren);
+    //for (int i = 0; i< numChildren; i++) {
+    for (int i = 0; ((i < 1) && (i < numChildren)); i++) {
+        //bone* childBone = makeRandomBone(rand()%numChildren);
+        bone* childBone = makeRandomBone(numChildren-1);
         childBone->parent = newBone;
         newBone->children.push_back(childBone);
         newBone->pos->addChild(childBone->att);
@@ -421,7 +435,7 @@ int main( int argc, char **argv )
     arguments.getApplicationUsage()->addCommandLineOption("--help-all","Display all command line, env vars and keyboard & mouse bindigs.");
     
     
-    int numLimbs = 5; 
+    int numLimbs = 3; 
     while (arguments.read("--limbs", numLimbs)) {}
     
     // construct the viewer.
