@@ -97,7 +97,7 @@ bone()
        float zMin = bnd.zMin();
        float zMax = bnd.zMax();
 
-        float weight = ( zMax - (*vecs)[i].z() )/(zMax-zMin);
+        float weight = 1.0- ( zMax - (*vecs)[i].z() )/(zMax-zMin);
         //std::cout << weight << std::endl;
         //if (weight > 0.5) { weight = (weight-0.5)*0.1; } else {weight = 0;} 
         //weight *= 0.001;
@@ -163,15 +163,15 @@ void update(float preIncr)
         bool doBones = true;
         if (doBones) {
         osg::Matrixd rot(att->getAttitude() );
-        rot.invert(rot);
+        //rot.invert(rot);
         osg::Matrixd rot2(objpos->getAttitude() );
-        rot2.invert(rot2);
+        //rot2.invert(rot2);
         
 	    for (unsigned i = 0; i < vecs->getNumElements() &&
                                     parentWeights.size() ; i++) {
 
-            osg::Vec3d parentPos = rot.postMult( (*origVecs)[i] );
-            parentPos = rot2.postMult( parentPos );
+            osg::Vec3d parentPos = rot.preMult( (*origVecs)[i] );
+            parentPos = rot2.preMult( parentPos );
             osg::Vec3d newPos = parentPos*parentWeights[i] + (*origVecs)[i]*(1.0-parentWeights[i]);
             (*vecs)[i] = newPos;
         }
@@ -249,7 +249,16 @@ bone* makeRandomBone(int numChildren)
         newBone->objpos->setAttitude(attitude);
         newBone->objpos->setPosition(pos*0.5f);
         //newBone->objpos->setScale(osg::Vec3(pos.length()/12.0,pos.length()/12.0,pos.length()/2.2)); 
-        newBone->objpos->setScale(osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0)); 
+        //newBone->objpos->setScale(osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0)); 
+        osg::Vec3 scale = osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0); 
+     
+	    for (unsigned i = 0; i < newBone->origVecs->getNumElements(); i++) {
+            osg::Vec3 temp = (*(newBone->origVecs))[i];
+            temp = osg::Vec3(temp.x()*scale.x(), temp.y()*scale.y(), temp.z()*scale.z());
+            
+            (*(newBone->origVecs))[i] = temp;
+        }
+    
     }
 
 
