@@ -43,6 +43,13 @@ double perlinNoise(float x, int period);
 double perlinNoise(float x);
 
 
+float random(float min = -0.5f, float max = 0.5f)
+{
+    float src = (rand()%1000000)/1e6;
+
+    return src*(max-min)+min;
+}
+
 
 class bone 
 {
@@ -52,6 +59,8 @@ public:
     float rotY;
     float rotZ;
 
+	osg::Vec3Array* vecs;
+
 bone()
 { 
     root = new osg::PositionAttitudeTransform;
@@ -60,10 +69,17 @@ bone()
 
     objpos = new osg::PositionAttitudeTransform;
     objposNoAtt = new osg::PositionAttitudeTransform;
-    
+    objposScene = new osg::PositionAttitudeTransform;
+   
+   
    // osg::Node* 
     object = (osgDB::readNodeFile("sphere1.obj"));
     objpos->addChild(object);
+
+    object2 = (osgDB::readNodeFile("sphere1b.obj"));
+    objposScene->addChild(object2);
+
+
 
     att->addChild(objpos);
     att->addChild(pos);
@@ -75,29 +91,27 @@ bone()
 
 	osg::Group* group = dynamic_cast<osg::Group*>(object);
 	osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
-	
-	osg::Vec3Array* vecs;
-    osg::BoundingBox bnd;
-	
-	if(geode) {
-		osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
-		if(mesh) {
-			vecs     = dynamic_cast<osg::Vec3Array*>( mesh->getVertexArray() );
-			
-            origVecs = new osg::Vec3Array(*vecs, osg::CopyOp::DEEP_COPY_ALL);
-            
-            bnd = mesh->getBound();
-		
-		} else {
-			osg::notify(osg::WARN) << mesh << ": mesh " << " was expected to contain a single drawable" << std::endl;
-			return;
-		}
-	} else {
+	 
+	if(!geode) {
 		osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
 		return;
 	}
 
-	for (unsigned i = 0; i < vecs->getNumElements(); i++) {
+    osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
+
+    if(!mesh) {
+        osg::notify(osg::WARN) << mesh << ": mesh " << 
+            " was expected to contain a single drawable" << std::endl;
+        return;
+    }
+
+    vecs     = dynamic_cast<osg::Vec3Array*>( mesh->getVertexArray() );
+    origVecs = new osg::Vec3Array(*vecs, osg::CopyOp::DEEP_COPY_ALL);
+
+    osg::BoundingBox bnd;
+    bnd = mesh->getBound();
+
+    for (unsigned i = 0; i < vecs->getNumElements(); i++) {
 	
        float zMin = bnd.zMin();
        float zMax = bnd.zMax();
@@ -105,6 +119,9 @@ bone()
         float weight = 1.0-( zMax - (*vecs)[i].z() )/(zMax-zMin);
         //std::cout << weight << std::endl;
         //if (weight > 0.5) { weight = 2.0*(weight-0.5); } else {weight = 0;} 
+        
+        //float min = 0.3;
+        //if (weight > min) { weight = (1.0/(1.0-min))*(weight-min); } else {weight = 0;} 
         //weight *= 0.001;
         //weight =1;
 
@@ -130,10 +147,10 @@ void update(float preIncr)
 {
     float incr = preIncr;
 
-    rotX += 0; //2.0*M_PI * perlinNoise(incr)/3000.0;
-    //rotY += 0.001; //2.0*M_PI * perlinNoise(incr+1e5)/2000.0;
-    rotY += 2.0*M_PI * perlinNoise(incr+1e5)/3000.0;
-    rotZ += 0;//2.0*M_PI * perlinNoise(incr+2e5)/3000.0;
+    //rotX += 2.0*M_PI * perlinNoise(incr)/3000.0;
+    rotY -= 0.001; //2.0*M_PI * perlinNoise(incr+1e5)/2000.0;
+    //rotY += 2.0*M_PI * perlinNoise(incr+1e5)/3000.0;
+    //rotZ += 2.0*M_PI * perlinNoise(incr+2e5)/3000.0;
 
     osg::Quat quat = osg::Quat(
             rotX, osg::Vec3(1,0,0),
@@ -146,51 +163,116 @@ void update(float preIncr)
 
 	osg::Group* group = dynamic_cast<osg::Group*>(object);
 	osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
-	
-	osg::Vec3Array* vecs;
-	
-    osg::Geometry* mesh;
-	if(geode) {
-		mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
-		if(mesh) {
-			vecs = (dynamic_cast<osg::Vec3Array*>(mesh->getVertexArray()));
-		
-		} else {
-			osg::notify(osg::WARN) << mesh << ": mesh " 
-                    << " was expected to contain a single drawable" << std::endl;
-			return;
-		}
-	} else {
-		osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
-		return;
-	}
 
-      
-        bool doBones = true;
-        if (doBones) {
+
+    osg::Vec3Array* vecs2 = new osg::Vec3Array(*vecs, osg::CopyOp::DEEP_COPY_ALL);
+
+    bool doBones = true;
+    if (doBones) {
         //osg::Matrixd rot(att->getAttitude() );
-        //rot.invert(rot);
         //osg::Matrixd rot2(objpos->getAttitude() );
-        //rot2.invert(rot2);
-        
+
         osg::Matrixd rot1 = objpos->getWorldMatrices()[0];
         osg::Matrixd rot2 = objposNoAtt->getWorldMatrices()[0];
 
-	    for (unsigned i = 0; i < vecs->getNumElements() &&
-                                    parentWeights.size() ; i++) {
+
+        for (unsigned i = 0; i < vecs->getNumElements() &&
+                parentWeights.size() ; i++) {
             osg::Vec3 pos =  (*origVecs)[i];
             //osg::Vec3d parentPos = rot.preMult( (*origVecs)[i] );
             //parentPos = rot2.preMult( parentPos );
-           
-            osg::Vec3d diff = rot2.preMult(pos) - rot1.preMult(pos);
-            (*vecs)[i] = pos + diff*parentWeights[i];
-
             //osg::Vec3d newPos = parentPos*parentWeights[i] + (*origVecs)[i]*(1.0-parentWeights[i]);
             //(*vecs)[i] = newPos;
+
+
+#if 0
+    /// this looks the same as the preMult approach- something must be wrong with
+    /// how I'm doing this.
+        osg::ref_ptr<osg::PositionAttitudeTransform> temp1 = new osg::PositionAttitudeTransform; 
+        osg::ref_ptr<osg::PositionAttitudeTransform> temp2 = new osg::PositionAttitudeTransform; 
+            
+            objpos->addChild(temp1.get());
+            objposNoAtt->addChild(temp2.get());
+
+            temp1->setPosition(pos);
+            temp2->setPosition(pos);
+
+            osg::Matrixd rot1 = temp1->getWorldMatrices()[0];
+            osg::Matrixd rot2 = temp2->getWorldMatrices()[0];
+        
+            objpos->removeChild(temp1.get());
+            objposNoAtt->removeChild(temp2.get());
+            
+            osg::Vec3d diff = rot2.preMult(osg::Vec3(0,0,0)) - rot1.preMult(osg::Vec3(0,0,0));
+#endif
+
+            //osg::Vec3d diff = rot2.preMult(pos) - rot1.preMult(pos);
+            //(*vecs)[i] = pos;// + diff; //*parentWeights[i];
+            osg::Quat slerped;
+            slerped.slerp(parentWeights[i], att->getAttitude(), root->getAttitude()); 
+            //slerped.slerp(0.5, att->getAttitude(), root->getAttitude());
+
+            osg::Vec3 slerpedPos = slerped*pos;
+            (*vecs)[i] = slerpedPos; 
+            
+            //(*vecs)[i] = pos; 
+            
+            (*vecs2)[i] = rot2.preMult(slerpedPos);// - rot1.preMult(pos); 
+
         }
+    }
+
+
+    {
+        osg::Group* group = dynamic_cast<osg::Group*>(object);
+        osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
+
+        if(!geode) {
+            osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
+            return;
         }
 
-	mesh->setVertexArray(vecs);
+        osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
+
+        if(!mesh) {
+            osg::notify(osg::WARN) << mesh << ": mesh " << 
+                " was expected to contain a single drawable" << std::endl;
+            return;
+        }
+
+
+        mesh->setVertexArray(vecs);
+
+        osgUtil::SmoothingVisitor sv;
+        sv.smooth(*mesh);
+    }
+
+    /// temp to do same for object2
+    {
+        osg::Group* group = dynamic_cast<osg::Group*>(object2);
+        osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
+
+        if(!geode) {
+            osg::notify(osg::WARN) << "failed to load mesh " << std::endl;
+            return;
+        }
+
+        osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
+        
+
+        if(!mesh) {
+            osg::notify(osg::WARN) << mesh << ": mesh " << 
+                " was expected to contain a single drawable" << std::endl;
+            return;
+        }
+
+        mesh->setVertexArray(vecs2);
+
+        osgUtil::SmoothingVisitor sv;
+        sv.smooth(*mesh);
+    }
+
+
 }
 
 
@@ -202,6 +284,7 @@ void update(float preIncr)
     /// position of object, should be halfway between origin of att and pos
     osg::PositionAttitudeTransform* objpos;
     osg::PositionAttitudeTransform* objposNoAtt;
+    osg::PositionAttitudeTransform* objposScene;
     osg::PositionAttitudeTransform* att;
     osg::PositionAttitudeTransform* root;
 
@@ -212,6 +295,7 @@ void update(float preIncr)
     std::vector<bone*> children;
 
     osg::Node* object;
+    osg::Node* object2;
 
     std::vector<float> parentWeights;
 
@@ -223,12 +307,6 @@ void update(float preIncr)
 
 std::vector<bone*> allBones;
 
-float random(float min = -0.5f, float max = 0.5f)
-{
-    float src = (rand()%1000000)/1e6;
-
-    return src*(max-min)+min;
-}
 
 bone* makeRandomBone(int numChildren)
 {
@@ -237,7 +315,7 @@ bone* makeRandomBone(int numChildren)
     /// this should be handled elsewhere
     allBones.push_back(newBone);
 
-    //osg::Vec3 pos = osg::Vec3(random(),random(),random() )*15.0f;
+    //osg::Vec3 pos = osg::Vec3(0.7+random(),random(),random() )*15.0f;
     osg::Vec3 pos = osg::Vec3(1.0,0,0 )*15.0f;
     //osg::Vec3 pos = osg::Vec3(0.0,1.0,1.0)*15.0f;
     newBone->pos->setPosition(pos);
@@ -273,7 +351,7 @@ bone* makeRandomBone(int numChildren)
         /// mixing.
         //newBone->objpos->setScale(osg::Vec3(pos.length()/12.0,pos.length()/12.0,pos.length()/2.2)); 
         //newBone->objpos->setScale(osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0)); 
-        osg::Vec3 scale = osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0); 
+        osg::Vec3 scale = osg::Vec3(pos.length()/6.0,pos.length()/6.0,pos.length()/2.0); 
      
 	    for (unsigned i = 0; i < newBone->origVecs->getNumElements(); i++) {
             osg::Vec3 temp = (*(newBone->origVecs))[i];
@@ -286,8 +364,8 @@ bone* makeRandomBone(int numChildren)
 
 
     //for (int i = 0; i< numChildren; i++) {
+    //    bone* childBone = makeRandomBone(rand()%numChildren);
     for (int i = 0; ((i < 1) && (i < numChildren)); i++) {
-        //bone* childBone = makeRandomBone(rand()%numChildren);
         bone* childBone = makeRandomBone(numChildren-1);
         childBone->parent = newBone;
         newBone->children.push_back(childBone);
@@ -539,7 +617,11 @@ int main( int argc, char **argv )
 
     bone* rootBone = makeRandomBone(numLimbs);
     std::cout << "allBones.size() " << allBones.size() << std::endl;
-    scene->addChild(rootBone->att);
+    scene->addChild(rootBone->root);
+    for (unsigned i = 0; i < allBones.size(); i++) {
+        scene->addChild(allBones[i]->objposScene);
+    }
+
 
     // create the windows and run the threads.
     viewer.realize();
