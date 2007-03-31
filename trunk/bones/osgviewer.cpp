@@ -54,10 +54,12 @@ public:
 
 bone()
 { 
+    root = new osg::PositionAttitudeTransform;
     att = new osg::PositionAttitudeTransform;
     pos = new osg::PositionAttitudeTransform;
 
     objpos = new osg::PositionAttitudeTransform;
+    objposNoAtt = new osg::PositionAttitudeTransform;
     
    // osg::Node* 
     object = (osgDB::readNodeFile("sphere1.obj"));
@@ -65,6 +67,9 @@ bone()
 
     att->addChild(objpos);
     att->addChild(pos);
+    
+    root->addChild(att);
+    root->addChild(objposNoAtt);
 
     parent = NULL;
 
@@ -97,9 +102,9 @@ bone()
        float zMin = bnd.zMin();
        float zMax = bnd.zMax();
 
-        float weight = 1.0- ( zMax - (*vecs)[i].z() )/(zMax-zMin);
+        float weight = 1.0-( zMax - (*vecs)[i].z() )/(zMax-zMin);
         //std::cout << weight << std::endl;
-        //if (weight > 0.5) { weight = (weight-0.5)*0.1; } else {weight = 0;} 
+        //if (weight > 0.5) { weight = 2.0*(weight-0.5); } else {weight = 0;} 
         //weight *= 0.001;
         //weight =1;
 
@@ -125,9 +130,10 @@ void update(float preIncr)
 {
     float incr = preIncr;
 
-    rotX = 0; //2.0*M_PI * perlinNoise(incr); 
-    rotY += 0.001; //2.0*M_PI * perlinNoise(incr+1e5)/2000.0;
-    rotZ = 0;// 2.0*M_PI * perlinNoise(incr+2e5);
+    rotX += 0; //2.0*M_PI * perlinNoise(incr)/3000.0;
+    //rotY += 0.001; //2.0*M_PI * perlinNoise(incr+1e5)/2000.0;
+    rotY += 2.0*M_PI * perlinNoise(incr+1e5)/3000.0;
+    rotZ += 0;//2.0*M_PI * perlinNoise(incr+2e5)/3000.0;
 
     osg::Quat quat = osg::Quat(
             rotX, osg::Vec3(1,0,0),
@@ -162,18 +168,25 @@ void update(float preIncr)
       
         bool doBones = true;
         if (doBones) {
-        osg::Matrixd rot(att->getAttitude() );
+        //osg::Matrixd rot(att->getAttitude() );
         //rot.invert(rot);
-        osg::Matrixd rot2(objpos->getAttitude() );
+        //osg::Matrixd rot2(objpos->getAttitude() );
         //rot2.invert(rot2);
         
+        osg::Matrixd rot1 = objpos->getWorldMatrices()[0];
+        osg::Matrixd rot2 = objposNoAtt->getWorldMatrices()[0];
+
 	    for (unsigned i = 0; i < vecs->getNumElements() &&
                                     parentWeights.size() ; i++) {
+            osg::Vec3 pos =  (*origVecs)[i];
+            //osg::Vec3d parentPos = rot.preMult( (*origVecs)[i] );
+            //parentPos = rot2.preMult( parentPos );
+           
+            osg::Vec3d diff = rot2.preMult(pos) - rot1.preMult(pos);
+            (*vecs)[i] = pos + diff*parentWeights[i];
 
-            osg::Vec3d parentPos = rot.preMult( (*origVecs)[i] );
-            parentPos = rot2.preMult( parentPos );
-            osg::Vec3d newPos = parentPos*parentWeights[i] + (*origVecs)[i]*(1.0-parentWeights[i]);
-            (*vecs)[i] = newPos;
+            //osg::Vec3d newPos = parentPos*parentWeights[i] + (*origVecs)[i]*(1.0-parentWeights[i]);
+            //(*vecs)[i] = newPos;
         }
         }
 
@@ -188,7 +201,9 @@ void update(float preIncr)
     osg::PositionAttitudeTransform* pos;
     /// position of object, should be halfway between origin of att and pos
     osg::PositionAttitudeTransform* objpos;
+    osg::PositionAttitudeTransform* objposNoAtt;
     osg::PositionAttitudeTransform* att;
+    osg::PositionAttitudeTransform* root;
 
 
 	osg::Vec3Array* origVecs;
@@ -248,6 +263,14 @@ bone* makeRandomBone(int numChildren)
         
         newBone->objpos->setAttitude(attitude);
         newBone->objpos->setPosition(pos*0.5f);
+         
+        newBone->objposNoAtt->setAttitude(attitude);
+        newBone->objposNoAtt->setPosition(pos*0.5f);
+        
+
+       
+        /// setScale doesn't work well with the bone position
+        /// mixing.
         //newBone->objpos->setScale(osg::Vec3(pos.length()/12.0,pos.length()/12.0,pos.length()/2.2)); 
         //newBone->objpos->setScale(osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0)); 
         osg::Vec3 scale = osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0); 
@@ -268,7 +291,7 @@ bone* makeRandomBone(int numChildren)
         bone* childBone = makeRandomBone(numChildren-1);
         childBone->parent = newBone;
         newBone->children.push_back(childBone);
-        newBone->pos->addChild(childBone->att);
+        newBone->pos->addChild(childBone->root);
     }
 
     return newBone;
