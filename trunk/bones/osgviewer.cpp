@@ -59,6 +59,12 @@ public:
     float rotY;
     float rotZ;
 
+    float rotXvel; 
+    float rotYvel;
+    float rotZvel;
+
+
+
 	osg::Vec3Array* vecs;
 
 bone()
@@ -71,12 +77,20 @@ bone()
     objposNoAtt = new osg::PositionAttitudeTransform;
     objposScene = new osg::PositionAttitudeTransform;
    
-   
-   // osg::Node* 
-    object = (osgDB::readNodeFile("sphere1.obj"));
+    rotX = 0;
+    rotY = 0;
+    rotZ = 0;
+
+    rotXvel = 0;
+    rotYvel = 0;
+    rotZvel = 0;
+
+   // osg::Node*
+   // / I think these two files need to be the same
+    object = (osgDB::readNodeFile("cyl1.obj"));
     objpos->addChild(object);
 
-    object2 = (osgDB::readNodeFile("sphere1b.obj"));
+    object2 = (osgDB::readNodeFile("cyl1.obj"));
     objposScene->addChild(object2);
 
 
@@ -125,10 +139,10 @@ bone()
         //weight *= 0.001;
         //weight =1;
 
-        parentWeights.push_back( weight );
+        parentWeights.push_back( weight*weight );
     }
 
-    /// causing mem dumps
+    /// useful but causing mem dumps
     if (0) {
 	springLine.start = osg::Vec3(0,0,0);
 	//springLine.end   = ->getPosition();
@@ -147,9 +161,17 @@ void update(float preIncr)
 {
     float incr = preIncr;
 
+    float reduceVel = 0.8;
     //rotX += 2.0*M_PI * perlinNoise(incr)/3000.0;
-    rotY -= 0.001; //2.0*M_PI * perlinNoise(incr+1e5)/2000.0;
-    //rotY += 2.0*M_PI * perlinNoise(incr+1e5)/3000.0;
+    //rotY -= 0.001; 
+    rotYvel += 2.0*M_PI * (perlinNoise(50*incr+1e5) - 0.5)/60000.0;
+    rotY += rotYvel;
+   
+    /// joint limits could be per bone, and somewhat random
+    float limit = M_PI*0.5;
+    if (rotY >= limit) { rotY = M_PI/2.0- M_PI/100.0;  rotYvel = -rotYvel*reduceVel; }
+    if (rotY <= -limit) {rotY = -M_PI/2.0 + M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
+    
     //rotZ += 2.0*M_PI * perlinNoise(incr+2e5)/3000.0;
 
     osg::Quat quat = osg::Quat(
@@ -175,6 +197,7 @@ void update(float preIncr)
         osg::Matrixd rot1 = objpos->getWorldMatrices()[0];
         osg::Matrixd rot2 = objposNoAtt->getWorldMatrices()[0];
 
+        osg::Vec3 cenDiff = rot2.preMult(osg::Vec3(0,0,0)) - rot1.preMult(osg::Vec3(0,0,0)); 
 
         for (unsigned i = 0; i < vecs->getNumElements() &&
                 parentWeights.size() ; i++) {
@@ -210,14 +233,17 @@ void update(float preIncr)
             //(*vecs)[i] = pos;// + diff; //*parentWeights[i];
             osg::Quat slerped;
             slerped.slerp(parentWeights[i], att->getAttitude(), root->getAttitude()); 
-            //slerped.slerp(0.5, att->getAttitude(), root->getAttitude());
 
             osg::Vec3 slerpedPos = slerped*pos;
-            (*vecs)[i] = slerpedPos; 
+            //(*vecs)[i] = slerpedPos; 
             
             //(*vecs)[i] = pos; 
+            (*vecs)[i] = pos*0.1; 
             
-            (*vecs2)[i] = rot2.preMult(slerpedPos);// - rot1.preMult(pos); 
+            /// this is basically it, but there's a discontinuity 
+            /// problem with the rotation passing through PI/2
+            ///
+            (*vecs2)[i] = rot2.preMult(slerpedPos);
 
         }
     }
@@ -340,10 +366,10 @@ bone* makeRandomBone(int numChildren)
         attitude.set(temp);
         
         newBone->objpos->setAttitude(attitude);
-        newBone->objpos->setPosition(pos*0.5f);
+        //newBone->objpos->setPosition(pos*0.5f);
          
         newBone->objposNoAtt->setAttitude(attitude);
-        newBone->objposNoAtt->setPosition(pos*0.5f);
+        //newBone->objposNoAtt->setPosition(pos*0.5f);
         
 
        
@@ -357,7 +383,7 @@ bone* makeRandomBone(int numChildren)
             osg::Vec3 temp = (*(newBone->origVecs))[i];
             temp = osg::Vec3(temp.x()*scale.x(), temp.y()*scale.y(), temp.z()*scale.z());
             
-            (*(newBone->origVecs))[i] = temp;
+            (*(newBone->origVecs))[i] = temp - osg::Vec3(0,0,pos.length()/2.0);
         }
     
     }
@@ -509,6 +535,7 @@ osg::Node* createLights(osg::StateSet* rootStateSet, osg::Vec4 pos, osg::Vec4 di
 	}
 
 
+    /// return a 0-1 float or a -.5 to .5 float?
     double perlinNoise(float x)
     {
        return (      perlinNoise(x,128) +  
@@ -521,7 +548,7 @@ osg::Node* createLights(osg::StateSet* rootStateSet, osg::Vec4 pos, osg::Vec4 di
 void updateBones(float preIncr)
 {
 
-    for (unsigned j = 1; j < allBones.size(); j++) {
+    for (unsigned j = 0; j < allBones.size(); j++) {
                  
             allBones[j]->update(preIncr + j*1000.0);
      }
