@@ -43,7 +43,7 @@ double perlinNoise(float x, int period);
 double perlinNoise(float x);
 
 
-float random(float min = -0.5f, float max = 0.5f)
+float randomf(float min = -0.5f, float max = 0.5f)
 {
     float src = (rand()%1000000)/1e6;
 
@@ -167,18 +167,28 @@ void update(float preIncr)
     float incr = preIncr;
 
     float reduceVel = 0.8;
-    //rotX += 2.0*M_PI * perlinNoise(incr)/3000.0;
     //rotY -= 0.001; 
-    rotYvel += 2.0*M_PI * (perlinNoise(50*incr+1e5) - 0.5)/60000.0;
-    rotY += rotYvel;
-   
-    /// joint limits could be per bone, and somewhat random
-    float limit = M_PI*0.5;
-    if (rotY >= limit) { rotY = M_PI/2.0- M_PI/100.0;  rotYvel = -rotYvel*reduceVel; }
-    if (rotY <= -limit) {rotY = -M_PI/2.0 + M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
-    
-    //rotZ += 2.0*M_PI * perlinNoise(incr+2e5)/3000.0;
+    //rotXvel += 2.0*M_PI * (perlinNoise(50*incr) - 0.5)/2e5;
+    //rotX += rotXvel;
 
+    rotYvel += 2.0*M_PI * (perlinNoise(50*incr+1e5) - 0.5)/2e5;
+    //rotYvel *= 0.99;
+    rotY += rotYvel;
+  
+    //rotZvel += 2.0*M_PI * (perlinNoise(50*incr +2e5) - 0.5)/2e5;
+    //rotZ += rotZvel;
+
+    /// joint limits could be per bone, and somewhat random
+    const float limit = M_PI*0.9;
+    if (rotY >= limit) { rotY =  limit - M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
+    if (rotY <= -limit) {rotY = -limit + M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
+   
+    if (rotX >= limit) { rotX =  limit - M_PI/100.0; rotXvel = -rotYvel*reduceVel; }
+    if (rotX <= -limit) {rotX = -limit + M_PI/100.0; rotXvel = -rotYvel*reduceVel; }
+   
+    if (rotZ >= limit) { rotZ =  limit - M_PI/100.0; rotXvel = -rotYvel*reduceVel; }
+    if (rotZ <= -limit) {rotZ = -limit + M_PI/100.0; rotXvel = -rotYvel*reduceVel; }
+    
     osg::Quat quat = osg::Quat(
             rotX, osg::Vec3(1,0,0),
             rotY, osg::Vec3(0,1,0),
@@ -199,10 +209,12 @@ void update(float preIncr)
         //osg::Matrixd rot(att->getAttitude() );
         //osg::Matrixd rot2(objpos->getAttitude() );
 
+        #if 0
         osg::Matrixd rot1 = objpos->getWorldMatrices()[0];
         osg::Matrixd rot2 = objposNoAtt->getWorldMatrices()[0];
 
         osg::Vec3 cenDiff = rot2.preMult(osg::Vec3(0,0,0)) - rot1.preMult(osg::Vec3(0,0,0)); 
+        #endif
 
         /// do the position mixing
         for (unsigned i = 0; i < vecs->getNumElements() &&
@@ -632,7 +644,15 @@ int main( int argc, char **argv )
 
     bone* rootBone = makeRandomBone(numLimbs);
     std::cout << "allBones.size() " << allBones.size() << std::endl;
-    scene->addChild(rootBone->root);
+   
+    /// duplicate the bones thing all over
+    for (unsigned i = 0; i < 1; i++) {
+        osg::PositionAttitudeTransform* randPlace = new osg::PositionAttitudeTransform;
+        randPlace->setPosition(osg::Vec3(randomf(),randomf(),0.0 )*50.0f );
+        randPlace->addChild(rootBone->root);
+        scene->addChild(randPlace);
+
+    }
 
     #if 0
     for (unsigned i = 0; i < allBones.size(); i++) {
