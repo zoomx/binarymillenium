@@ -75,8 +75,12 @@ bone()
 
     objpos = new osg::PositionAttitudeTransform;
     objposNoAtt = new osg::PositionAttitudeTransform;
+    
+    #if 0
     objposScene = new osg::PositionAttitudeTransform;
-   
+    #endif
+
+
     rotX = 0;
     rotY = 0;
     rotZ = 0;
@@ -88,11 +92,12 @@ bone()
    // osg::Node*
    // / I think these two files need to be the same
     object = (osgDB::readNodeFile("cyl1.obj"));
-    objpos->addChild(object);
-
+    objposNoAtt->addChild(object);
+    
+    #if 0
     object2 = (osgDB::readNodeFile("cyl1.obj"));
     objposScene->addChild(object2);
-
+    #endif
 
 
     att->addChild(objpos);
@@ -186,9 +191,9 @@ void update(float preIncr)
 	osg::Group* group = dynamic_cast<osg::Group*>(object);
 	osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
 
-
+#if 0
     osg::Vec3Array* vecs2 = new osg::Vec3Array(*vecs, osg::CopyOp::DEEP_COPY_ALL);
-
+#endif
     bool doBones = true;
     if (doBones) {
         //osg::Matrixd rot(att->getAttitude() );
@@ -199,6 +204,7 @@ void update(float preIncr)
 
         osg::Vec3 cenDiff = rot2.preMult(osg::Vec3(0,0,0)) - rot1.preMult(osg::Vec3(0,0,0)); 
 
+        /// do the position mixing
         for (unsigned i = 0; i < vecs->getNumElements() &&
                 parentWeights.size() ; i++) {
             osg::Vec3 pos =  (*origVecs)[i];
@@ -208,44 +214,23 @@ void update(float preIncr)
             //(*vecs)[i] = newPos;
 
 
-#if 0
-    /// this looks the same as the preMult approach- something must be wrong with
-    /// how I'm doing this.
-        osg::ref_ptr<osg::PositionAttitudeTransform> temp1 = new osg::PositionAttitudeTransform; 
-        osg::ref_ptr<osg::PositionAttitudeTransform> temp2 = new osg::PositionAttitudeTransform; 
-            
-            objpos->addChild(temp1.get());
-            objposNoAtt->addChild(temp2.get());
-
-            temp1->setPosition(pos);
-            temp2->setPosition(pos);
-
-            osg::Matrixd rot1 = temp1->getWorldMatrices()[0];
-            osg::Matrixd rot2 = temp2->getWorldMatrices()[0];
-        
-            objpos->removeChild(temp1.get());
-            objposNoAtt->removeChild(temp2.get());
-            
-            osg::Vec3d diff = rot2.preMult(osg::Vec3(0,0,0)) - rot1.preMult(osg::Vec3(0,0,0));
-#endif
-
             //osg::Vec3d diff = rot2.preMult(pos) - rot1.preMult(pos);
             //(*vecs)[i] = pos;// + diff; //*parentWeights[i];
             osg::Quat slerped;
             slerped.slerp(parentWeights[i], att->getAttitude(), root->getAttitude()); 
 
             osg::Vec3 slerpedPos = slerped*pos;
-            //(*vecs)[i] = slerpedPos; 
-            
-            //(*vecs)[i] = pos; 
-            (*vecs)[i] = pos*0.1; 
-            
+            (*vecs)[i] = slerpedPos; 
+           // (*vecs)[i] = pos; 
+           
+           #if 0
             /// this is basically it, but there's a discontinuity 
             /// problem with the rotation passing through PI/2
             ///
             (*vecs2)[i] = rot2.preMult(slerpedPos);
-
+            #endif 
         }
+
     }
 
 
@@ -274,6 +259,7 @@ void update(float preIncr)
     }
 
     /// temp to do same for object2
+    #if 0
     {
         osg::Group* group = dynamic_cast<osg::Group*>(object2);
         osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
@@ -297,7 +283,7 @@ void update(float preIncr)
         osgUtil::SmoothingVisitor sv;
         sv.smooth(*mesh);
     }
-
+    #endif
 
 }
 
@@ -310,7 +296,10 @@ void update(float preIncr)
     /// position of object, should be halfway between origin of att and pos
     osg::PositionAttitudeTransform* objpos;
     osg::PositionAttitudeTransform* objposNoAtt;
-    osg::PositionAttitudeTransform* objposScene;
+  #if 0
+  osg::PositionAttitudeTransform* objposScene;
+    osg::Node* object2;
+    #endif
     osg::PositionAttitudeTransform* att;
     osg::PositionAttitudeTransform* root;
 
@@ -321,7 +310,6 @@ void update(float preIncr)
     std::vector<bone*> children;
 
     osg::Node* object;
-    osg::Node* object2;
 
     std::vector<float> parentWeights;
 
@@ -645,10 +633,12 @@ int main( int argc, char **argv )
     bone* rootBone = makeRandomBone(numLimbs);
     std::cout << "allBones.size() " << allBones.size() << std::endl;
     scene->addChild(rootBone->root);
+
+    #if 0
     for (unsigned i = 0; i < allBones.size(); i++) {
         scene->addChild(allBones[i]->objposScene);
     }
-
+    #endif
 
     // create the windows and run the threads.
     viewer.realize();
