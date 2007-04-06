@@ -36,6 +36,9 @@
 #include "GliderManipulator.hpp"
 #include "line.hpp"
 
+//#define VECS2
+#define MAKETREE
+
 namespace {
 
 
@@ -76,7 +79,7 @@ bone()
     objpos = new osg::PositionAttitudeTransform;
     objposNoAtt = new osg::PositionAttitudeTransform;
     
-    #if 0
+    #ifdef VECS2
     objposScene = new osg::PositionAttitudeTransform;
     #endif
 
@@ -91,11 +94,11 @@ bone()
 
    // osg::Node*
    // / I think these two files need to be the same
-    object = (osgDB::readNodeFile("cyl1.obj"));
+    object = (osgDB::readNodeFile("cyl3.obj"));
     objposNoAtt->addChild(object);
     
-    #if 0
-    object2 = (osgDB::readNodeFile("cyl1.obj"));
+    #ifdef VECS2
+    object2 = (osgDB::readNodeFile("cyl2.obj"));
     objposScene->addChild(object2);
     #endif
 
@@ -149,15 +152,15 @@ bone()
 
     /// useful but causing mem dumps
     if (0) {
-	springLine.start = osg::Vec3(0,0,0);
-	//springLine.end   = ->getPosition();
-	
-	springLine.color2 = osg::Vec3(1.0,0.1,0.12);
+        springLine.start = osg::Vec3(0,0,0);
+        //springLine.end   = ->getPosition();
 
-	drawableGeode = new osg::Geode();
-	drawableGeode->addDrawable(&springLine);
-    
-    att->addChild(drawableGeode);
+        springLine.color2 = osg::Vec3(1.0,0.1,0.12);
+
+        drawableGeode = new osg::Geode();
+        drawableGeode->addDrawable(&springLine);
+
+        att->addChild(drawableGeode);
     }
 }
 
@@ -168,78 +171,85 @@ void update(float preIncr)
 
     float reduceVel = 0.8;
     //rotY -= 0.001; 
-    //rotXvel += 2.0*M_PI * (perlinNoise(50*incr) - 0.5)/2e5;
-    //rotX += rotXvel;
+    
+    rotXvel += 2.0*M_PI * (perlinNoise(50*incr) - 0.5)/2e5;
+    rotX += rotXvel;
 
     rotYvel += 2.0*M_PI * (perlinNoise(50*incr+1e5) - 0.5)/2e5;
     //rotYvel *= 0.99;
     rotY += rotYvel;
   
-    //rotZvel += 2.0*M_PI * (perlinNoise(50*incr +2e5) - 0.5)/2e5;
-    //rotZ += rotZvel;
+    rotZvel += 2.0*M_PI * (perlinNoise(50*incr +2e5) - 0.5)/2e5;
+    rotZ += rotZvel;
 
     /// joint limits could be per bone, and somewhat random
-    const float limit = M_PI*0.9;
+    const float limit = M_PI*0.5;
     if (rotY >= limit) { rotY =  limit - M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
     if (rotY <= -limit) {rotY = -limit + M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
    
-    if (rotX >= limit) { rotX =  limit - M_PI/100.0; rotXvel = -rotYvel*reduceVel; }
-    if (rotX <= -limit) {rotX = -limit + M_PI/100.0; rotXvel = -rotYvel*reduceVel; }
+    if (rotX >= limit) { rotX =  limit - M_PI/100.0; rotXvel = -rotXvel*reduceVel; }
+    if (rotX <= -limit) {rotX = -limit + M_PI/100.0; rotXvel = -rotXvel*reduceVel; }
    
-    if (rotZ >= limit) { rotZ =  limit - M_PI/100.0; rotXvel = -rotYvel*reduceVel; }
-    if (rotZ <= -limit) {rotZ = -limit + M_PI/100.0; rotXvel = -rotYvel*reduceVel; }
+    if (rotZ >= limit) { rotZ =  limit - M_PI/100.0; rotZvel = -rotZvel*reduceVel; }
+    if (rotZ <= -limit) {rotZ = -limit + M_PI/100.0; rotZvel = -rotZvel*reduceVel; }
     
     osg::Quat quat = osg::Quat(
-            rotX, osg::Vec3(1,0,0),
-            rotY, osg::Vec3(0,1,0),
-            rotZ, osg::Vec3(0,0,1) );
+                        rotX, osg::Vec3(1,0,0),
+                        rotY, osg::Vec3(0,1,0),
+                        rotZ, osg::Vec3(0,0,1) 
+                            );
     att->setAttitude(quat);
     
-
     if (parent == NULL) return;
 
 	osg::Group* group = dynamic_cast<osg::Group*>(object);
 	osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
 
-#if 0
+#ifdef VECS2
     osg::Vec3Array* vecs2 = new osg::Vec3Array(*vecs, osg::CopyOp::DEEP_COPY_ALL);
 #endif
+
     bool doBones = true;
     if (doBones) {
         //osg::Matrixd rot(att->getAttitude() );
         //osg::Matrixd rot2(objpos->getAttitude() );
 
-        #if 0
-        osg::Matrixd rot1 = objpos->getWorldMatrices()[0];
+        //osg::Matrixd rot1 = objpos->getWorldMatrices()[0];
+        //osg::Vec3 cenDiff = rot2.preMult(osg::Vec3(0,0,0)) - rot1.preMult(osg::Vec3(0,0,0)); 
+        #ifdef VECS2
         osg::Matrixd rot2 = objposNoAtt->getWorldMatrices()[0];
-
-        osg::Vec3 cenDiff = rot2.preMult(osg::Vec3(0,0,0)) - rot1.preMult(osg::Vec3(0,0,0)); 
         #endif
 
         /// do the position mixing
         for (unsigned i = 0; i < vecs->getNumElements() &&
                 parentWeights.size() ; i++) {
             osg::Vec3 pos =  (*origVecs)[i];
+           
             //osg::Vec3d parentPos = rot.preMult( (*origVecs)[i] );
             //parentPos = rot2.preMult( parentPos );
             //osg::Vec3d newPos = parentPos*parentWeights[i] + (*origVecs)[i]*(1.0-parentWeights[i]);
             //(*vecs)[i] = newPos;
-
-
             //osg::Vec3d diff = rot2.preMult(pos) - rot1.preMult(pos);
             //(*vecs)[i] = pos;// + diff; //*parentWeights[i];
+
+            /// for some reason the rotations are mismatched for X & Z but not Y
+            /// is there some rotation between att and root that doesn't matter for Y?
+            /// it's the rotation put on by objpos
             osg::Quat slerped;
+
             slerped.slerp(parentWeights[i], att->getAttitude(), root->getAttitude()); 
 
-            osg::Vec3 slerpedPos = slerped*pos;
+            osg::Vec3 slerpedPos = (slerped)*pos;
             (*vecs)[i] = slerpedPos; 
-           // (*vecs)[i] = pos; 
+
+            //(*vecs)[i] = pos; 
            
-           #if 0
+            #ifdef VECS2
             /// this is basically it, but there's a discontinuity 
             /// problem with the rotation passing through PI/2
             ///
             (*vecs2)[i] = rot2.preMult(slerpedPos);
+            //(*vecs2)[i] = rot2.preMult(slerpedPos);
             #endif 
         }
 
@@ -271,7 +281,7 @@ void update(float preIncr)
     }
 
     /// temp to do same for object2
-    #if 0
+    #ifdef VECS2
     {
         osg::Group* group = dynamic_cast<osg::Group*>(object2);
         osg::Geode* geode = dynamic_cast<osg::Geode*>(group->getChild(0));
@@ -283,7 +293,6 @@ void update(float preIncr)
 
         osg::Geometry* mesh = dynamic_cast<osg::Geometry*>(geode->getDrawable(0));
         
-
         if(!mesh) {
             osg::notify(osg::WARN) << mesh << ": mesh " << 
                 " was expected to contain a single drawable" << std::endl;
@@ -308,10 +317,12 @@ void update(float preIncr)
     /// position of object, should be halfway between origin of att and pos
     osg::PositionAttitudeTransform* objpos;
     osg::PositionAttitudeTransform* objposNoAtt;
-  #if 0
-  osg::PositionAttitudeTransform* objposScene;
+  
+    #ifdef VECS2
+    osg::PositionAttitudeTransform* objposScene;
     osg::Node* object2;
     #endif
+    
     osg::PositionAttitudeTransform* att;
     osg::PositionAttitudeTransform* root;
 
@@ -334,20 +345,27 @@ void update(float preIncr)
 std::vector<bone*> allBones;
 
 
-bone* makeRandomBone(int numChildren)
+bone* makeRandomBone(int numChildren, float size)
 {
     bone* newBone = new bone;
    
     /// this should be handled elsewhere
     allBones.push_back(newBone);
 
-    //osg::Vec3 pos = osg::Vec3(0.7+random(),random(),random() )*15.0f;
-    osg::Vec3 pos = osg::Vec3(1.0,0,0 )*15.0f;
+    osg::Vec3 pos = osg::Vec3(size/10.0+random(),random(),random() )*size;
+    float actual_size =size; // pos.length(); 
+    //osg::Vec3 pos = osg::Vec3(1.0,0,0 )*15.0f;
     //osg::Vec3 pos = osg::Vec3(0.0,1.0,1.0)*15.0f;
     newBone->pos->setPosition(pos);
     newBone->springLine.end = pos;
 
     if (1) {
+        /// TBD I think this may be the source of the problems with non-Y
+        /// axis rotations- but what can I do?  Messing around with most of these
+        /// just flips the rotation 180 degrees.
+        /// is it possible that my method just doesn't work with the kind of attitude
+        /// transformation below?  Instead of this, manipulate the vertex data instead?
+        
         /// lookAt
         osg::Vec3 out = pos;
         out.normalize();
@@ -365,10 +383,12 @@ bone* makeRandomBone(int numChildren)
         osg::Quat attitude;
         attitude.set(temp);
         
-        newBone->objpos->setAttitude(attitude);
-        //newBone->objpos->setPosition(pos*0.5f);
+        //newBone->objpos->setAttitude(attitude);
          
-        newBone->objposNoAtt->setAttitude(attitude);
+        //newBone->objposNoAtt->setAttitude(attitude);
+        
+        /// handle this manually with vertices instead
+        //newBone->objpos->setPosition(pos*0.5f);
         //newBone->objposNoAtt->setPosition(pos*0.5f);
         
 
@@ -378,21 +398,28 @@ bone* makeRandomBone(int numChildren)
         //newBone->objpos->setScale(osg::Vec3(pos.length()/12.0,pos.length()/12.0,pos.length()/2.2)); 
         //newBone->objpos->setScale(osg::Vec3(pos.length()/4.0,pos.length()/4.0,pos.length()/2.0)); 
         osg::Vec3 scale = osg::Vec3(pos.length()/6.0,pos.length()/6.0,pos.length()/2.0); 
-     
 	    for (unsigned i = 0; i < newBone->origVecs->getNumElements(); i++) {
             osg::Vec3 temp = (*(newBone->origVecs))[i];
             temp = osg::Vec3(temp.x()*scale.x(), temp.y()*scale.y(), temp.z()*scale.z());
+           
             
-            (*(newBone->origVecs))[i] = temp - osg::Vec3(0,0,pos.length()/2.0);
+            temp = temp - osg::Vec3(0,0,pos.length()/2.0);
+            /// this is looking like it works
+            temp = attitude*temp;
+            
+            (*(newBone->origVecs))[i] = temp;
         }
     
     }
 
 
-    //for (int i = 0; i< numChildren; i++) {
-    //    bone* childBone = makeRandomBone(rand()%numChildren);
+    #ifdef MAKETREE
+    for (int i = 0; i< numChildren; i++) {
+        bone* childBone = makeRandomBone(rand()%(numChildren), actual_size*0.7);
+    #else
     for (int i = 0; ((i < 1) && (i < numChildren)); i++) {
-        bone* childBone = makeRandomBone(numChildren-1);
+        bone* childBone = makeRandomBone(numChildren-1, size*0.9);
+    #endif
         childBone->parent = newBone;
         newBone->children.push_back(childBone);
         newBone->pos->addChild(childBone->root);
@@ -642,19 +669,19 @@ int main( int argc, char **argv )
     // pass the loaded scene graph to the viewer.
     viewer.setSceneData(scene);
 
-    bone* rootBone = makeRandomBone(numLimbs);
+    bone* rootBone = makeRandomBone(numLimbs,15.0f);
     std::cout << "allBones.size() " << allBones.size() << std::endl;
    
     /// duplicate the bones thing all over
     for (unsigned i = 0; i < 1; i++) {
         osg::PositionAttitudeTransform* randPlace = new osg::PositionAttitudeTransform;
-        randPlace->setPosition(osg::Vec3(randomf(),randomf(),0.0 )*50.0f );
+        //randPlace->setPosition(osg::Vec3(randomf(),randomf(),0.0 )*50.0f );
         randPlace->addChild(rootBone->root);
         scene->addChild(randPlace);
 
     }
 
-    #if 0
+    #ifdef VECS2
     for (unsigned i = 0; i < allBones.size(); i++) {
         scene->addChild(allBones[i]->objposScene);
     }
