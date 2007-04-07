@@ -167,38 +167,44 @@ bone()
 
 void update(float preIncr)
 {
-    float incr = preIncr;
-
-    float reduceVel = 0.8;
-    //rotY -= 0.001; 
     
-    rotXvel += 2.0*M_PI * (perlinNoise(50*incr) - 0.5)/2e5;
-    rotX += rotXvel;
+    {
+        float incr = preIncr;
 
-    rotYvel += 2.0*M_PI * (perlinNoise(50*incr+1e5) - 0.5)/2e5;
-    //rotYvel *= 0.99;
-    rotY += rotYvel;
-  
-    rotZvel += 2.0*M_PI * (perlinNoise(50*incr +2e5) - 0.5)/2e5;
-    rotZ += rotZvel;
+        float reduceVel = 0.8;
+        //rotY -= 0.001; 
 
-    /// joint limits could be per bone, and somewhat random
-    const float limit = M_PI*0.2;
-    if (rotY >= limit) { rotY =  limit - M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
-    if (rotY <= -limit) {rotY = -limit + M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
-   
-    if (rotX >= limit) { rotX =  limit - M_PI/100.0; rotXvel = -rotXvel*reduceVel; }
-    if (rotX <= -limit) {rotX = -limit + M_PI/100.0; rotXvel = -rotXvel*reduceVel; }
-   
-    if (rotZ >= limit) { rotZ =  limit - M_PI/100.0; rotZvel = -rotZvel*reduceVel; }
-    if (rotZ <= -limit) {rotZ = -limit + M_PI/100.0; rotZvel = -rotZvel*reduceVel; }
-    
-    osg::Quat quat = osg::Quat(
-                        rotX, osg::Vec3(1,0,0),
-                        rotY, osg::Vec3(0,1,0),
-                        rotZ, osg::Vec3(0,0,1) 
-                            );
-    att->setAttitude(quat);
+        float inc_scale = 1.0;
+        float post_scale = 2e4;
+        rotXvel += 2.0*M_PI * (perlinNoise(inc_scale*incr) - 0.5)/post_scale;
+        //rotX += rotXvel;
+
+        rotYvel += 2.0*M_PI * (perlinNoise(inc_scale*incr+1e5) - 0.5)/post_scale;
+        //rotYvel *= 0.99;
+        rotY += rotYvel;
+
+        rotZvel += 2.0*M_PI * (perlinNoise(inc_scale*incr +2e5) - 0.5)/post_scale;
+        rotZ += rotZvel;
+
+        /// joint limits could be per bone, and somewhat random
+        float limit = M_PI*0.5;
+        if (rotX >= limit) { rotX = limit - M_PI/100.0; rotXvel = -rotXvel*reduceVel; }
+        if (rotX <= 0)      {rotX = 0 + M_PI/100.0;     rotXvel = -rotXvel*reduceVel; }
+
+        limit = M_PI*0.9;
+        if (rotY >= limit) { rotY =  limit - M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
+        if (rotY <= -limit) {rotY = -limit + M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
+
+        if (rotZ >= limit) { rotZ =  limit - M_PI/100.0; rotZvel = -rotZvel*reduceVel; }
+        if (rotZ <= -limit) {rotZ = -limit + M_PI/100.0; rotZvel = -rotZvel*reduceVel; }
+
+        osg::Quat quat = osg::Quat(
+                rotX, osg::Vec3(1,0,0),
+                rotY, osg::Vec3(0,1,0),
+                rotZ, osg::Vec3(0,0,1) 
+                );
+        att->setAttitude(quat);
+    } 
     
     if (parent == NULL) return;
 
@@ -660,7 +666,7 @@ int main( int argc, char **argv )
 	osgUtil::Optimizer optimizer;
 
 	/// set background color to black
-	viewer.setClearColor(osg::Vec4(0.0,0.0,0.0,1.0) );
+	viewer.setClearColor(osg::Vec4(0.0,1.0,1.0,1.0) );
 
 	scene = new osg::Group;
 
@@ -676,9 +682,18 @@ int main( int argc, char **argv )
     std::cout << "allBones.size() " << allBones.size() << std::endl;
    
     /// duplicate the bones thing all over
-    for (unsigned i = 0; i < 1; i++) {
+    for (unsigned i = 0; i < 25; i++) {
         osg::PositionAttitudeTransform* randPlace = new osg::PositionAttitudeTransform;
-        //randPlace->setPosition(osg::Vec3(randomf(),randomf(),0.0 )*50.0f );
+        /// just having random positions looks pretty cool
+        randPlace->setPosition(osg::Vec3(randomf(),randomf(),randomf() )*200.0f );
+
+        osg::Quat quat = osg::Quat(
+                        randomf(0,M_PI), osg::Vec3(1,0,0),
+                        randomf(0,M_PI), osg::Vec3(0,1,0),
+                        randomf(0,M_PI), osg::Vec3(0,0,1)
+                            );
+        randPlace->setAttitude(quat);
+
         randPlace->addChild(rootBone->root);
         scene->addChild(randPlace);
 
@@ -689,6 +704,22 @@ int main( int argc, char **argv )
         scene->addChild(allBones[i]->objposScene);
     }
     #endif
+
+
+    if (1) {
+        osg::StateSet* ss = scene->getOrCreateStateSet();
+        osg::Program* BlockyProgram = new osg::Program;
+        BlockyProgram->setName( "blocky" );
+        osg::Shader* BlockyVertObj = new osg::Shader( osg::Shader::VERTEX );
+        osg::Shader* BlockyFragObj = new osg::Shader( osg::Shader::FRAGMENT );
+        BlockyProgram->addShader( BlockyFragObj );
+        BlockyProgram->addShader( BlockyVertObj );
+        ss->setAttributeAndModes(BlockyProgram, osg::StateAttribute::ON);
+
+        BlockyVertObj->loadShaderSourceFromFile("shaders/blocky.vert");
+        BlockyFragObj->loadShaderSourceFromFile("shaders/blocky.frag");
+    }
+
 
     // create the windows and run the threads.
     viewer.realize();
