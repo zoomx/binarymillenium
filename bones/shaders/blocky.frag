@@ -35,17 +35,24 @@ void main(void)
     w = step(ss, blockFract);
     h = step(tt, blockFract);
 
-    vec3 fogColor = vec3(1.0,0.0,0.21);
+    ////
     vec3 fogColor2 = vec3(0.0,0.2,0.9);
 
     //color = mix(Color2, Color1, w * h) * LightIntensity;
     color = vec3(0.5+w/2,1.0-h/2, 1.0)*LightIntensity;
+     
+    float bw = (color.x+color.y+color.z )/3.0;
     
-    dist = clamp(dist/1700,0.0,1.0);
-    dist2 = clamp(dist2/200,0.0,1.0);
-    color = fogColor*(dist) + color*(1-dist);
+    dist2 = clamp(1-dist2/120,0.0,1.0);
     color = fogColor2*(dist2) + color*(1-dist2);
-    
+  
+    ///
+     bw *= bw;
+    vec3 bwcolor = vec3(bw,bw,bw);
+   
+    dist *= dist*dist;
+    color = color*dist*(dist2) + color*(1-dist2);
+
     gl_FragColor = vec4(color, 1.0);
 }
 
