@@ -183,7 +183,7 @@ void update(float preIncr)
     rotZ += rotZvel;
 
     /// joint limits could be per bone, and somewhat random
-    const float limit = M_PI*0.5;
+    const float limit = M_PI*0.2;
     if (rotY >= limit) { rotY =  limit - M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
     if (rotY <= -limit) {rotY = -limit + M_PI/100.0; rotYvel = -rotYvel*reduceVel; }
    
@@ -345,16 +345,14 @@ void update(float preIncr)
 std::vector<bone*> allBones;
 
 
-bone* makeRandomBone(int numChildren, float size)
+bone* makeRandomBone(const int numChildren, const osg::Vec3 pos, const float size)
 {
     bone* newBone = new bone;
    
     /// this should be handled elsewhere
     allBones.push_back(newBone);
 
-    osg::Vec3 pos = osg::Vec3(size/10.0+random(),random(),random() )*size;
     float actual_size =size; // pos.length(); 
-    //osg::Vec3 pos = osg::Vec3(1.0,0,0 )*15.0f;
     //osg::Vec3 pos = osg::Vec3(0.0,1.0,1.0)*15.0f;
     newBone->pos->setPosition(pos);
     newBone->springLine.end = pos;
@@ -415,10 +413,15 @@ bone* makeRandomBone(int numChildren, float size)
 
     #ifdef MAKETREE
     for (int i = 0; i< numChildren; i++) {
-        bone* childBone = makeRandomBone(rand()%(numChildren), actual_size*0.7);
+        //osg::Vec3 pos = osg::Vec3(size/10.0+random(),random(),random() )*size;
+        float angle_offset = M_PI*randomf();
+        float angle = ((float)i/(float)numChildren)*2.0*M_PI + angle_offset;
+        osg::Vec3 pos = osg::Vec3(cos(angle)*size,sin(angle)*size, 3.0f*size );
+        bone* childBone = makeRandomBone(numChildren-1, pos, actual_size*0.7);
     #else
     for (int i = 0; ((i < 1) && (i < numChildren)); i++) {
-        bone* childBone = makeRandomBone(numChildren-1, size*0.9);
+        osg::Vec3 pos = osg::Vec3(1.0,0,0 )*15.0f;
+        bone* childBone = makeRandomBone(numChildren-1,pos, size*0.9);
     #endif
         childBone->parent = newBone;
         newBone->children.push_back(childBone);
@@ -669,7 +672,7 @@ int main( int argc, char **argv )
     // pass the loaded scene graph to the viewer.
     viewer.setSceneData(scene);
 
-    bone* rootBone = makeRandomBone(numLimbs,15.0f);
+    bone* rootBone = makeRandomBone(numLimbs,osg::Vec3(0.0,10.0,0.0),15.0f);
     std::cout << "allBones.size() " << allBones.size() << std::endl;
    
     /// duplicate the bones thing all over
