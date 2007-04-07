@@ -666,7 +666,7 @@ int main( int argc, char **argv )
 	osgUtil::Optimizer optimizer;
 
 	/// set background color to black
-	viewer.setClearColor(osg::Vec4(0.0,1.0,1.0,1.0) );
+	viewer.setClearColor(osg::Vec4(1.0,1.0,1.0,1.0) );
 
 	scene = new osg::Group;
 
@@ -718,6 +718,9 @@ int main( int argc, char **argv )
 
         BlockyVertObj->loadShaderSourceFromFile("shaders/blocky.vert");
         BlockyFragObj->loadShaderSourceFromFile("shaders/blocky.frag");
+   
+    //for unsigned i = 0
+   //viewer.getSceneHandlerList()[0]->getSceneView()->setActiveUniforms(osgUtil::SceneView::VIEW_MATRIX_INVERSE_UNIFORM); 
     }
 
 

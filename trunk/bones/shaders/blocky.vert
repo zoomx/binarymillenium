@@ -7,6 +7,8 @@
 // the App updates uniforms "slowly" (eg once per frame) for animation.
 uniform float Sine;
 
+uniform mat4 osg_ViewMatrixInverse;
+
 const vec3 LightPosition = vec3(10.0, 0.0, 0.0);
 const float BlockScale = 0.30;
 
@@ -30,12 +32,16 @@ void main(void)
     //vec3 out(0,0,-1.0);
     float viewInt = dot(tnorm,vec3(0,1.0,0.0));
     //LightIntensity /= (-ecPosition.z/200.0);
-    dist = (-ecPosition.z);
+   
+    if (viewInt <0) abs(viewInt);
+    dist = 1.0-viewInt;
+    
+    vec4 vertworldcoords = osg_ViewMatrixInverse*gl_ModelViewMatrix * gl_Vertex;
     //dist2 = length(gl_Vertex);
-    dist2 = length(ecPosition.y);
+    dist2 = length(vertworldcoords);
     
     if (viewInt < 0.2) { LightIntensity = 0.0; }
-    if (viewInt > 0.9) { LightIntensity = 1.5; }
+    if (viewInt > 0.9) { LightIntensity = 1.9; }
 
     gl_Position	= gl_ModelViewProjectionMatrix * gl_Vertex;
 
