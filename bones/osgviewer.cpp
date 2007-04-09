@@ -171,23 +171,22 @@ void update(float preIncr)
     {
         float incr = preIncr;
 
-        float reduceVel = 0.8;
+        float reduceVel = 1.0;
         //rotY -= 0.001; 
 
         float inc_scale = 1.0;
-        float post_scale = 2e4;
+        float post_scale = 6e4;
         rotXvel += 2.0*M_PI * (perlinNoise(inc_scale*incr) - 0.5)/post_scale;
         //rotX += rotXvel;
 
         rotYvel += 2.0*M_PI * (perlinNoise(inc_scale*incr+1e5) - 0.5)/post_scale;
-        //rotYvel *= 0.99;
         rotY += rotYvel;
 
         rotZvel += 2.0*M_PI * (perlinNoise(inc_scale*incr +2e5) - 0.5)/post_scale;
         rotZ += rotZvel;
 
         /// joint limits could be per bone, and somewhat random
-        float limit = M_PI*0.5;
+        float limit = M_PI*0.25;
         if (rotX >= limit) { rotX = limit - M_PI/100.0; rotXvel = -rotXvel*reduceVel; }
         if (rotX <= 0)      {rotX = 0 + M_PI/100.0;     rotXvel = -rotXvel*reduceVel; }
 
@@ -198,6 +197,9 @@ void update(float preIncr)
         if (rotZ >= limit) { rotZ =  limit - M_PI/100.0; rotZvel = -rotZvel*reduceVel; }
         if (rotZ <= -limit) {rotZ = -limit + M_PI/100.0; rotZvel = -rotZvel*reduceVel; }
 
+        rotXvel *= 0.999;
+        rotYvel *= 0.999;
+        rotZvel *= 0.999;
         osg::Quat quat = osg::Quat(
                 rotX, osg::Vec3(1,0,0),
                 rotY, osg::Vec3(0,1,0),
@@ -666,7 +668,7 @@ int main( int argc, char **argv )
 	osgUtil::Optimizer optimizer;
 
 	/// set background color to black
-	viewer.setClearColor(osg::Vec4(1.0,1.0,1.0,1.0) );
+	viewer.setClearColor(osg::Vec4(0.95,0.95,0.95,1.0) );
 
 	scene = new osg::Group;
 
@@ -751,7 +753,7 @@ int main( int argc, char **argv )
         
 
 
-		if (0) {
+		if (1) {
 			std::stringstream imageName;
 			imageName << "images/image_" << i << ".jpg";
 			screenCapture(&viewer, imageName.str());
