@@ -4,6 +4,7 @@ include $(TOPDIR)/Make/makedefs
 CXXFILES =\
 	GliderManipulator.cpp\
 	line.cpp\
+	bone.cpp\
 	osgviewer.cpp
 	
 
