@@ -2,10 +2,20 @@
 
 = Introduction =
 
-I thought I'd learn the basics of the Google Web Toolkit, and make a simple 3D world to explore.
+I thought I'd learn the basics of the Google Web Toolkit, and make a simple tiled 3D world to explore.
+
+http://binarymillenium.googlecode.com/svn/wiki/gwt/gwt_tiles.png
 
 = Details =
 
+Code:
+http://binarymillenium.googlecode.com/svn/trunk/gwt/tiles/
+
+Run tiles-compile & tiles-shell to run it (or open it in a browser).
+
 TBD - will uploading the compiled files to the wiki allow the project to be run on code.google?
+
+So far it doesn't look like it, it renders the html as a text file and probably wouldn't allow javascript to run anyway.
+
 
 
