@@ -1,0 +1,11 @@
+#summary Might & Magic style first-person 3D tile world
+
+= Introduction =
+
+I thought I'd learn the basics of the Google Web Toolkit, and make a simple 3D world to explore.
+
+= Details =
+
+TBD - will uploading the compiled files to the wiki allow the project to be run on code.google?
+
+
