@@ -1,4 +1,4 @@
-#summary Might & Magic style first-person 3D tile world
+#summary Might and Magic style first-person 3D tile world
 
 = Introduction =
 
@@ -16,6 +16,5 @@ Run tiles-compile & tiles-shell to run it (or open it in a browser).
 TBD - will uploading the compiled files to the wiki allow the project to be run on code.google?
 
 So far it doesn't look like it, it renders the html as a text file and probably wouldn't allow javascript to run anyway.
-
 
 
