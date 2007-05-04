@@ -1,0 +1,4 @@
+#!/bin/sh
+APPDIR=`dirname $0`;
+GWTDIR=/home/lucasw/other/gwt-linux-1.3.3;
+java  -cp "$APPDIR/src:$APPDIR/bin:$GWTDIR/gwt-user.jar:$GWTDIR/gwt-dev-linux.jar" com.google.gwt.dev.GWTCompiler -out "$APPDIR/www" "$@" binarymillenium.tiles.Tiles;
