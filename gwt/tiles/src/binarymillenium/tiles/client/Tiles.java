@@ -25,6 +25,11 @@ import java.lang.Math;
 public class Tiles implements EntryPoint {
 
     private AbsolutePanel panel;
+    
+    private AbsolutePanel mappanel;
+    private int MAPPANELGRIDSIZE = 11;
+    private int MAPPANELSIZE = 110;
+    private Image[] mapobjects = new Image[MAPPANELGRIDSIZE*MAPPANELGRIDSIZE];
 
     private FocusPanel focPan;
 
@@ -32,8 +37,11 @@ public class Tiles implements EntryPoint {
     private Image ground = new Image("grass.png");
    
 
-    private int mapsize = 100;
-    private short[][] map = new short[mapsize][mapsize];
+    private int MAPSIZE = 100;
+    private short[][] map = new short[MAPSIZE][MAPSIZE];
+   
+    /// where the player has visited on the map
+    private boolean[][] mapvisited = new boolean[MAPSIZE][MAPSIZE];
 
 
     //private Image left_wall = new Image("left_wall.png");
@@ -43,9 +51,8 @@ public class Tiles implements EntryPoint {
     private int numobjs = (VIEWDEPTH+3)*VIEWDEPTH;
     private Image[] viewobjects = new Image[numobjs];
     
-
-    private int viewx = mapsize/2;
-    private int viewy = mapsize/2;
+    private int viewx = MAPSIZE/2;
+    private int viewy = MAPSIZE/2;
 
     private int viewdirx = 0;
     private int viewdiry = 1;
@@ -58,10 +65,24 @@ public class Tiles implements EntryPoint {
     private int  numtrees = 200;
     private int  nummountains = 100;
 
+    public void initmappanel() 
+    {
+        for (int i = 0; i < MAPPANELGRIDSIZE; i++) {
+        for (int j = 0; j < MAPPANELGRIDSIZE; j++) {
+            int ind = i*MAPPANELGRIDSIZE + j;
+            int cellsize = MAPPANELSIZE/MAPPANELGRIDSIZE;
+            mapobjects[ind] = new Image("gray.png");
+            mapobjects[ind].setPixelSize(cellsize,cellsize);
+            mappanel.add(mapobjects[ind]);
+            mappanel.setWidgetPosition(mapobjects[ind],i*cellsize,j*cellsize);
+        }
+        }
+    }
+
   public void populateMap() {
     for (int i = 0; i< numtrees; i++) {
-        int x = (int)(Math.random()*(mapsize-5));
-        int y = (int)(Math.random()*(mapsize-5));
+        int x = (int)(Math.random()*(MAPSIZE-5));
+        int y = (int)(Math.random()*(MAPSIZE-5));
         map[x][y] = TREEKEY;
 
         for (int j = 0; j< 4; j++) {
@@ -74,8 +95,8 @@ public class Tiles implements EntryPoint {
     }
 
     for (int i = 0; i< nummountains; i++) {
-        int x = (int)(Math.random()*(mapsize-10))+5;
-        int y = (int)(Math.random()*(mapsize-10))+5;
+        int x = (int)(Math.random()*(MAPSIZE-10))+5;
+        int y = (int)(Math.random()*(MAPSIZE-10))+5;
 
         for (int j = 0; j< 10; j++) {
             int ox = (int)(Math.random()*5);
@@ -110,6 +131,8 @@ public class Tiles implements EntryPoint {
 
   public void draw() {
 
+
+    /// draw the 3D view
     int ind = 0;
     for (int i = VIEWDEPTH; i >= 0; i--) {
         
@@ -133,9 +156,9 @@ public class Tiles implements EntryPoint {
             }
 
             /// draw nothing if view pos is off the map
-            if        ( (x < 0) || (x >= mapsize) ) {
+            if        ( (x < 0) || (x >= MAPSIZE) ) {
                 viewobjects[ind].setUrl("blank.png");
-            } else if ( (y < 0) || (y >= mapsize) ) {
+            } else if ( (y < 0) || (y >= MAPSIZE) ) {
                 viewobjects[ind].setUrl("blank.png");
             } else {
                 /// draw objects if any
@@ -156,13 +179,50 @@ public class Tiles implements EntryPoint {
 
     }
 
+    mapvisited[viewx][viewy] = true;
+    /// draw the map
+    for (int i = 0; i < MAPPANELGRIDSIZE; i++) {
+    for (int j = 0; j < MAPPANELGRIDSIZE; j++) {
+        int ind2 = i*MAPPANELGRIDSIZE + j;
+
+        int x = viewx - MAPPANELGRIDSIZE/2 + i;
+        int y = viewy - MAPPANELGRIDSIZE/2 + j;
+        
+        if (inMap(x,y)) {
+            if (mapvisited[x][y]) {
+                if    (map[x][y] == TREEKEY ) {
+                    mapobjects[ind2].setUrl("maptree.png");
+                } else if (map[x][y] == MOUNTAINKEY ) {
+                    mapobjects[ind2].setUrl("mapmountain.png");
+                } else {
+                    mapobjects[ind2].setUrl("green.png");
+                }
+            } else { 
+                mapobjects[ind2].setUrl("gray.png");
+            }
+        } else {
+            mapobjects[ind2].setUrl("blank.png");
+        }
+    }
+    }
   }
+
+    public boolean inMap(int x,int y)
+    {
+        return (inMap(x) && inMap(y));
+    }
+    public boolean inMap(int x) 
+    {
+        if (x < 0) return false;
+        if (x > MAPSIZE) return false;
+        return true;
+    }
 
   public void checkBounds() {
     if (viewx < 0) viewy = 0;
         if (viewy < 0) viewy = 0;
-        if (viewx >= mapsize) viewx = mapsize-1;
-        if (viewy >= mapsize) viewy = mapsize-1;
+        if (viewx >= MAPSIZE) viewx = MAPSIZE-1;
+        if (viewy >= MAPSIZE) viewy = MAPSIZE-1;
 
   }
   public void onModuleLoad() {
@@ -269,7 +329,11 @@ public class Tiles implements EntryPoint {
     focPan.add(panel);
     RootPanel.get().add(focPan);
 
-    //left_wall.setSize("256px","256px");
+    mappanel = new AbsolutePanel();
+    panel.add(mappanel);
+    panel.setWidgetPosition(mappanel,512,0);
+    mappanel.setPixelSize(MAPPANELSIZE,MAPPANELSIZE);
+    initmappanel();
 
     //focPan.addKeyboardListener(new landerHandler());
     //focPan.addMouseListener(new landerHandler2());
@@ -280,7 +344,7 @@ public class Tiles implements EntryPoint {
     
     initviewobjects();
     
-    panel.setSize("512px","512px");
+    panel.setPixelSize(512+MAPPANELSIZE,512);
     /// how to specify back to front ordering?
     /// order add and set back to front
     /*for (int i = 0; i < back_wall.length; i++) {
