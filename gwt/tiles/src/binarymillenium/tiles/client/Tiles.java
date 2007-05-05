@@ -186,7 +186,7 @@ public class Tiles implements EntryPoint {
         int ind2 = i*MAPPANELGRIDSIZE + j;
 
         int x = viewx - MAPPANELGRIDSIZE/2 + i;
-        int y = viewy - MAPPANELGRIDSIZE/2 + j;
+        int y = viewy + MAPPANELGRIDSIZE/2 - j;
         
         if (inMap(x,y)) {
             if (mapvisited[x][y]) {
