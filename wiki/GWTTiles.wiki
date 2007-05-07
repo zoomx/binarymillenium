@@ -4,6 +4,9 @@
 
 I thought I'd learn the basics of the Google Web Toolkit, and make a simple tiled 3D world to explore.
 
+Run the game here:
+http://binarymillenium.googlecode.com/svn/trunk/gwt/tiles/www/binarymillenium.tiles.Tiles/Tiles.html
+
 http://binarymillenium.googlecode.com/svn/wiki/gwt/gwt_tiles.png
 
 = Details =
@@ -13,8 +16,10 @@ http://binarymillenium.googlecode.com/svn/trunk/gwt/tiles/
 
 Run tiles-compile & tiles-shell to run it (or open it in a browser).
 
-TBD - will uploading the compiled files to the wiki allow the project to be run on code.google?
+In order to upload the game to svn properly, subversion needs to know that the html files are in fact html rather than text:
 
-So far it doesn't look like it, it renders the html as a text file and probably wouldn't allow javascript to run anyway.
+svn propset svn:mime-type text/html *html 
+
+
 
 
