@@ -21,9 +21,13 @@
 #include <assert.h>
 #include <iostream>
 
-
+#ifdef USEWX
 #include <wx/wx.h>
 #include <wx/rawbmp.h>
+#else
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#endif
 
 extern "C" {
 #include "frei0r.h"
@@ -37,14 +41,19 @@ typedef struct screencap_instance
   unsigned int width;
   unsigned int height;
 
+#ifdef USEWX
 	wxBitmap* bmp;
 	HBITMAP bitmap;
 	int savewximage;
 	wxDC& dc;
+#else
+    Display *dpy;
+    //XImage *ximage;
+#endif
 
 } screencap_instance_t;
 
-
+#ifdef USEWX
 bool wxScreenCapture(wxDC& dc,int x, int y, int sizeX, int sizeY, wxBitmap* bmp, HBITMAP& bitmap, int savewximage)
 {
 	//sizeX = sizeX; //GetSystemMetrics(SM_CXSCREEN);
@@ -59,10 +68,10 @@ bool wxScreenCapture(wxDC& dc,int x, int y, int sizeX, int sizeY, wxBitmap* bmp,
 	HDC mainWinDC = GetDC(GetDesktopWindow());
 	HDC memDC = CreateCompatibleDC(mainWinDC);
 
-	if (bitmap != NULL) {
-	std::cout << "bitmap deleted" << std::endl;
- DeleteObject(bitmap);
-}
+    if (bitmap != NULL) {
+        std::cout << "bitmap deleted" << std::endl;
+        DeleteObject(bitmap);
+    }
 
 	bitmap = CreateCompatibleBitmap(mainWinDC,sizeX,sizeY);
 
@@ -98,6 +107,7 @@ bool wxScreenCapture(wxDC& dc,int x, int y, int sizeX, int sizeY, wxBitmap* bmp,
 	return true;
 
 }
+#endif
 
 /* Clamps a int32-range int between 0 and 255 inclusive. */
 unsigned char CLAMP0255(int32_t a)
@@ -109,14 +119,19 @@ unsigned char CLAMP0255(int32_t a)
 
 int f0r_init()
 {
-wxInitialize();
+#ifdef USEWX
+    wxInitialize();
+#else
+#endif
   return 1;
 }
 
 void f0r_deinit()
-{ 
+{
+#ifdef USEWX
 wxUninitialize();
-/* no initialization required */ }
+#endif
+}
 
 void f0r_get_plugin_info(f0r_plugin_info_t* inverterInfo)
 {
@@ -160,9 +175,13 @@ f0r_instance_t f0r_construct(unsigned int width, unsigned int height)
   inst->x = 0;
   inst->y = 0;
 
+#ifdef USEWX
   inst->bmp = new wxBitmap;
   inst->bitmap = NULL;
   inst->savewximage = 0; 
+#else
+  inst->dpy = XOpenDisplay(NULL);
+#endif
   return (f0r_instance_t)inst;
 }
 
@@ -220,16 +239,17 @@ void f0r_update(f0r_instance_t instance, double time,
 
   int r, g, b, bw;
 
-  
+ 
+ #ifdef USEWX
   if (!wxScreenCapture(inst->dc, inst->x, inst->y, inst->width, inst->height,
 	 inst->bmp, inst->bitmap, inst->savewximage))
 	return;
-  
 
-/// get image from desktop in wxBitmap format,
-wxAlphaPixelData rawbmp(*(inst->bmp), wxPoint(0,0),
-				wxSize(inst->width, inst->height));
-wxAlphaPixelData::Iterator p(rawbmp);  
+
+  /// get image from desktop in wxBitmap format,
+  wxAlphaPixelData rawbmp(*(inst->bmp), wxPoint(0,0),
+          wxSize(inst->width, inst->height));
+  wxAlphaPixelData::Iterator p(rawbmp);  
 
 
    for (unsigned i = 0; (i < inst->height); i++) {
@@ -256,6 +276,49 @@ wxAlphaPixelData::Iterator p(rawbmp);
   }
   DeleteObject(inst->bitmap);
 	inst->bitmap = NULL;
+#else
+    
+    XImage *ximage;
+
+    /// this will crash if x + width is bigger than the screen size
+    /// TBD how to find out the screen size?
+    if (inst->x + inst->width >= 1024) inst->x = 1024-inst->width-1;
+    if (inst->y + inst->height >= 800) inst->y = 800-inst->height-1;
+    ximage = XGetImage(inst->dpy, RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
+                       inst->x, inst->y,
+                       inst->width, inst->height, AllPlanes, ZPixmap);
+    if (!ximage) {
+        std::cerr << "XGetImage failed" << std::endl;
+    } 
+
+
+    for (unsigned i = 0; (i < inst->height); i++) {
+        for (unsigned j = 0; (j < inst->width); j++) {
+            int ind = i*inst->width + j;
+
+            bool flip = ((i > inst->height/4-1) && (i < 3*inst->height/4) &&
+                    (j > inst->width/4-1)  && (j < 3*inst->width/4));
+            flip = !flip;
+            flip = true;
+
+            unsigned long thepix = 0; //ximage->data + ind*3; 
+                thepix = XGetPixel(ximage, j,i); //ximage->data + ind*3; i
+            unsigned short red   = (thepix & ximage->red_mask) >> 16;
+            unsigned short green = (thepix & ximage->green_mask) >> 8;
+            unsigned short blue  = (thepix & ximage->blue_mask) >> 0;
+
+            int incr = 4;
+            dst[ind*incr+2] = flip ? red   : 255-red;
+            dst[ind*incr+1] = flip ? green : 255-green;
+            dst[ind*incr+0] = flip ? blue  : 255-blue;
+            //dst[ind*4+3] = 1.0;
+
+	        //dst += incr;
+        } 
+    }
+
+    XDestroyImage(ximage);
+#endif
 
 }
 
