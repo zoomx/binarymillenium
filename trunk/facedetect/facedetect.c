@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 
-void detect_and_draw( IplImage* img, CvMemStorage* storage, CvHaarClassifierCascade* cascade);
+CvSeq* detect_and_draw( IplImage* img, CvMemStorage* storage, CvHaarClassifierCascade* cascade);
 
 const char* cascade_name =
     "haarcascade_frontalface_alt.xml";
@@ -230,7 +230,7 @@ void f0r_update(f0r_instance_t instance, double time,
 
     }
 
-    detect_and_draw( inst->frame_copy, inst->storage, inst->cascade );
+    CvSeq* faces = detect_and_draw( inst->frame_copy, inst->storage, inst->cascade );
 
     ipli = (unsigned char*)inst->frame_copy->imageData;
    
@@ -242,27 +242,26 @@ void f0r_update(f0r_instance_t instance, double time,
 
             ipli += 4;
             dst += 4;
-
         }
-
     }
 
     cvReleaseImage( &(inst->frame_copy) );
 
 }
 
-void detect_and_draw( IplImage* img, CvMemStorage* storage, CvHaarClassifierCascade* cascade)
+CvSeq* detect_and_draw( IplImage* img, CvMemStorage* storage, CvHaarClassifierCascade* cascade)
 {
     static CvScalar colors[] = 
     {
-        {{0,0,255}},
+        {{255,255,255}},
         {{0,128,255}},
         {{0,255,255}},
         {{0,255,0}},
         {{255,128,0}},
         {{255,255,0}},
         {{255,0,0}},
-        {{255,0,255}}
+        {{255,0,255}},
+        {{0,0,0}}
     };
 
     double scale = 1.3;
@@ -277,14 +276,24 @@ void detect_and_draw( IplImage* img, CvMemStorage* storage, CvHaarClassifierCasc
     cvEqualizeHist( small_img, small_img );
     //cvClearMemStorage( storage );
 
+    CvSeq* faces = 0;
+
     if( cascade )
     {
         double t = (double)cvGetTickCount();
-        CvSeq* faces = cvHaarDetectObjects( small_img, cascade, storage,
+        faces = cvHaarDetectObjects( small_img, cascade, storage,
                                             1.1, 2, 0/*CV_HAAR_DO_CANNY_PRUNING*/,
                                             cvSize(30, 30) );
         t = (double)cvGetTickCount() - t;
-        printf( "detection time = %gms\n", t/((double)cvGetTickFrequency()*1000.) );
+        //printf( "detection time = %gms\n", t/((double)cvGetTickFrequency()*1000.) );
+        
+        CvPoint pt1, pt2;
+        pt1.x = 0; 
+        pt1.y = 0;
+        pt2.x = img->width;
+        pt2.y = img->height;
+        cvRectangle( img, pt1, pt2, colors[8],CV_FILLED );
+
         for( i = 0; i < (faces ? faces->total : 0); i++ )
         {
             CvRect* r = (CvRect*)cvGetSeqElem( faces, i );
@@ -293,13 +302,20 @@ void detect_and_draw( IplImage* img, CvMemStorage* storage, CvHaarClassifierCasc
             center.x = cvRound((r->x + r->width*0.5)*scale);
             center.y = cvRound((r->y + r->height*0.5)*scale);
             radius = cvRound((r->width + r->height)*0.25*scale);
-            
-            printf( " faces %d %d \n",  center.x, center.y);
-            cvCircle( img, center, radius, colors[i%8], 3, 8, 0 );
+           
+            pt1.x = r->x;// - r->width*0.5; 
+            pt1.y = r->y;// - r->height*0.5; 
+            pt2.x = r->x + r->width; 
+            pt2.y = r->y + r->height; 
+            //printf( " faces %d %d \n",  center.x, center.y);
+            cvCircle( img, center, radius, colors[i%8],CV_FILLED); // 3, 8, 0 );
+            //cvRectangle( img, pt1, pt2, colors[i%8], CV_FILLED );
         }
     }
 
     //cvShowImage( "result", img );
     cvReleaseImage( &gray );
     cvReleaseImage( &small_img );
+    
+    return faces;
 }
