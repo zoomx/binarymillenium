@@ -77,7 +77,7 @@ f0r_instance_t f0r_construct(unsigned int width, unsigned int height) //( int ar
 #endif
 
     {
-        cascade_name = "/home/lucasw/other/install/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml";
+        cascade_name = "../share/opencv/haarcascades/haarcascade_frontalface_alt2.xml";
         inst->input_name = argc > 1 ? argv[1] : 0;
     }
 
