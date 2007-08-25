@@ -1,10 +1,10 @@
 CC=g++
 #CCFLAGS=-g -Wall -fPIC
-CCFLAGS=  -I../.. -I/home/lucasw/other/install/include/opencv   
+CCFLAGS=  -I../.. -I../../../other/install/include/opencv   
 CCFLAGS += -c
 CCFLAGS +=  -I/usr/include/X11
 
-LDFLAGS = -Wl -shared -L/home/lucasw/other/install/lib/ -lcv -lhighgui 
+LDFLAGS = -Wl -shared -L../../../other/install/lib/ -lcv -lhighgui 
 
 all: objects
 	$(CC) -o facedetect.so facedetect.o $(LDFLAGS)
