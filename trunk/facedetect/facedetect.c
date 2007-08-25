@@ -1,3 +1,11 @@
+/**
+ * binarymillenium 2007
+ *
+ * This code is released under the GPL
+ *
+ * *
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
