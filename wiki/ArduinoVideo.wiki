@@ -1,0 +1,28 @@
+#summary One-sentence summary of this page.
+#labels Featured
+
+= Introduction =
+
+So video actually isn't that hard to generate with the arduino given a few resistors and testing.  The most important thing is to generate 242 lines of consistent length near 62.625us or so with 5 us of that time being SYNC (0 volts) pulses, the rest varying from 0.3-1.0V to represent black to white colors.  After that there should be 20 lines all at the SYNC voltage for a vertical sync. 
+
+I noticed if the sync is a little too long or too short the upper part of the screen curves oer to the right or left - it looks like macrovision protection.
+
+
+http://binarymillenium.googlecode.com/svn/trunk/arduino/videontsc/
+
+= Details =
+
+Sources:
+
+Arduino pong, this was in PAL and doesn't explain a few things.
+http://www.arduino.cc/cgi-bin/yabb2/YaBB.pl?num=1187659197
+
+The following talk about RS170/A b&w video, and are sometimes contradictory- is the VSYNC inverted 3 pulses surrounded by standard horizontal lines with normal sync pulses?  Either one seems to sort of work, but the best thing to do is what arduino pong does and just have 20 horizontal line periods that are all at the SYNC voltage- and then use a subset of that time to update the graphics output.
+
+TV Paint EE assignment:
+http://www.stanford.edu/class/ee281/handouts/lab4.pdf
+
+Atmel Video Generation:
+http://instruct1.cit.cornell.edu/courses/ee476/video/
+
+
