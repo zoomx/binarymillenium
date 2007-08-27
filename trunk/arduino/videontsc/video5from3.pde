@@ -14,7 +14,7 @@
 #define WIDTH 38
 #define HEIGHT 15
 
-byte frameBuffer[WIDTH][HEIGHT+1];
+byte fb[WIDTH][HEIGHT+1];
 
 //#define LINE_PERIOD 63.625
 #define LINE_PERIOD 63.3
@@ -42,10 +42,10 @@ int index, index2;
 
 void clearScreen()
 {
-    for (index = 0; index < 2; index++)
+    for (index = 0; index < WIDTH; index++)
       for (index2=0;index2<HEIGHT;index2++)
         {
-         frameBuffer[index][index2] = _BLACK;
+         fb[index][index2] = _BLACK;
          
         }
         
@@ -59,17 +59,17 @@ void updateScreen()
       for (index2=0;index2<HEIGHT-1;index2++)
         {
         /*  if (index2 & 0x01)
-         frameBuffer[index][index2] = ((counter>>4)+index)%3+1; //(((counter+index2)/10)%3)+1;
+         fb[index][index2] = ((counter>>4)+index)%3+1; //(((counter+index2)/10)%3)+1;
          else
-         frameBuffer[index][index2] = ((counter>>4)+index+1)%3+1; //(((counter+index2)/10)%3)+1;
+         fb[index][index2] = ((counter>>4)+index+1)%3+1; //(((counter+index2)/10)%3)+1;
          */
-         frameBuffer[index][index2] = frameBuffer[index][index2+((counter & 0xf) == 0xf)];
+         fb[index][index2] = fb[index][index2+((counter & 0xf) == 0xf)];
         }
         
         if ((counter>>2 & 0x01))
-        frameBuffer[index][index2] = frameBuffer[index][0];
+        fb[index][index2] = fb[index][0];
         else
-        frameBuffer[index][index2] = frameBuffer[index][0];
+        fb[index][index2] = fb[index][0];
       }
   
 }
@@ -80,8 +80,90 @@ void randomScreen()
       for (index2=0;index2<HEIGHT;index2++)
         {
          
-         frameBuffer[index][index2] = rand()%3+1;
+         //fb[index][index2] = rand()%3+1;
+         fb[index][index2] = rand()%2+1;
         }
+  
+}
+
+void bmScreen()
+{
+
+  int x,y; 
+  x = 1;
+  y = 1;
+  
+  /// b
+  
+  fb[x][y] = _WHITE;
+  fb[x][y+1] = _WHITE;
+  fb[x][y+2] = _WHITE;
+  fb[x][y+3] = _WHITE;
+  
+  fb[x+1][y+1] = _WHITE;
+  fb[x+2][y+2] = _WHITE;
+  fb[x+1][y+3] = _WHITE;
+  
+  x +=4;
+  // i
+  fb[x][y] = _WHITE;
+  fb[x][y+2] = _WHITE;
+  fb[x][y+3] = _WHITE;
+  
+  x+=2;
+  
+  // n
+  fb[x+1][y+1] = _WHITE;
+  fb[x][y+2] = _WHITE;
+  fb[x][y+3] = _WHITE;
+  x+=2;
+   
+  fb[x][y+2] = _WHITE;
+  fb[x][y+3] = _WHITE;
+  
+  x+=2;
+  // a
+  fb[x][y+2] = _WHITE;
+  
+  fb[x+1][y+1] = _WHITE;
+  fb[x+2][y+2] = _WHITE;
+  fb[x+1][y+3] = _WHITE;
+  
+   fb[x+2][y+3] = _WHITE;
+  
+  x+=4;
+  // r
+  fb[x+1][y+1] = _WHITE;
+  fb[x][y+2] = _WHITE;
+  fb[x][y+3] = _WHITE;
+  
+  x+=3;
+  // y
+  fb[x][y+2] = _WHITE;
+  fb[x+1][y+3] = _WHITE;
+  
+  
+  fb[x+2][y+2] = _WHITE;
+  fb[x+2][y+3] = _WHITE;
+  fb[x+2][y+4] = _WHITE;
+  
+  x+=4;
+  // m
+
+  fb[x][y+2] = _WHITE;
+  fb[x][y+3] = _WHITE;
+  
+  fb[x+1][y+1] = _WHITE;
+  
+  x+=2;
+  fb[x][y+2] = _WHITE;
+  fb[x][y+3] = _WHITE;
+  fb[x+1][y+1] = _WHITE;
+  
+  x+=2;
+    fb[x][y+2] = _WHITE;
+  fb[x][y+3] = _WHITE;
+  
   
 }
 
@@ -93,16 +175,18 @@ void setup()                    // run once, when the sketch starts
   clearScreen();
   int i;
   /*for (i = 0; i < 10; i++) {
-    frameBuffer[10][i] = _WHITE;
-    frameBuffer[i+5][10] = _GRAY;
+    fb[10][i] = _WHITE;
+    fb[i+5][10] = _GRAY;
   }*/
   
-  randomScreen();
+ randomScreen();
+ clearScreen();
+ bmScreen();
   /*
     for (index = 0; index < WIDTH; index++)
       for (index2=0;index2<HEIGHT;++index2)
         {
-         frameBuffer[index][index2] = _WHITE;
+         fb[index][index2] = _WHITE;
         }
         */
   
@@ -154,83 +238,83 @@ void loop()                     // run over and over again
        
       
    
-      PORTB = frameBuffer[0][newLine];
+      PORTB = fb[0][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[1][newLine];
-      delayMicroseconds(1);
-      
-      PORTB = frameBuffer[2][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[3][newLine];
+      PORTB = fb[1][newLine];
       delayMicroseconds(1);
       
-      PORTB = frameBuffer[4][newLine];
+      PORTB = fb[2][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[5][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[6][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[7][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[8][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[9][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[10][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[11][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[12][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[13][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[14][newLine];
-      delayMicroseconds(1);
-      PORTB = frameBuffer[15][newLine];
+      PORTB = fb[3][newLine];
       delayMicroseconds(1);
       
-      PORTB = frameBuffer[16][newLine];
+      PORTB = fb[4][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[5][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[6][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[7][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[8][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[9][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[10][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[11][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[12][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[13][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[14][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[15][newLine];
       delayMicroseconds(1);
       
-      PORTB = frameBuffer[17][newLine];
+      PORTB = fb[16][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[18][newLine];
+      
+      PORTB = fb[17][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[19][newLine];
+      PORTB = fb[18][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[20][newLine];
+      PORTB = fb[19][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[21][newLine];
+      PORTB = fb[20][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[22][newLine];
+      PORTB = fb[21][newLine];
+      delayMicroseconds(1);
+      PORTB = fb[22][newLine];
       delayMicroseconds(1);     
-      PORTB = frameBuffer[23][newLine];
+      PORTB = fb[23][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[24][newLine];
+      PORTB = fb[24][newLine];
       delayMicroseconds(1);     
-      PORTB = frameBuffer[25][newLine];
+      PORTB = fb[25][newLine];
       delayMicroseconds(1);
       
-      PORTB = frameBuffer[26][newLine];
+      PORTB = fb[26][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[27][newLine];
+      PORTB = fb[27][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[28][newLine];
+      PORTB = fb[28][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[29][newLine];
+      PORTB = fb[29][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[30][newLine];
+      PORTB = fb[30][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[31][newLine];
+      PORTB = fb[31][newLine];
       delayMicroseconds(1);
       /*
-      PORTB = frameBuffer[32][newLine];
+      PORTB = fb[32][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[33][newLine];
+      PORTB = fb[33][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[34][newLine];
+      PORTB = fb[34][newLine];
       delayMicroseconds(1);
-      PORTB = frameBuffer[35][newLine];
+      PORTB = fb[35][newLine];
       delayMicroseconds(1);*/
       
      
@@ -252,6 +336,7 @@ void loop()                     // run over and over again
         
         PORTB = _SYNC;
         updateScreen();
+        /// too long or short here curves the top of the screen to left or right like macrovision
         delayMicroseconds(VSYNC_LINES*(LINE_PERIOD)-0.5);
      
       
@@ -259,7 +344,7 @@ void loop()                     // run over and over again
       /// be quick
       //PORTB = PORTB;
       /// even a delaymicroseconds(1) isn't that bad, 5 scews it up but in a unique way
-      // dissimilar to the crap when I'm doing the frame buffer - it must be accessing the framebuffer
+      // dissimilar to the crap when I'm doing the frame buffer - it must be accessing the fb
       // in a way that has uneven amount of time...
       
     }
