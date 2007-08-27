@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary NTSC video generated with Arduino
 #labels Featured
 
 = Introduction =
@@ -15,7 +15,11 @@ The first thing I did was generate a test pattern, then generate random pixels a
 
 = Pictures = 
 
-I'll try to get pictures and video up, and illustrate some failure modes.  The video show very crisply on a regular tv, but a WinTV USB device did not accept it at all and a Canopus Twinpact captured it only in a flickery way.  Next I'll try a Canon DV camera that has video in and see if it can record it/format it into firewire.  If that doesn't work I'll just point a video camera at the screen.
+Here's some video, illustrating incorrect timing also:
+http://vimeo.com/288344
+
+I'll try to get pictures up.  The video show very crisply on a regular tv, but a WinTV USB device did not accept it at all and a Canopus Twinpact captured it only in a flickery way.  Next I'll try a Canon DV camera that has video in and see if it can record it/format it into firewire. 
+
 
 = Sources =
 
