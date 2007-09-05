@@ -3,7 +3,6 @@
  * GNU GPL
  */
 
-
 // Video out voltage levels
 #define _SYNC 0x00
 #define _BLACK  0x01
@@ -11,14 +10,20 @@
 #define _WHITE  0x03
 
 // dimensions of the screen
-#define WIDTH 38
-#define HEIGHT 15
+#define WIDTH 25
+#define HEIGHT 32
 
 byte fb[WIDTH][HEIGHT+1];
 
 //#define LINE_PERIOD 63.625
 #define LINE_PERIOD 63.3
 // 63.45 stable but wrong
+
+//#define PIX_DELAY 1
+//#define LINE_DELAY 45
+/// curved to right means the h line is too long
+#define LINE_DELAY 43
+//25
 
 // supposed to be 5?
 #define SYNC_PERIOD 4.7
@@ -79,9 +84,14 @@ void randomScreen()
       for (index = 0; index < WIDTH; index++)
       for (index2=0;index2<HEIGHT;index2++)
         {
+         //fb[index][index2] =(rand()%3 +1) + (rand()%3 +1)<<2 + (rand()%3 +1) <<4 + (rand()%3 +1)<<6;
+         fb[index][index2] =(rand()%256);
          
-         //fb[index][index2] = rand()%3+1;
-         fb[index][index2] = rand()%2+1;
+          if ((fb[index][index2] & 0x3) == 0) fb[index][index2] = _BLACK;
+      if (((fb[index][index2] >> 2) & 0x03) == 0) fb[index][index2] = _BLACK;
+      if (((fb[index][index2] >> 4) & 0x03) == 0) fb[index][index2] = _BLACK;
+      if (((fb[index][index2] >> 6) & 0x03) == 0) fb[index][index2] = _BLACK;
+         
         }
   
 }
@@ -180,8 +190,8 @@ void setup()                    // run once, when the sketch starts
   }*/
   
  randomScreen();
- clearScreen();
- bmScreen();
+ //clearScreen();
+  bmScreen();
   /*
     for (index = 0; index < WIDTH; index++)
       for (index2=0;index2<HEIGHT;++index2)
@@ -217,7 +227,7 @@ void loop()                     // run over and over again
       // no image for 5 us
       delayMicroseconds(BACKPORCH_PERIOD);
      
-     newLine = line >>4;
+     newLine = line >>3;
      
      if (line%2 ==0) {
         PORTB = _WHITE;
@@ -236,90 +246,511 @@ void loop()                     // run over and over again
        delayMicroseconds(3);
      }
        
-      
+     
+     int i = 0;
+   // for (i = 0; i < 40; i++) {
+    // PORTB = fb[i][newLine];
+    //} 
+    
    
-      PORTB = fb[0][newLine];
-      delayMicroseconds(1);
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      /// 16
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      // 32
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      // 48
+      
+      
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      /// 64
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      // 80
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03; 
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      // 96
+  
+  #if 0
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      /// 16
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      // 32
+            PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      PORTB = (fb[i][newLine]) & 0x3;
+      PORTB = (fb[i][newLine] >> 2) & 0x03;
+      PORTB = (fb[i][newLine] >> 4) & 0x03;
+      PORTB = (fb[i][newLine] >> 6) & 0x03;   
+      i++;
+      
+      // 48
+  #endif
+  
+   #if 0
       PORTB = fb[1][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       
       PORTB = fb[2][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[3][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       
       PORTB = fb[4][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[5][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[6][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[7][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[8][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[9][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[10][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[11][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[12][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[13][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[14][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[15][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       
       PORTB = fb[16][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       
       PORTB = fb[17][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[18][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[19][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[20][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[21][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[22][newLine];
-      delayMicroseconds(1);     
+      //delayMicroseconds(PIX_DELAY);     
       PORTB = fb[23][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       PORTB = fb[24][newLine];
-      delayMicroseconds(1);     
+      //delayMicroseconds(PIX_DELAY);     
       PORTB = fb[25][newLine];
-      delayMicroseconds(1);
+      //delayMicroseconds(PIX_DELAY);
       
       PORTB = fb[26][newLine];
-      delayMicroseconds(1);
       PORTB = fb[27][newLine];
-      delayMicroseconds(1);
       PORTB = fb[28][newLine];
-      delayMicroseconds(1);
       PORTB = fb[29][newLine];
-      delayMicroseconds(1);
       PORTB = fb[30][newLine];
-      delayMicroseconds(1);
       PORTB = fb[31][newLine];
-      delayMicroseconds(1);
-      /*
       PORTB = fb[32][newLine];
-      delayMicroseconds(1);
       PORTB = fb[33][newLine];
-      delayMicroseconds(1);
       PORTB = fb[34][newLine];
-      delayMicroseconds(1);
       PORTB = fb[35][newLine];
-      delayMicroseconds(1);*/
+      PORTB = fb[36][newLine];
+      PORTB = fb[37][newLine];
+      PORTB = fb[38][newLine];
+      PORTB = fb[39][newLine];
+      PORTB = fb[40][newLine];
+      PORTB = fb[41][newLine];
+      PORTB = fb[42][newLine];
+      PORTB = fb[43][newLine];
+      PORTB = fb[44][newLine];
+      PORTB = fb[45][newLine];
+      PORTB = fb[46][newLine];
+      
+      PORTB = (fb[47][newLine]) & 0x3;
+      PORTB = (fb[47][newLine] >> 2) & 0x03;
+      PORTB = (fb[47][newLine] >> 4) & 0x03;
+      PORTB = (fb[47][newLine] >> 6) & 0x03;      
+  
+      PORTB = fb[48][newLine];
+      
+//////////////////////////////////////
+      PORTB = fb[0][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[1][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      
+      PORTB = fb[2][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[3][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      
+      PORTB = fb[4][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[5][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[6][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[7][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[8][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[9][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[10][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[11][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[12][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[13][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      PORTB = fb[14][newLine];
+      //delayMicroseconds(PIX_DELAY);
+      #endif
+      
+      /*
+      PORTB = fb[15][newLine];
+      PORTB = fb[16][newLine];
+      PORTB = fb[17][newLine];
+      PORTB = fb[18][newLine];
+      PORTB = fb[19][newLine];
+      PORTB = fb[20][newLine];
+      PORTB = fb[21][newLine];
+      PORTB = fb[22][newLine];  
+      PORTB = fb[23][newLine];
+      PORTB = fb[24][newLine]; 
+      
+      PORTB = fb[25][newLine];
+      PORTB = fb[26][newLine];
+      PORTB = fb[27][newLine];
+      PORTB = fb[28][newLine];
+      PORTB = fb[29][newLine];
+      PORTB = fb[30][newLine];
+      PORTB = fb[31][newLine];
+      PORTB = fb[32][newLine];
+      PORTB = fb[33][newLine];
+      PORTB = fb[34][newLine];
+      PORTB = fb[35][newLine];
+      PORTB = fb[36][newLine];
+      PORTB = fb[37][newLine];
+      PORTB = fb[38][newLine];
+      PORTB = fb[39][newLine];
+      PORTB = fb[40][newLine];
+      PORTB = fb[41][newLine];
+      PORTB = fb[42][newLine];
+      PORTB = fb[43][newLine];
+      PORTB = fb[44][newLine];
+      PORTB = fb[45][newLine];
+      PORTB = fb[46][newLine];
+      
+      PORTB = (fb[47][newLine]) & 0x3;
+      PORTB = (fb[47][newLine] >> 2) & 0x03;
+      PORTB = (fb[47][newLine] >> 4) & 0x03;
+      PORTB = (fb[47][newLine] >> 6) & 0x03;      
+  
+      PORTB = fb[48][newLine];
+      */
+      ////
       
      
       PORTB = _BLACK;
-      delayMicroseconds(LINE_PERIOD - SYNC_PERIOD - BACKPORCH_PERIOD - FRONTPORCH_PERIOD-45);
+      delayMicroseconds(LINE_PERIOD - SYNC_PERIOD - BACKPORCH_PERIOD - FRONTPORCH_PERIOD- LINE_DELAY);
       PORTB = _BLACK;
       delayMicroseconds(FRONTPORCH_PERIOD);
     }
@@ -337,7 +768,7 @@ void loop()                     // run over and over again
         PORTB = _SYNC;
         updateScreen();
         /// too long or short here curves the top of the screen to left or right like macrovision
-        delayMicroseconds(VSYNC_LINES*(LINE_PERIOD)-0.5);
+        delayMicroseconds(VSYNC_LINES*(LINE_PERIOD)+5);
      
       
       /// adding a few PORTB=PORTB delays doesn't screw up the sync that much, they must
