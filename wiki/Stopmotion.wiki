@@ -10,7 +10,7 @@ It requires my average gephex module http://bmillenium.sourceforge.net/average.z
 
 Inspired by watching the special features of Robot Chicken and seeing the Lunchbox http://www.animationtoolworks.com/products/lbdv_summ.html in action.
 
-The linux program stopmotion has some interesting features that could be incorporated into the graph, like showing the diff and always appending the current frame, but would be a little tricky.  I can't get it to work on my system with my quickcam or Hauppage WinTV device.
+The linux program stopmotion (http://stopmotion.bjoernen.com/) has some interesting features that could be incorporated into the graph, like showing the diff and always appending the current frame, but would be a little tricky.  I can't get it to work on my system with my quickcam or Hauppage WinTV device.
 
 Something else to do:
 Make a stand alone hardware device to do this same thing with minimal interface- video in, video out, and capture, and a knob for frame rate.  Could be a small cheap computer inside (<$100?), but an FPGA solution would be interesting- Spartan3 with analog input module could probably do it in black & white, maybe lower resolution than 640x480.
