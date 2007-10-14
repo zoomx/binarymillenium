@@ -6,6 +6,7 @@ This graph has a radio button that captures a single still from a webcam /dev/vi
 
 Put this in your graphs directory:
 http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/stopmotioncam
+It requires my average gephex module http://bmillenium.sourceforge.net/average.zip or http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/average.so (maybe it will work for you if your system resembles mine) because I couldn't figure out how to make a pulse with numbers.
 
 Inspired by watching the special features of Robot Chicken and seeing the Lunchbox http://www.animationtoolworks.com/products/lbdv_summ.html in action.
 
@@ -26,4 +27,3 @@ What I'd like to be able to do:
   * save each new frame to disk to prevent loss of frames when current buffer fills - an image (png or jpeg) output plugin with a separate buffer sharing same trigger.
   * Count the number of captured frames and adjust playback rate if less than size of buffer
   * A better way to deliver a pulse than the image delay hack
-
