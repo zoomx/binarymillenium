@@ -4,6 +4,8 @@
 
 This graph has a radio button that captures a single still from a webcam /dev/video0 input.  The frame is added to a buffer and played back to show the animation up to the current image.
 
+Very short video made with it here: http://vimeo.com/343150.  
+
 Put this in your graphs directory:
 http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/stopmotioncam
 It requires my average gephex module http://bmillenium.sourceforge.net/average.zip or http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/average.so (maybe it will work for you if your system resembles mine) because I couldn't figure out how to make a pulse with numbers.
