@@ -9,6 +9,6 @@ There needs to be more example videos along with downloadable graphs, so I'll ta
 
 *Basic Plasma*
 
-This effect looks really awesome initally, and is very easy to create with a couple of mixers and a plasma block.
+The basics of this graph is two mixers and a plasma block, but it needs a lot of tuning to look cool.  The source input is pretty important, the ising noise block isn't the best but I think I made it work.
 
 Feedback can be pretty compelling, but typically leads to periodicity- signal generators set to noize can avoid too much repetition but any effect looks samey after a while.
