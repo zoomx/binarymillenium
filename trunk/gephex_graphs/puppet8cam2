@@ -1,0 +1,2062 @@
+<graph>
+<id>IDSTARTpuppet8cam2ENDID_</id>
+<name>puppet8cam2</name>
+<data>
+</data>
+<nodes>
+<node> <id>1</id> <type>mod_frbinmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>12 28</buf> </dataitem>
+</data>
+</node>
+<node> <id>2</id> <type>mod_frboutmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>1014 188</buf> </dataitem>
+</data>
+</node>
+<node> <id>3</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>119 6</buf> </dataitem>
+</data>
+</node>
+<node> <id>4</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>10 -2</buf> </dataitem>
+</data>
+</node>
+<node> <id>5</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>226 94</buf> </dataitem>
+</data>
+</node>
+<node> <id>6</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>224 143</buf> </dataitem>
+</data>
+</node>
+<node> <id>7</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>300 116</buf> </dataitem>
+</data>
+</node>
+<node> <id>8</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>10 80</buf> </dataitem>
+</data>
+</node>
+<node> <id>9</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>369 94</buf> </dataitem>
+</data>
+</node>
+<node> <id>10</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>324 772</buf> </dataitem>
+</data>
+</node>
+<node> <id>11</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>283 208</buf> </dataitem>
+</data>
+</node>
+<node> <id>12</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>282 262</buf> </dataitem>
+</data>
+</node>
+<node> <id>14</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>360 248</buf> </dataitem>
+</data>
+</node>
+<node> <id>15</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>448 215</buf> </dataitem>
+</data>
+</node>
+<node> <id>16</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>199 207</buf> </dataitem>
+</data>
+</node>
+<node> <id>17</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>31 660</buf> </dataitem>
+</data>
+</node>
+<node> <id>18</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>226 317</buf> </dataitem>
+</data>
+</node>
+<node> <id>19</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>152 334</buf> </dataitem>
+</data>
+</node>
+<node> <id>21</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>67 331</buf> </dataitem>
+</data>
+</node>
+<node> <id>22</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>303 342</buf> </dataitem>
+</data>
+</node>
+<node> <id>23</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>508 223</buf> </dataitem>
+</data>
+</node>
+<node> <id>24</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>79 348</buf> </dataitem>
+</data>
+</node>
+<node> <id>25</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>226 373</buf> </dataitem>
+</data>
+</node>
+<node> <id>26</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>166 410</buf> </dataitem>
+</data>
+</node>
+<node> <id>27</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>64 422</buf> </dataitem>
+</data>
+</node>
+<node> <id>28</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>83 443</buf> </dataitem>
+</data>
+</node>
+<node> <id>29</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>4 394</buf> </dataitem>
+</data>
+</node>
+<node> <id>30</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>-1 290</buf> </dataitem>
+</data>
+</node>
+<node> <id>31</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>-5 452</buf> </dataitem>
+</data>
+</node>
+<node> <id>32</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>72 724</buf> </dataitem>
+</data>
+</node>
+<node> <id>33</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>200 266</buf> </dataitem>
+</data>
+</node>
+<node> <id>34</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>335 541</buf> </dataitem>
+</data>
+</node>
+<node> <id>35</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>331 452</buf> </dataitem>
+</data>
+</node>
+<node> <id>36</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>398 474</buf> </dataitem>
+</data>
+</node>
+<node> <id>37</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>472 405</buf> </dataitem>
+</data>
+</node>
+<node> <id>39</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>237 495</buf> </dataitem>
+</data>
+</node>
+<node> <id>40</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>248 592</buf> </dataitem>
+</data>
+</node>
+<node> <id>41</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>166 489</buf> </dataitem>
+</data>
+</node>
+<node> <id>42</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>166 536</buf> </dataitem>
+</data>
+</node>
+<node> <id>43</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>155 648</buf> </dataitem>
+</data>
+</node>
+<node> <id>44</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>161 715</buf> </dataitem>
+</data>
+</node>
+<node> <id>45</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>2 507</buf> </dataitem>
+</data>
+</node>
+<node> <id>46</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>-3 595</buf> </dataitem>
+</data>
+</node>
+<node> <id>52</id> <type>mod_frbinmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>337 1089</buf> </dataitem>
+</data>
+</node>
+<node> <id>53</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>421 991</buf> </dataitem>
+</data>
+</node>
+<node> <id>54</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>467 111</buf> </dataitem>
+</data>
+</node>
+<node> <id>55</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>127 99</buf> </dataitem>
+</data>
+</node>
+<node> <id>56</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>130 164</buf> </dataitem>
+</data>
+</node>
+<node> <id>58</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>331 951</buf> </dataitem>
+</data>
+</node>
+<node> <id>59</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>115 1028</buf> </dataitem>
+</data>
+</node>
+<node> <id>60</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>177 1026</buf> </dataitem>
+</data>
+</node>
+<node> <id>61</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>179 962</buf> </dataitem>
+</data>
+</node>
+<node> <id>62</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>111 963</buf> </dataitem>
+</data>
+</node>
+<node> <id>63</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>89 567</buf> </dataitem>
+</data>
+</node>
+<node> <id>64</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>75 132</buf> </dataitem>
+</data>
+</node>
+<node> <id>65</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>79 56</buf> </dataitem>
+</data>
+</node>
+<node> <id>66</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>78 502</buf> </dataitem>
+</data>
+</node>
+<node> <id>84</id> <type>mod_numarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>233 546</buf> </dataitem>
+</data>
+</node>
+<node> <id>87</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>166 781</buf> </dataitem>
+</data>
+</node>
+<node> <id>88</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>237 768</buf> </dataitem>
+</data>
+</node>
+<node> <id>89</id> <type>mod_num2pos</type>
+<data>
+<dataitem> <key>0</key> <buf>187 840</buf> </dataitem>
+</data>
+</node>
+<node> <id>90</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>104 819</buf> </dataitem>
+</data>
+</node>
+<node> <id>91</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>106 881</buf> </dataitem>
+</data>
+</node>
+<node> <id>92</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>35 817</buf> </dataitem>
+</data>
+</node>
+<node> <id>93</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>44 880</buf> </dataitem>
+</data>
+</node>
+<node> <id>94</id> <type>mod_numarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>248 998</buf> </dataitem>
+</data>
+</node>
+<node> <id>95</id> <type>mod_numarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>253 927</buf> </dataitem>
+</data>
+</node>
+<node> <id>96</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>182 908</buf> </dataitem>
+</data>
+</node>
+<node> <id>97</id> <type>mod_joystickmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>-2 149</buf> </dataitem>
+</data>
+</node>
+<node> <id>98</id> <type>mod_doepfermodule</type>
+<data>
+<dataitem> <key>0</key> <buf>1 223</buf> </dataitem>
+</data>
+</node>
+<node> <id>99</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>110 243</buf> </dataitem>
+</data>
+</node>
+<node> <id>100</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>87 636</buf> </dataitem>
+</data>
+</node>
+<node> <id>101</id> <type>mod_capturemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>482 545</buf> </dataitem>
+</data>
+</node>
+<node> <id>102</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>1117 361</buf> </dataitem>
+</data>
+</node>
+<node> <id>103</id> <type>mod_imagebuffermodule</type>
+<data>
+<dataitem> <key>0</key> <buf>592 536</buf> </dataitem>
+</data>
+</node>
+<node> <id>104</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>529 402</buf> </dataitem>
+</data>
+</node>
+<node> <id>106</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>721 393</buf> </dataitem>
+</data>
+</node>
+<node> <id>107</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>761 521</buf> </dataitem>
+</data>
+</node>
+<node> <id>108</id> <type>mod_staticcolormodule</type>
+<data>
+<dataitem> <key>0</key> <buf>680 532</buf> </dataitem>
+</data>
+</node>
+<node> <id>109</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>846 505</buf> </dataitem>
+</data>
+</node>
+<node> <id>115</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>764 597</buf> </dataitem>
+</data>
+</node>
+<node> <id>116</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>845 603</buf> </dataitem>
+</data>
+</node>
+<node> <id>117</id> <type>mod_average</type>
+<data>
+<dataitem> <key>0</key> <buf>992 566</buf> </dataitem>
+</data>
+</node>
+<node> <id>119</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>1046 498</buf> </dataitem>
+</data>
+</node>
+<node> <id>120</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>539 544</buf> </dataitem>
+</data>
+</node>
+<node> <id>121</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>813 359</buf> </dataitem>
+<dataitem> <key>1025</key> <buf>~3cstr~3e~3cl~3e17~3c/l~3e~3cd~3eFunctionParser:x1~3c/d~3e~3c/str~3e 121 1 ~3cstr~3e~3cl~3e7~3c/l~3e~3cd~3ehslider~3c/d~3e~3c/str~3e 355 37| { widget_type=[unboundednumber_selector];  } </buf> </dataitem>
+</data>
+</node>
+<node> <id>122</id> <type>mod_average</type>
+<data>
+<dataitem> <key>0</key> <buf>973 441</buf> </dataitem>
+</data>
+</node>
+<node> <id>123</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>392 618</buf> </dataitem>
+</data>
+</node>
+<node> <id>124</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>402 553</buf> </dataitem>
+</data>
+</node>
+<node> <id>125</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>597 376</buf> </dataitem>
+</data>
+</node>
+<node> <id>126</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>645 405</buf> </dataitem>
+</data>
+</node>
+<node> <id>127</id> <type>mod_funparsemodule</type>
+<data>
+<dataitem> <key>0</key> <buf>588 316</buf> </dataitem>
+<dataitem> <key>1024</key> <buf>~3cstr~3e~3cl~3e17~3c/l~3e~3cd~3eFunctionParser:x1~3c/d~3e~3c/str~3e 127 1 ~3cstr~3e~3cl~3e7~3c/l~3e~3cd~3ehslider~3c/d~3e~3c/str~3e 117 29| { widget_type=[unboundednumber_selector];  } </buf> </dataitem>
+</data>
+</node>
+<node> <id>128</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>758 673</buf> </dataitem>
+</data>
+</node>
+<node> <id>129</id> <type>mod_average</type>
+<data>
+<dataitem> <key>0</key> <buf>969 659</buf> </dataitem>
+</data>
+</node>
+<node> <id>130</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>752 750</buf> </dataitem>
+</data>
+</node>
+<node> <id>131</id> <type>mod_average</type>
+<data>
+<dataitem> <key>0</key> <buf>962 780</buf> </dataitem>
+</data>
+</node>
+<node> <id>132</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>374 325</buf> </dataitem>
+</data>
+</node>
+<node> <id>133</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>1020 710</buf> </dataitem>
+</data>
+</node>
+<node> <id>134</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>853 682</buf> </dataitem>
+</data>
+</node>
+<node> <id>135</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>852 760</buf> </dataitem>
+</data>
+</node>
+<node> <id>136</id> <type>mod_rangeconvertmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>391 407</buf> </dataitem>
+</data>
+</node>
+<node> <id>137</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>1158 596</buf> </dataitem>
+</data>
+</node>
+</nodes>
+<connections>
+<connect>
+<from> <node_id>102</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>2</node_id> <plug_id>in</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>4</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>3</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>1</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>3</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>65</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>5</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>55</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>5</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>5</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>64</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>6</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>56</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>6</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>6</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>5</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>7</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>6</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>7</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>10</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>9</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>7</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>9</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>88</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>10</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>89</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>10</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>10</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>99</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>11</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>16</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>11</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>11</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>100</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>12</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>33</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>12</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>12</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>11</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>14</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>12</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>14</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>54</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>15</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>37</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>15</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>30</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>18</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>19</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>18</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>18</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>21</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>19</node_id> <plug_id>xpos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>24</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>19</node_id> <plug_id>ypos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>65</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>21</node_id> <plug_id>x1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>18</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>22</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>25</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>22</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>15</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>23</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>22</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>23</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>65</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>24</node_id> <plug_id>x1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>29</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>25</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>26</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>25</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>25</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>27</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>26</node_id> <plug_id>xpos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>28</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>26</node_id> <plug_id>ypos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>64</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>27</node_id> <plug_id>x1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>64</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>28</node_id> <plug_id>x1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>84</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>34</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>40</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>34</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>34</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>66</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>35</node_id> <plug_id>rot</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>39</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>35</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>35</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>35</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>36</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>34</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>36</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>14</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>37</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>36</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>37</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>41</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>39</node_id> <plug_id>xpos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>42</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>39</node_id> <plug_id>ypos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>43</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>40</node_id> <plug_id>xpos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>44</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>40</node_id> <plug_id>ypos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>99</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>41</node_id> <plug_id>x1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>99</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>42</node_id> <plug_id>x1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>100</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>43</node_id> <plug_id>x1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>100</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>44</node_id> <plug_id>x1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>58</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>53</node_id> <plug_id>disp</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>52</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>53</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>53</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>54</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>9</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>54</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>95</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>58</node_id> <plug_id>xpos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>94</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>58</node_id> <plug_id>ypos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>59</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>60</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>62</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>61</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>46</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>63</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>136</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>64</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>132</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>65</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>45</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>66</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>63</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>84</node_id> <plug_id>lhs</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>100</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>84</node_id> <plug_id>rhs</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>87</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>88</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>90</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>89</node_id> <plug_id>xpos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>91</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>89</node_id> <plug_id>ypos</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>92</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>90</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>93</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>91</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>90</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>94</node_id> <plug_id>lhs</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>60</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>94</node_id> <plug_id>rhs</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>96</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>95</node_id> <plug_id>lhs</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>61</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>95</node_id> <plug_id>rhs</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>91</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>96</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>97</node_id> <plug_id>midi</plug_id> </from>
+<to> <node_id>98</node_id> <plug_id>midi</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>124</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>99</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>123</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>100</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>137</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>102</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>23</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>102</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>120</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>103</node_id> <plug_id>b</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>120</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>104</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>103</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>104</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>126</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>106</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>106</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>106</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>108</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>107</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>106</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>109</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>107</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>109</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>108</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>115</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>115</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>116</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>106</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>116</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>116</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>117</node_id> <plug_id>frame</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>121</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>117</node_id> <plug_id>threshold</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>109</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>119</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>116</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>119</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>101</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>120</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>109</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>122</node_id> <plug_id>frame</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>121</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>122</node_id> <plug_id>threshold</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>117</node_id> <plug_id>ave</plug_id> </from>
+<to> <node_id>123</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>122</node_id> <plug_id>ave</plug_id> </from>
+<to> <node_id>124</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>127</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>125</node_id> <plug_id>amount</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>104</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>125</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>104</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>125</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>127</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>126</node_id> <plug_id>amount</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>125</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>126</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>126</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>126</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>108</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>128</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>134</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>129</node_id> <plug_id>frame</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>121</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>129</node_id> <plug_id>threshold</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>108</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>130</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>135</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>131</node_id> <plug_id>frame</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>121</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>131</node_id> <plug_id>threshold</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>129</node_id> <plug_id>ave</plug_id> </from>
+<to> <node_id>132</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>134</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>133</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>135</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>133</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>106</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>134</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>128</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>134</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>130</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>135</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>106</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>135</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>131</node_id> <plug_id>ave</plug_id> </from>
+<to> <node_id>136</node_id> <plug_id>n</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>119</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>137</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>133</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>137</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+</connections>
+<snapshots>
+<snapshot> <id>IDSTARTpuppetENDID</id> <name>default</name>
+<values>
+<value><plug> <node_id>1</node_id> <plug_id>fileName</plug_id> </plug>
+<buf>/graphs/bar2.png~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>flush</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>frame</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>x_size</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>y_size</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>cache</plug_id> </plug>
+<buf>no~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>in</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>options</plug_id> </plug>
+<buf>2~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>xsize</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>ysize</plug_id> </plug>
+<buf>480~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>brightness</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>contrast</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>gamma</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>monitor</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>driver</plug_id> </plug>
+<buf>default~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>server</plug_id> </plug>
+<buf>default~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>2.56~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.508772 0.521008~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>4</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>4</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.501961~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>disp</plug_id> </plug>
+<buf>[0.5 0.5]~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.526316 0.521008~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.1~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>9</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>9</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>9</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>9</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>9</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>10</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>10</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>10</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.508772 0.462185~00</buf></value>
+<value><plug> <node_id>10</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>10</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>10</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>10</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>11</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>11</node_id> <plug_id>rot</plug_id> </plug>
+<buf>90~00</buf></value>
+<value><plug> <node_id>11</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.482456 0.529412~00</buf></value>
+<value><plug> <node_id>11</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>11</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>11</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>11</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>12</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>12</node_id> <plug_id>rot</plug_id> </plug>
+<buf>-90~00</buf></value>
+<value><plug> <node_id>12</node_id> <plug_id>disp</plug_id> </plug>
+<buf>[0.5 0.5]~00</buf></value>
+<value><plug> <node_id>12</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>12</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>12</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>12</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>14</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>14</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>14</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>14</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>14</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>15</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>15</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>15</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>15</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>15</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>16</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.537255~00</buf></value>
+<value><plug> <node_id>16</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.447059~00</buf></value>
+<value><plug> <node_id>17</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>17</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.1~00</buf></value>
+<value><plug> <node_id>17</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>17</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>17</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>17</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>18</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>18</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>18</node_id> <plug_id>disp</plug_id> </plug>
+<buf>[0.5 0.5]~00</buf></value>
+<value><plug> <node_id>18</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>18</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>18</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>18</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>19</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>19</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.576471~00</buf></value>
+<value><plug> <node_id>21</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.52+0.03*sin(x1/180*3.149)~00</buf></value>
+<value><plug> <node_id>21</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>21</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>21</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>21</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>22</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>22</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>22</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>22</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>22</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>23</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>23</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>23</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>23</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>23</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>24</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.57+0.03*cos(x1/180*3.149)~00</buf></value>
+<value><plug> <node_id>24</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>24</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>24</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>24</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>25</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>25</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>25</node_id> <plug_id>disp</plug_id> </plug>
+<buf>[0.5 0.5]~00</buf></value>
+<value><plug> <node_id>25</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>25</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>25</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>25</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>26</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>26</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>27</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.48+0.03*sin(x1/180*3.149)~00</buf></value>
+<value><plug> <node_id>27</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>27</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>27</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>27</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>28</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.57+0.03*cos(x1/180*3.149)~00</buf></value>
+<value><plug> <node_id>28</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>28</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>28</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>28</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>29</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>60~00</buf></value>
+<value><plug> <node_id>29</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.1~00</buf></value>
+<value><plug> <node_id>29</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>29</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>29</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>29</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>30</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>-60~00</buf></value>
+<value><plug> <node_id>30</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.1~00</buf></value>
+<value><plug> <node_id>30</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>30</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>30</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>30</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>31</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>120~00</buf></value>
+<value><plug> <node_id>31</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.1~00</buf></value>
+<value><plug> <node_id>31</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>31</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>31</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>31</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>32</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>-120~00</buf></value>
+<value><plug> <node_id>32</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.1~00</buf></value>
+<value><plug> <node_id>32</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>32</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>32</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>32</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>33</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.462745~00</buf></value>
+<value><plug> <node_id>33</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.447059~00</buf></value>
+<value><plug> <node_id>34</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>34</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>34</node_id> <plug_id>disp</plug_id> </plug>
+<buf>[0.5 0.5]~00</buf></value>
+<value><plug> <node_id>34</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>34</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>34</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>34</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>35</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>35</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>35</node_id> <plug_id>disp</plug_id> </plug>
+<buf>[0.5 0.5]~00</buf></value>
+<value><plug> <node_id>35</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>35</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>35</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>35</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>36</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>36</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>36</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>36</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>36</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>37</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>37</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>37</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>37</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>37</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>39</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.603922~00</buf></value>
+<value><plug> <node_id>39</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>40</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.411765~00</buf></value>
+<value><plug> <node_id>40</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>41</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.51+sin(x1/180*3.149)*0.09~00</buf></value>
+<value><plug> <node_id>41</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>41</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>41</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>41</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>42</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.44+cos(x1/180*3.149)*0.09~00</buf></value>
+<value><plug> <node_id>42</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>42</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>42</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>42</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>43</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.49+sin(x1/180*3.149)*0.09~00</buf></value>
+<value><plug> <node_id>43</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>43</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>43</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>43</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>44</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.44+cos(x1/180*3.149)*0.09~00</buf></value>
+<value><plug> <node_id>44</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>44</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>44</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>44</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>45</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>90~00</buf></value>
+<value><plug> <node_id>45</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>.1~00</buf></value>
+<value><plug> <node_id>45</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>45</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>45</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>45</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>46</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>46</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>.1~00</buf></value>
+<value><plug> <node_id>46</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>46</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>46</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>46</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>52</node_id> <plug_id>fileName</plug_id> </plug>
+<buf>/graphs/circle.png~00</buf></value>
+<value><plug> <node_id>52</node_id> <plug_id>flush</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>52</node_id> <plug_id>frame</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>52</node_id> <plug_id>x_size</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>52</node_id> <plug_id>y_size</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>52</node_id> <plug_id>cache</plug_id> </plug>
+<buf>no~00</buf></value>
+<value><plug> <node_id>53</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>2.6~00</buf></value>
+<value><plug> <node_id>53</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>53</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.5 0.394958~00</buf></value>
+<value><plug> <node_id>53</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>53</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>53</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>53</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>54</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>54</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>54</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>54</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>54</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>55</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.513725~00</buf></value>
+<value><plug> <node_id>55</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.537255~00</buf></value>
+<value><plug> <node_id>56</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.486275~00</buf></value>
+<value><plug> <node_id>56</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.537255~00</buf></value>
+<value><plug> <node_id>58</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>58</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.396078~00</buf></value>
+<value><plug> <node_id>59</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>59</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.01~00</buf></value>
+<value><plug> <node_id>59</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>59</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>59</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>59</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>60</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>60</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>60</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>60</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>-0.11~00</buf></value>
+<value><plug> <node_id>60</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>-0.08~00</buf></value>
+<value><plug> <node_id>61</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>61</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>61</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>61</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>-0.03~00</buf></value>
+<value><plug> <node_id>61</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>0.03~00</buf></value>
+<value><plug> <node_id>62</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>62</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>.1~00</buf></value>
+<value><plug> <node_id>62</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>62</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>62</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>62</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>63</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>63</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>63</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>63</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>-20~00</buf></value>
+<value><plug> <node_id>63</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>50~00</buf></value>
+<value><plug> <node_id>64</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>64</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>64</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>64</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>10~00</buf></value>
+<value><plug> <node_id>64</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>-80~00</buf></value>
+<value><plug> <node_id>65</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>65</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>65</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>65</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>-10~00</buf></value>
+<value><plug> <node_id>65</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>60~00</buf></value>
+<value><plug> <node_id>66</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>66</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>66</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>66</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>-20~00</buf></value>
+<value><plug> <node_id>66</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>100~00</buf></value>
+<value><plug> <node_id>84</node_id> <plug_id>lhs</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>84</node_id> <plug_id>rhs</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>84</node_id> <plug_id>op</plug_id> </plug>
+<buf>x+y~00</buf></value>
+<value><plug> <node_id>87</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>87</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>87</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>87</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>87</node_id> <plug_id>signal</plug_id> </plug>
+<buf>sinus~00</buf></value>
+<value><plug> <node_id>87</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>88</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>88</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>88</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>88</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>-5~00</buf></value>
+<value><plug> <node_id>88</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>5~00</buf></value>
+<value><plug> <node_id>89</node_id> <plug_id>xpos</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>89</node_id> <plug_id>ypos</plug_id> </plug>
+<buf>0.423529~00</buf></value>
+<value><plug> <node_id>90</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>90</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>90</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>90</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0.49~00</buf></value>
+<value><plug> <node_id>90</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>.51~00</buf></value>
+<value><plug> <node_id>91</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>91</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>91</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>91</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0.45~00</buf></value>
+<value><plug> <node_id>91</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>0.46~00</buf></value>
+<value><plug> <node_id>92</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>92</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.1~00</buf></value>
+<value><plug> <node_id>92</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>92</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>92</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>92</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>93</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>93</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>0.1~00</buf></value>
+<value><plug> <node_id>93</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>93</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>93</node_id> <plug_id>signal</plug_id> </plug>
+<buf>noize~00</buf></value>
+<value><plug> <node_id>93</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+<value><plug> <node_id>94</node_id> <plug_id>lhs</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>94</node_id> <plug_id>rhs</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>94</node_id> <plug_id>op</plug_id> </plug>
+<buf>x+y~00</buf></value>
+<value><plug> <node_id>95</node_id> <plug_id>lhs</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>95</node_id> <plug_id>rhs</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>95</node_id> <plug_id>op</plug_id> </plug>
+<buf>x+y~00</buf></value>
+<value><plug> <node_id>96</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>96</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>96</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>96</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0.49~00</buf></value>
+<value><plug> <node_id>96</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>0.51~00</buf></value>
+<value><plug> <node_id>97</node_id> <plug_id>joy_id</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>97</node_id> <plug_id>driver</plug_id> </plug>
+<buf>default~00</buf></value>
+<value><plug> <node_id>98</node_id> <plug_id>channel</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>98</node_id> <plug_id>button_group</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>98</node_id> <plug_id>midi</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>99</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>99</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>99</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>99</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>99</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>120~00</buf></value>
+<value><plug> <node_id>100</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>100</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>100</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>100</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>100</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>-120~00</buf></value>
+<value><plug> <node_id>101</node_id> <plug_id>device</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>101</node_id> <plug_id>x_size</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>101</node_id> <plug_id>y_size</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>102</node_id> <plug_id>amount</plug_id> </plug>
+<buf>0.411765~00</buf></value>
+<value><plug> <node_id>102</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>102</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>102</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>102</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>103</node_id> <plug_id>bsize</plug_id> </plug>
+<buf>2~00</buf></value>
+<value><plug> <node_id>103</node_id> <plug_id>bpos</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>103</node_id> <plug_id>record</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>103</node_id> <plug_id>b</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>104</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>104</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>104</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>104</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>104</node_id> <plug_id>op</plug_id> </plug>
+<buf>x - c*y~00</buf></value>
+<value><plug> <node_id>106</node_id> <plug_id>amount</plug_id> </plug>
+<buf>0.113725~00</buf></value>
+<value><plug> <node_id>106</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>106</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>106</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>106</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>107</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>2~00</buf></value>
+<value><plug> <node_id>107</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>107</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.421053 0.436975~00</buf></value>
+<value><plug> <node_id>107</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>107</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>107</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>107</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>108</node_id> <plug_id>col</plug_id> </plug>
+<buf>1 1 1~00</buf></value>
+<value><plug> <node_id>108</node_id> <plug_id>xsize</plug_id> </plug>
+<buf>320~00</buf></value>
+<value><plug> <node_id>108</node_id> <plug_id>ysize</plug_id> </plug>
+<buf>240~00</buf></value>
+<value><plug> <node_id>109</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>109</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>109</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>109</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>109</node_id> <plug_id>op</plug_id> </plug>
+<buf>(1-c)*x + c*(x*y)~00</buf></value>
+<value><plug> <node_id>115</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>2~00</buf></value>
+<value><plug> <node_id>115</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>115</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.587719 0.411765~00</buf></value>
+<value><plug> <node_id>115</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>115</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>115</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>115</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>116</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>116</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>116</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>116</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>116</node_id> <plug_id>op</plug_id> </plug>
+<buf>(1-c)*x + c*(x*y)~00</buf></value>
+<value><plug> <node_id>117</node_id> <plug_id>frame</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>117</node_id> <plug_id>threshold</plug_id> </plug>
+<buf>216~00</buf></value>
+<value><plug> <node_id>119</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>119</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>119</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>119</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>119</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>120</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>120</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>120</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.824561 0.504202~00</buf></value>
+<value><plug> <node_id>120</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>120</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>120</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>120</node_id> <plug_id>routine</plug_id> </plug>
+<buf>mirror~00</buf></value>
+<value><plug> <node_id>121</node_id> <plug_id>exp</plug_id> </plug>
+<buf>128+x1*128~00</buf></value>
+<value><plug> <node_id>121</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0.984314~00</buf></value>
+<value><plug> <node_id>121</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>121</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>121</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>122</node_id> <plug_id>frame</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>122</node_id> <plug_id>threshold</plug_id> </plug>
+<buf>128~00</buf></value>
+<value><plug> <node_id>123</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>123</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>123</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>123</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>123</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>124</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>124</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>124</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>124</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>124</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>125</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>125</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>125</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>125</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>125</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>126</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>126</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>126</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>126</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>126</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>127</node_id> <plug_id>exp</plug_id> </plug>
+<buf>0.5+x1/2~00</buf></value>
+<value><plug> <node_id>127</node_id> <plug_id>x1</plug_id> </plug>
+<buf>0.811765~00</buf></value>
+<value><plug> <node_id>127</node_id> <plug_id>x2</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>127</node_id> <plug_id>x3</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>127</node_id> <plug_id>x4</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>128</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>2~00</buf></value>
+<value><plug> <node_id>128</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>128</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.412281 0.571429~00</buf></value>
+<value><plug> <node_id>128</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>128</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>128</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>128</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>129</node_id> <plug_id>frame</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>129</node_id> <plug_id>threshold</plug_id> </plug>
+<buf>128~00</buf></value>
+<value><plug> <node_id>130</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>2~00</buf></value>
+<value><plug> <node_id>130</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>130</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.587719 0.579832~00</buf></value>
+<value><plug> <node_id>130</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>130</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>130</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>130</node_id> <plug_id>routine</plug_id> </plug>
+<buf>regular~00</buf></value>
+<value><plug> <node_id>131</node_id> <plug_id>frame</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>131</node_id> <plug_id>threshold</plug_id> </plug>
+<buf>128~00</buf></value>
+<value><plug> <node_id>132</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>132</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>132</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>132</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>132</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>133</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>133</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>133</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>133</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>133</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+<value><plug> <node_id>134</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>134</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>134</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>134</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>134</node_id> <plug_id>op</plug_id> </plug>
+<buf>(1-c)*x + c*(x*y)~00</buf></value>
+<value><plug> <node_id>135</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>135</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>135</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>135</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>135</node_id> <plug_id>op</plug_id> </plug>
+<buf>(1-c)*x + c*(x*y)~00</buf></value>
+<value><plug> <node_id>136</node_id> <plug_id>n</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>136</node_id> <plug_id>min_in</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>136</node_id> <plug_id>max_in</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>136</node_id> <plug_id>min_out</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>136</node_id> <plug_id>max_out</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>137</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>137</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>137</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>137</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>137</node_id> <plug_id>op</plug_id> </plug>
+<buf>x + c*y~00</buf></value>
+</values>
+</snapshot>
+</snapshots>
+</graph>
