@@ -1,0 +1,14 @@
+#summary Example Gephex Graphs
+
+= Introduction =
+
+There needs to be more example videos along with downloadable graphs, so I'll take some of mine and allow them to be used by anyone.
+
+
+= Details =
+
+*Basic Plasma*
+
+This effect looks really awesome initally, and is very easy to create with a couple of mixers and a plasma block.
+
+Feedback can be pretty compelling, but typically leads to periodicity- signal generators set to noize can avoid too much repetition but any effect looks samey after a while.
