@@ -15,6 +15,12 @@ http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/galaxies.png
 This effect is built up from this source image:
 http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/circlegrad.png
 
+*Harrier*
+
+This effect creates a gradually changing terrain tile, which it zooms at the viewer, creating the impression of flying over a landscape.  A fractal object floats over the landscape, banking and turning while it transforms.
+
+http://vimeo.com/467417
+http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/harrier6
 
 
 *Basic Plasma*
