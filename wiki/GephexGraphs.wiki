@@ -22,6 +22,10 @@ This effect creates a gradually changing terrain tile, which it zooms at the vie
 http://vimeo.com/467417
 http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/harrier6
 
+*Sidescroller*
+Similar vein as Harrier
+
+http://binarymillenium.googlecode.com/svn/trunk/gephex_graphs/sidescroller5
 
 *Basic Plasma*
 
