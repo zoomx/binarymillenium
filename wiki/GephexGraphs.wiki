@@ -2,7 +2,7 @@
 
 = Introduction =
 
-There needs to be more example videos along with downloadable graphs, so I'll take some of mine and allow them to be used by anyone.
+There needs to be more example videos along with downloadable graphs, so I'll take some of mine and allow them to be used by anyone under the terms of the GPL.
 
 
 = Details =
