@@ -51,6 +51,7 @@ typedef struct opticflow_instance{
 	int night_mode;
 	int flags;
 	int need_to_init;
+	int circ_size;
 	//int add_remove_pt;
 	CvPoint pt;
 
@@ -70,7 +71,7 @@ f0r_instance_t f0r_construct(unsigned int width, unsigned int height) //( int ar
     inst->width = width;
     inst->height = height;
 
-
+	inst->circ_size = 1;
     //
     //inst->capture = 0;
     inst->frame_copy = 0;
@@ -111,6 +112,9 @@ void f0r_set_param_value(f0r_instance_t instance,
 				//printf("%f\r\n", *((double*)param) );	
 					}
 			break;
+		case 1:
+			inst->circ_size = (int) ( fabs(*((double*)param)) + 1.0);
+		break;
 	}
 
 }
@@ -132,7 +136,7 @@ void f0r_get_plugin_info(f0r_plugin_info_t* opticflowInfo)
     opticflowInfo->frei0r_version = FREI0R_MAJOR_VERSION;
     opticflowInfo->major_version = 0;
     opticflowInfo->minor_version = 1;
-    opticflowInfo->num_params =  1;
+    opticflowInfo->num_params =  2;
     opticflowInfo->explanation = "track image features";
 }
 
@@ -145,6 +149,12 @@ void f0r_get_param_info(f0r_param_info_t* info, int param_index)
             info->type = F0R_PARAM_DOUBLE;
             info->explanation = "find features";
             break;
+		case 1:
+            info->name = "circle size";
+            info->type = F0R_PARAM_DOUBLE;
+            info->explanation = "size of tracked dots";
+            break;
+
     }
 
 }
@@ -179,7 +189,7 @@ void f0r_update(f0r_instance_t instance, double time,
 		inst->points[1] = (CvPoint2D32f*)cvAlloc(MAX_COUNT*sizeof(inst->points[0][0]));
 		inst->status = (char*)cvAlloc(MAX_COUNT);
 		inst->flags = 0;
-		inst->night_mode = 0;
+		inst->night_mode = 1;
 
 		cvCopy( inst->frame_copy, inst->image, 0 );
 		cvCvtColor( inst->image, inst->grey, CV_BGR2GRAY );
@@ -258,7 +268,13 @@ void detect_and_draw( f0r_instance_t instance )
 				
 				inst->need_to_init = 0;
 				//inst->add_remove_pt = 0;
+
+				for( i = k = 0; i < inst->count; i++ ) {
+					inst->points[1][k++] = inst->points[1][i];
+					cvCircle( inst->image, cvPointFrom32f(inst->points[1][i]), inst->circ_size, CV_RGB(255,255,255), -1, 8,0);
+				}
 		}
+		
 		else if( inst->count > 0 )
         {
             cvCalcOpticalFlowPyrLK( inst->prev_grey, inst->grey, inst->prev_pyramid, inst->pyramid,
@@ -285,7 +301,7 @@ void detect_and_draw( f0r_instance_t instance )
                     continue;
                 
                 inst->points[1][k++] = inst->points[1][i];
-                cvCircle( inst->image, cvPointFrom32f(inst->points[1][i]), 1, CV_RGB(0,255,0), -1, 8,0);
+                cvCircle( inst->image, cvPointFrom32f(inst->points[1][i]), inst->circ_size, CV_RGB(255,255,255), -1, 8,0);
             }
             inst->count = k;
         }
