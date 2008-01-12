@@ -48,10 +48,10 @@ typedef struct opticflow_instance{
 	CvPoint2D32f* points[2], *swap_points;
 	char* status ;
 	int count ;
-	int need_to_init;
 	int night_mode;
 	int flags;
-	int add_remove_pt;
+	int need_to_init;
+	//int add_remove_pt;
 	CvPoint pt;
 
     const char* input_name;
@@ -102,6 +102,17 @@ void f0r_set_param_value(f0r_instance_t instance,
     assert(instance);
     opticflow_instance_t* inst = (opticflow_instance_t*)instance;
 
+    switch(param_index)
+    {
+		case 0:
+			if ( *((double*)param) > 0.5) {
+				inst->need_to_init = 1;
+
+				//printf("%f\r\n", *((double*)param) );	
+					}
+			break;
+	}
+
 }
 
 void f0r_get_param_value(f0r_instance_t instance,
@@ -110,29 +121,6 @@ void f0r_get_param_value(f0r_instance_t instance,
     assert(instance);
     opticflow_instance_t* inst = (opticflow_instance_t*)instance;
 
-    switch(param_index)
-    {
-		case 0:
-			if (param > 0) {
-				/* automatic initialization */
-				IplImage* eig = cvCreateImage( cvGetSize(inst->grey), 32, 1 );
-				IplImage* temp = cvCreateImage( cvGetSize(inst->grey), 32, 1 );
-				double quality = 0.01;
-				double min_distance = 10;
-
-				inst->count = MAX_COUNT;
-				cvGoodFeaturesToTrack( inst->grey, eig, temp, inst->points[1], &inst->count,
-						quality, min_distance, 0, 3, 0, 0.04 );
-				cvFindCornerSubPix( inst->grey, inst->points[1], inst->count,
-						cvSize(WIN_SIZE,WIN_SIZE), cvSize(-1,-1),
-						cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03));
-				cvReleaseImage( &eig );
-				cvReleaseImage( &temp );
-
-				inst->add_remove_pt = 0;
-			}
- 			break;
-	}
 }
 
 void f0r_get_plugin_info(f0r_plugin_info_t* opticflowInfo)
@@ -191,7 +179,7 @@ void f0r_update(f0r_instance_t instance, double time,
 		inst->points[1] = (CvPoint2D32f*)cvAlloc(MAX_COUNT*sizeof(inst->points[0][0]));
 		inst->status = (char*)cvAlloc(MAX_COUNT);
 		inst->flags = 0;
-		inst->night_mode = 1;
+		inst->night_mode = 0;
 
 		cvCopy( inst->frame_copy, inst->image, 0 );
 		cvCvtColor( inst->image, inst->grey, CV_BGR2GRAY );
@@ -220,7 +208,7 @@ void f0r_update(f0r_instance_t instance, double time,
         }
     }
 
-    //detect_and_draw( inst );
+    detect_and_draw( inst );
 
     ipli = (unsigned char*)inst->frame_copy->imageData;
   
@@ -251,8 +239,27 @@ void detect_and_draw( f0r_instance_t instance )
 
         if( inst->night_mode )
             cvZero( inst->image );
-        
-	 	if( inst->count > 0 )
+	
+		if (inst->need_to_init) {	
+				/* automatic initialization */
+				IplImage* eig = cvCreateImage( cvGetSize(inst->grey), 32, 1 );
+				IplImage* temp = cvCreateImage( cvGetSize(inst->grey), 32, 1 );
+				double quality = 0.01;
+				double min_distance = 10;
+
+				inst->count = MAX_COUNT;
+				cvGoodFeaturesToTrack( inst->grey, eig, temp, inst->points[1], &inst->count,
+						quality, min_distance, 0, 3, 0, 0.04 );
+				cvFindCornerSubPix( inst->grey, inst->points[1], inst->count,
+						cvSize(WIN_SIZE,WIN_SIZE), cvSize(-1,-1),
+						cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03));
+				cvReleaseImage( &eig );
+				cvReleaseImage( &temp );
+				
+				inst->need_to_init = 0;
+				//inst->add_remove_pt = 0;
+		}
+		else if( inst->count > 0 )
         {
             cvCalcOpticalFlowPyrLK( inst->prev_grey, inst->grey, inst->prev_pyramid, inst->pyramid,
                 inst->points[0], inst->points[1], inst->count, cvSize(WIN_SIZE,WIN_SIZE), 3, inst->status, 0,
@@ -260,6 +267,7 @@ void detect_and_draw( f0r_instance_t instance )
             inst->flags |= CV_LKFLOW_PYR_A_READY;
             for( i = k = 0; i < inst->count; i++ )
             {
+				#if 0
                 if( inst->add_remove_pt )
                 {
                     double dx = inst->pt.x - inst->points[1][i].x;
@@ -271,6 +279,7 @@ void detect_and_draw( f0r_instance_t instance )
                         continue;
                     }
                 }
+				#endif
                 
                 if( !inst->status[i] )
                     continue;
@@ -281,7 +290,8 @@ void detect_and_draw( f0r_instance_t instance )
             inst->count = k;
         }
 
-        if( inst->add_remove_pt && inst->count < MAX_COUNT )
+        #if 0
+		if( inst->add_remove_pt && inst->count < MAX_COUNT )
         {
             inst->points[1][inst->count++] = cvPointTo32f(inst->pt);
             cvFindCornerSubPix( inst->grey, inst->points[1] + inst->count - 1, 1,
@@ -289,13 +299,12 @@ void detect_and_draw( f0r_instance_t instance )
                 cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03));
             inst->add_remove_pt = 0;
         }
+		#endif
 
         CV_SWAP( inst->prev_grey, inst->grey, inst->swap_temp );
         CV_SWAP( inst->prev_pyramid, inst->pyramid, inst->swap_temp );
         CV_SWAP( inst->points[0], inst->points[1], inst->swap_points );
-        inst->need_to_init = 0;
         //cvShowImage( "LkDemo", inst->image );
-
 
 
     cvCopy( inst->image, inst->frame_copy, 0 );
