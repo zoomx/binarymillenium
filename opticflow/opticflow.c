@@ -48,6 +48,8 @@ typedef struct opticflow_instance{
 	CvPoint2D32f* points[2], *swap_points;
 	char* status ;
 	int count ;
+	/// number of features to look for
+	int set_count;
 	int night_mode;
 	int flags;
 	int need_to_init;
@@ -72,7 +74,8 @@ f0r_instance_t f0r_construct(unsigned int width, unsigned int height) //( int ar
     inst->height = height;
 
 	inst->circ_size = 1;
-    //
+    inst->set_count = MAX_COUNT;
+	//
     //inst->capture = 0;
     inst->frame_copy = 0;
 
@@ -114,6 +117,15 @@ void f0r_set_param_value(f0r_instance_t instance,
 			break;
 		case 1:
 			inst->circ_size = (int) ( fabs(*((double*)param)) + 1.0);
+		case 2:
+			inst->set_count = (int) ( fabs(*((double*)param)) );
+			if (inst->set_count > MAX_COUNT) {
+				inst->set_count = MAX_COUNT;
+			}
+			if (inst->set_count < 1) {
+				inst->set_count = 1;
+			}
+
 		break;
 	}
 
@@ -136,7 +148,7 @@ void f0r_get_plugin_info(f0r_plugin_info_t* opticflowInfo)
     opticflowInfo->frei0r_version = FREI0R_MAJOR_VERSION;
     opticflowInfo->major_version = 0;
     opticflowInfo->minor_version = 1;
-    opticflowInfo->num_params =  2;
+    opticflowInfo->num_params =  3;
     opticflowInfo->explanation = "track image features";
 }
 
@@ -153,6 +165,11 @@ void f0r_get_param_info(f0r_param_info_t* info, int param_index)
             info->name = "circle size";
             info->type = F0R_PARAM_DOUBLE;
             info->explanation = "size of tracked dots";
+            break;
+		case 2:
+            info->name = "num points";
+            info->type = F0R_PARAM_DOUBLE;
+            info->explanation = "number of features to find";
             break;
 
     }
@@ -257,7 +274,7 @@ void detect_and_draw( f0r_instance_t instance )
 				double quality = 0.01;
 				double min_distance = 10;
 
-				inst->count = MAX_COUNT;
+				inst->count = inst->set_count;
 				cvGoodFeaturesToTrack( inst->grey, eig, temp, inst->points[1], &inst->count,
 						quality, min_distance, 0, 3, 0, 0.04 );
 				cvFindCornerSubPix( inst->grey, inst->points[1], inst->count,
