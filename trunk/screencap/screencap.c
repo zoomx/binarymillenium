@@ -285,7 +285,7 @@ void f0r_update(f0r_instance_t instance, double time,
     if (inst->x + inst->width >= 1024) inst->x = 1024-inst->width-1;
     if (inst->y + inst->height >= 800) inst->y = 800-inst->height-1;
     ximage = XGetImage(inst->dpy, RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
-                       inst->x, inst->y,
+                       2*inst->x, inst->y,
                        inst->width, inst->height, AllPlanes, ZPixmap);
     if (!ximage) {
         std::cerr << "XGetImage failed" << std::endl;
