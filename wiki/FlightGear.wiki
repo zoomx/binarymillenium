@@ -1,0 +1,21 @@
+#summary interfacing with flightgear
+#labels Featured
+
+= Introduction =
+
+I've recently become interested in making an autopilot application that can control a vehicle in flightgear in response to updates of the state of the vehicle.
+
+Initially I have a small app that accepts udp packets from flightgear (sent with the --native-fdm=socket,out,2, 127.0.0.1, 5500,udp command) and simply prints out altitude.  I've broken the endian checks so non x86 platforms may need to restore them.
+
+It would be easy to add print out of other information, but I may create another udp interface to processing that just sends a smaller custom struct with only the information the autopilot should have.  This will be plotted by processing in timecharts, and also saved to file somewhere.  Processing could also host the autopilot, which would require implementation of the native-ctrl interface- but that shouldn't be hard after getting through the native-fdm interface work.
+
+See this location in svn for the current app:
+http://binarymillenium.googlecode.com/svn/trunk/flightgear/
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
