@@ -11,11 +11,3 @@ It would be easy to add print out of other information, but I may create another
 
 See this location in svn for the current app:
 http://binarymillenium.googlecode.com/svn/trunk/flightgear/
-
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
