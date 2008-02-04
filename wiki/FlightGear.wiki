@@ -11,3 +11,11 @@ It would be easy to add print out of other information, but I may create another
 
 See this location in svn for the current app:
 http://binarymillenium.googlecode.com/svn/trunk/flightgear/
+
+= Details = 
+
+To set up flightgear to interact with this correctly, it needs to output the native-ctrl to udp on port 5700, input the native-ctrl on port 5600, and output the native-fdm on port 5500.  The update rates all need to be the same.
+
+= Update = 
+
+I've done some more looking and I think there is software similar to this (and maybe more correctly implemented) in the latest flightgear cvs.  One of the reasons that was so hard to find is there are no documents or web pages that explain it, just a few references in the flightgear mailing list.  
