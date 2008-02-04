@@ -5,9 +5,7 @@
 
 I've recently become interested in making an autopilot application that can control a vehicle in flightgear in response to updates of the state of the vehicle.
 
-Initially I have a small app that accepts udp packets from flightgear (sent with the --native-fdm=socket,out,2, 127.0.0.1, 5500,udp command) and simply prints out altitude.  I've broken the endian checks so non x86 platforms may need to restore them.
-
-It would be easy to add print out of other information, but I may create another udp interface to processing that just sends a smaller custom struct with only the information the autopilot should have.  This will be plotted by processing in timecharts, and also saved to file somewhere.  Processing could also host the autopilot, which would require implementation of the native-ctrl interface- but that shouldn't be hard after getting through the native-fdm interface work.
+I may create an interface to Processing that just sends a smaller custom struct with only the information the autopilot should have.  This will be plotted by processing in timecharts, and also saved to file somewhere.  Processing could also host the autopilot.
 
 See this location in svn for the current app:
 http://binarymillenium.googlecode.com/svn/trunk/flightgear/
@@ -22,7 +20,7 @@ The fdm structure contains the position and attitude of the vehicle, so using my
 
 I'm working in Linux right now with flightgear 1.0, my software would probably compile under Windows in Cygwin but I haven't yet tried that.
 
-To set up flightgear to interact with this correctly, it needs to output the native-ctrl to udp on port 5700, input the native-ctrl on port 5600, and output the native-fdm on port 5500.  The update rates all need to be the same.
+To set up flightgear to interact with this correctly, it needs to output the native-ctrl to udp on port 5700, input the native-ctrl on port 5600, and output the native-fdm on port 5500 (--native-fdm=socket,out,2, 127.0.0.1, 5500,udp).  The update rates all need to be the same.
 
 = Update = 
 
