@@ -14,11 +14,6 @@
 
 
 #include <time.h> // time_t
-#include <iostream>
-
-typedef signed int       int32_t;
-typedef unsigned int     uint32_t;
-
 
 // NOTE: this file defines an external interface structure.  Due to
 // variability between platforms and architectures, we only used fixed
@@ -44,6 +39,11 @@ public:
 
     uint32_t version;		// increment when data values change
     uint32_t padding;		// padding
+
+	// new custom - binarym- this breaks with the stock flightgear
+	float p;	// radians/sec
+	float q;
+	float r;
 
     // Positions
     double longitude;		// geodetic (radians)

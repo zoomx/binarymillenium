@@ -6,9 +6,6 @@
  *
  */
 
-#include "net_fdm.hxx"
-#include "net_ctrls.hxx"
-
 #include <stdio.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -19,21 +16,107 @@
 #include <errno.h>
 
 #define M_PI 3.14592
+#include <cmath>
+
+#include <iostream>
+ 
+typedef signed int       int32_t;
+typedef unsigned int     uint32_t;
+
+#include "net_fdm.hxx"
+#include "net_ctrls.hxx"
+
+// start pos is 0.653036, -2.11387,
+double target_longitude = -2.15; 
+double target_latitude  = .665; 
+
 
 struct known_state {
 	double longitude;
 	double latitude;
 	double altitude;
 
-	/// not sure if thiese are in body frame
-	float phidot;
-	float thetadot;
-	float psidot;
+	float p;
+	float q;
+	float r;
 
 	float A_X_pilot;
 	float A_Y_pilot;
 	float A_Z_pilot;
 };
+
+void autopilot(known_state state, known_state old_state, FGNetCtrls& bufctrl) 
+{
+	//std::cout << "altitude " << buf.altitude << " bytes " << std::endl;
+
+	/// derive heading from last two lat,long points
+	
+	/// ignore cos error with angles for now
+	float dlat  = state.latitude  - old_state.latitude;
+	/// is long in degrees west?
+	float dlong = 0.0 - (state.longitude - old_state.longitude);
+	float dlen = sqrtf(dlat*dlat + dlong*dlong);
+
+	float heading = atan2(dlat,dlong)* 180/M_PI;
+
+	float tdlat  = target_latitude  - old_state.latitude;
+	/// is long in degrees west?
+	float tdlong = 0.0 - (target_longitude - old_state.longitude);
+
+	float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
+	float theading = atan2(tdlat,tdlong)* 180/M_PI;
+
+	/// vector that points in the direction we need to move
+	//float dir_lat = tdlat/tlen - dlat/dlen;
+	//float dir_long = tdlong/tlen - dlong/dlen;
+	//float dir_deg = atan2(dir_lat, dir_long)*180/M_PI;
+	float dir_deg = theading- heading;
+	if (dir_deg >  180.0) dir_deg = 360.0-dir_deg;
+	if (dir_deg < -180.0) dir_deg = 360.0+dir_deg;
+
+	
+	float dalt = state.altitude - old_state.altitude;
+
+
+	/// now send some ctrls out, just anything random to show it works;
+	float val = 0.35*state.q;
+	if (val > 1.0) val = 1.0;
+	if (val <-1.0) val =-1.0;
+	bufctrl.elevator = val;
+
+    val = 0.5* dir_deg/180.0;
+	   if (val > 1.0) val = 1.0;
+	   if (val <-1.0) val =-1.0;
+	   bufctrl.rudder = val;
+
+
+	
+	val = 0.95*state.r;
+	if (val > 1.0) val = 1.0;
+	if (val <-1.0) val =-1.0;
+	bufctrl.aileron = val;
+
+
+	static int i = 0;
+	i++;
+	if (i % 30 == 0) {
+		std::cout << 
+			" heading= " << heading <<
+			" target heading= " << theading <<
+			" dir heading diff= " << dir_deg <<
+			", lat= " << state.latitude << 
+			", long= " << state.longitude << 
+			", alt= " << state.altitude <<
+			", pqr= " << 
+			state.p << " " <<
+			state.q << " " <<
+			state.r << " " <<
+			std::endl;
+	}
+
+}
+
+
 
 static void htond (double &x)   
 {
@@ -140,6 +223,12 @@ void FGNetFDM2Props( FGNetFDM *net ) {
         htonf(net->alpha);
         htonf(net->beta);
 
+		///  custom- put ifdef around?
+        htonf(net->p);		// use
+        htonf(net->q);	// use
+        htonf(net->r); 	// use
+
+
         htonf(net->phidot);		// use
         htonf(net->thetadot);	// use
         htonf(net->psidot); 	// use
@@ -176,6 +265,7 @@ int main(void)
 	char* buffer_ctrl = (char*)&bufctrl; 
 
 	struct known_state state; 
+	struct known_state old_state; 
 
 
 	/* Create the UDP socket */
@@ -225,7 +315,10 @@ int main(void)
 
 	double time = 0.0; 
 
+	int i = 0;
 	while(1) {
+	 
+	 	i++;
 		// I think this clobbers echoclient
 		/// receive net_fdm over udp
 		received = recvfrom(sock, buffer, sizeof(buf), 0,
@@ -247,9 +340,9 @@ int main(void)
 		state.latitude = buf.latitude;
 		state.altitude = buf.altitude;
 
-		state.phidot = buf.phidot;
-		state.thetadot = buf.thetadot;
-		state.psidot = buf.psidot;
+		state.p = buf.p;
+		state.q = buf.q;
+		state.r = buf.r;
 
 		state.A_X_pilot = buf.A_X_pilot;
 		state.A_Y_pilot = buf.A_Y_pilot;
@@ -269,35 +362,17 @@ int main(void)
 						&echolen);
 
 			FGProps2NetCtrls(&bufctrl);
-			/// copy buffer into fdm struct
 
-			std::cout << "altitude " << buf.altitude << " bytes " << std::endl;
+			autopilot(state, old_state, bufctrl);
+
+			old_state = state;
 	
-			/// now send some ctrls out, just anything random to show it works;
-			float val = -state.phidot;
-			if (val > 1.0) val = 1.0;
-			if (val <-1.0) val =-1.0;
-			bufctrl.elevator = val;
 
-			val = -state.thetadot;
-			if (val > 1.0) val = 1.0;
-			if (val <-1.0) val =-1.0;
-			bufctrl.rudder = val;
-		
-			val = -state.psidot;
-			if (val > 1.0) val = 1.0;
-			if (val <-1.0) val =-1.0;
-			//bufctrl.elevation = val;
+			////////////////////////////////////////////////////////////////////////
 
 			received = sendto(sock, buffer_ctrl, sizeof(bufctrl), 0,
 			(struct sockaddr *) &ctrlclient, sizeof(ctrlclient));
 
-			//std::cout << "sent " << val << " " <<std::endl;
-			std::cout << "sent " << 
-							state.phidot << " " <<
-							state.thetadot << " " <<
-							state.psidot << " " <<
-									std::endl;
 			
 			if (received <0) {
 				perror("sendto");
