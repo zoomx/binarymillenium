@@ -30,10 +30,12 @@ typedef unsigned int     uint32_t;
 
 
 // start pos is 0.653036, -2.11387,
-const double target_longitude = -2.15; 
-const double target_latitude  = .665; 
+const double target_longitude = -2.112; //-2.15; 
+const double target_latitude  = .652; // .663
+const double target_altitude  = 1000; //meters 
 
-const double EARTH_RADIUS_METERS = 6.3e6;
+const double EARTH_RADIUS_METERS = 6.378155e6;
+const double D2R = M_PI/180.0;
 
 struct known_state {
 	double longitude;
@@ -45,7 +47,9 @@ struct known_state {
 	float ierror_heading;
 
 	float pitch;
-	float dpitch;
+	
+	float error_pitch;
+	float dpitch;  // these are for error_pitch
 	float ipitch;
 
 	float p;
@@ -66,6 +70,8 @@ void autopilot(known_state& state, known_state& old_state, FGNetCtrls& bufctrl,
 std::ofstream& telem) 
 {
 
+	static int j = 0;
+	
 	float dt = 0.1;
 	//std::cout << "altitude " << buf.altitude << " bytes " << std::endl;
 
@@ -77,38 +83,24 @@ std::ofstream& telem)
 	/// is long in degrees west?
 	float dlong = 0.0 - (state.longitude - old_state.longitude);
 
-	float heading = atan2(dlat,dlong)* 180/M_PI;
 
 	float tdlat  = target_latitude  - old_state.latitude;
-	/// is long in degrees west?
 	float tdlong = 0.0 - (target_longitude - old_state.longitude);
 
 	float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
+
+	//////////////////////////////////////////////////////////////
+	float heading = atan2(dlat,dlong)* 180/M_PI;
 	float theading = atan2(tdlat,tdlong)* 180/M_PI;
-
-	/// find the angle from horizontal
-		
-	float dx = dlat*EARTH_RADIUS_METERS;
-	float dy = dlong*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
-	float dlenxy = sqrtf(dx*dx + dy*dy);
-	float dlen = sqrtf(dlat*dlat + dlong*dlong);
-	float dalt = state.altitude - old_state.altitude;
-
-	state.pitch = atan2(dalt, dlenxy)/M_PI; /// convert to -1 to 1
-	
-
 
 	/// vector that points in the direction we need to move
 	state.error_heading = theading- heading;
 	if (state.error_heading >  180.0) state.error_heading = 360.0-state.error_heading;
 	if (state.error_heading < -180.0) state.error_heading = 360.0+state.error_heading;
 
-	
-
 	state.derror_heading = (state.error_heading- old_state.error_heading)/dt;
 	state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
 	
-	static int j = 0;
 	if (j < 10) state.derror_heading = 0;
 	j++;
 
@@ -116,6 +108,31 @@ std::ofstream& telem)
 	if (state.ierror_heading >  1800.0) state.ierror_heading = 1800.0;
 	if (state.ierror_heading < -1800.0) state.ierror_heading = -1800.0;
 
+	///////////////////////////////////////////////////////////////////
+	/// find the angle from horizontal
+		
+	float dx = dlong*D2R*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
+	float dy = dlat*D2R*EARTH_RADIUS_METERS;
+	float dlenxy = sqrtf(dx*dx + dy*dy);
+	float dlen = sqrtf(dlat*dlat + dlong*dlong);
+	float dalt = state.altitude - old_state.altitude;
+
+	state.pitch = atan2(dalt, dlenxy)/M_PI; /// convert to -1 to 1
+
+	float speed = sqrtf(dlenxy*dlenxy + dalt*dalt)/dt;	
+	if (j < 10) speed = 0;
+
+	/// find the necessary pitch to descend to the target
+
+	float tdx = 0.0 - (target_longitude - old_state.longitude)*D2R*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
+	float tdy  = (target_latitude  - old_state.latitude)*D2R*EARTH_RADIUS_METERS;
+	float tlenxy = sqrtf(tdx*tdx + tdy*tdy);
+
+	float tdalt = target_altitude- state.altitude;
+	float tpitch = atan2(tdalt, tlenxy)/M_PI; /// convert to -1 to 1
+	if (j < 10) tpitch = 0;
+
+	///////////////
 
 	state.iq = old_state.iq + state.q*dt;
 	state.dq = (state.q - old_state.q)/dt;
@@ -125,22 +142,25 @@ std::ofstream& telem)
 	
 	float valq = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
 
-	state.ipitch = old_state.ipitch + state.pitch*dt;
-	state.dpitch = (state.pitch - old_state.pitch)/dt;
+	state.error_pitch = tpitch - state.pitch;
+	state.ipitch = old_state.ipitch + state.error_pitch*dt;
+	state.dpitch = (state.error_pitch - old_state.error_pitch)/dt;
 	state.dpitch = (state.dpitch*0.02 + old_state.dpitch*0.98);	
 	if (j < 10) state.dpitch = 0;
 	
-	float valp = 0.15*state.pitch + 0.1*state.dpitch + 0.35*state.ipitch;
+	float valp = -(0.15*state.error_pitch + 0.1*state.dpitch + 0.35*state.ipitch);
 
 	float val = (valq + valp)/2.0;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.elevator = val;
 	
-    val = 0.5*state.error_heading/180.0 + 0.5*state.derror_heading/180.0 + 0.000001*state.ierror_heading;
+    val = 0.9*state.error_heading/180.0 + 20.5*state.derror_heading/180.0 + 0.000001*state.ierror_heading;
+    if (state.error_heading < 20) val += 20.5*state.derror_heading/180.0;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.rudder = val;
+	bufctrl.aileron = val*0.2;
 	
 	val = 0.95*state.r;
 	if (val > 1.0) val = 1.0;
@@ -152,23 +172,26 @@ std::ofstream& telem)
 		state.p << "," << state.q << "," << state.r << "," <<
 		bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
 		state.dq << "," << state.iq << "," << 
-		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << 
-		state.pitch << "," << state.dpitch << "," << state.ipitch <<
-			std::endl;
+		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << "," << 
+		state.error_pitch << "," << state.dpitch << "," << state.ipitch << "," <<
+		tpitch << "," << speed << 
+		std::endl;
 
 	static int i = 0;
 	i++;
 	if (i % 30 == 0) {
-		std::cout << 
+		std::cout <<
+			", tlenxy=" << tlenxy << ", speed m/s=" << speed << 
+		//	" tdx=" << tdx << ", tdy=" << tdy <<
 	//		" heading= " << heading <<
 	//		" target heading= " << theading <<
-			" err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
-		//	", lat= " << state.latitude << 
-		//	", long= " << state.longitude << 
+			", err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
+			//", lat= " << state.latitude << ", long= " << state.longitude << 
 			", alt= " << state.altitude <<
-			", pitch= " << state.pitch << 
+			", pitch= " << state.pitch <<
+			", tpitch= " << tpitch << 
 		//	", p=" << state.p <<  
-			", q=" << state.q << ", elev=" << bufctrl.elevator <<
+	//		", q=" << state.q << ", elev=" << bufctrl.elevator <<
 		//	", r=" << state.r << ", ail= " << bufctrl.aileron << 
 			std::endl;
 	}
