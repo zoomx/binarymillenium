@@ -38,13 +38,14 @@ struct known_state {
 	double altitude;
 
 	float error_heading; /// degrees
-	float derror_heading;
+	float derror_heading; /// filtered
 	float ierror_heading;
 
 	float p;
 	float q;
 	float r;
 
+	float dq; // derivative of q (filtered)
 	float iq;  // integral of q
 
 	float A_X_pilot;
@@ -78,6 +79,13 @@ std::ofstream& telem)
 	float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
 	float theading = atan2(tdlat,tdlong)* 180/M_PI;
 
+	/// find the angle from horizontal
+	
+	float dalt = state.altitude - old_state.altitude;
+
+	
+
+
 	/// vector that points in the direction we need to move
 	//float dir_lat = tdlat/tlen - dlat/dlen;
 	//float dir_long = tdlong/tlen - dlong/dlen;
@@ -87,13 +95,12 @@ std::ofstream& telem)
 	if (state.error_heading < -180.0) state.error_heading = 360.0+state.error_heading;
 
 	
-	float dalt = state.altitude - old_state.altitude;
 
 	state.derror_heading = (state.error_heading- old_state.error_heading)/dt;
 	state.derror_heading = 0.002*state.derror_heading + 0.998*old_state.derror_heading;
 	
 	static int j = 0;
-	if (j < 20) state.derror_heading = 0;
+	if (j < 10) state.derror_heading = 0;
 	j++;
 
 	state.ierror_heading = old_state.ierror_heading + state.error_heading*dt;
@@ -105,13 +112,17 @@ std::ofstream& telem)
 	state.iq = old_state.iq + state.q*dt;
 	//std::cout << state.q << " " <<  state.iq << std::endl;
 
-	float dq = (state.q - old_state.q)/dt;	
-	float val = 0.15*state.q + 0.01*dq + 0.4*state.iq;
+	state.dq = (state.q - old_state.q)/dt;
+	/// filter to avoid oscillations
+	state.dq = (state.dq*0.002 + old_state.dq*0.998);	
+	if (j < 10) state.dq = 0;
+	
+	float val = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.elevator = val;
 	
-    val = 0.5*state.error_heading/180.0 + 2.0*state.derror_heading/180.0 + 0.00001*state.ierror_heading;
+    val = 0.5*state.error_heading/180.0 + 8.0*state.derror_heading/180.0 + 0.00001*state.ierror_heading;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.rudder = val;
@@ -125,7 +136,7 @@ std::ofstream& telem)
 		state.longitude << "," << state.latitude << "," << state.altitude << "," <<
 		state.p << "," << state.q << "," << state.r << "," <<
 		bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
-		dq << "," << state.iq << "," << 
+		state.dq << "," << state.iq << "," << 
 		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << 
 			std::endl;
 

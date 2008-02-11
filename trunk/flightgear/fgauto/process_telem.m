@@ -39,7 +39,7 @@ legend('p','q','r');
 
 figure(4),
 factor = 100; % max(abs(q))/ max(abs(elev));
-plot(t,q, t, elev*factor,t,dq*10, t, iq*50);
+plot(t,q, t, elev*factor,t,dq*500, t, iq*50);
 ylabel('radians/sec, or other units');
 legend('q', 'elevator', 'dq','iq');
 
