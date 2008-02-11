@@ -38,6 +38,8 @@ struct known_state {
 	double altitude;
 
 	float error_heading; /// degrees
+	float derror_heading;
+	float ierror_heading;
 
 	float p;
 	float q;
@@ -87,21 +89,32 @@ std::ofstream& telem)
 	
 	float dalt = state.altitude - old_state.altitude;
 
-	float derror_heading = (state.error_heading- old_state.error_heading)/dt; 
+	state.derror_heading = (state.error_heading- old_state.error_heading)/dt;
+	state.derror_heading = 0.002*state.derror_heading + 0.998*old_state.derror_heading;
+	
+	static int j = 0;
+	if (j < 20) state.derror_heading = 0;
+	j++;
+
+	state.ierror_heading = old_state.ierror_heading + state.error_heading*dt;
+	if (state.ierror_heading >  1800.0) state.ierror_heading = 1800.0;
+	if (state.ierror_heading < -1800.0) state.ierror_heading = -1800.0;
+
+
 
 	state.iq = old_state.iq + state.q*dt;
 	//std::cout << state.q << " " <<  state.iq << std::endl;
 
 	float dq = (state.q - old_state.q)/dt;	
-	float val = 0.2*state.q + 0.005*dq + 0.5*state.iq;
+	float val = 0.15*state.q + 0.01*dq + 0.4*state.iq;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.elevator = val;
 	
-    val = 0.5*state.error_heading/180.0 + 0.2*derror_heading/180.0;
-	   if (val > 1.0) val = 1.0;
-	   if (val <-1.0) val =-1.0;
-	//bufctrl.rudder = val;
+    val = 0.5*state.error_heading/180.0 + 2.0*state.derror_heading/180.0 + 0.00001*state.ierror_heading;
+	if (val > 1.0) val = 1.0;
+	if (val <-1.0) val =-1.0;
+	bufctrl.rudder = val;
 	
 	val = 0.95*state.r;
 	if (val > 1.0) val = 1.0;
@@ -112,7 +125,8 @@ std::ofstream& telem)
 		state.longitude << "," << state.latitude << "," << state.altitude << "," <<
 		state.p << "," << state.q << "," << state.r << "," <<
 		bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
-		dq << "," << state.iq << "," << state.error_heading << "," << derror_heading <<
+		dq << "," << state.iq << "," << 
+		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << 
 			std::endl;
 
 	static int i = 0;
