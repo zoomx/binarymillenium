@@ -9,15 +9,6 @@ f = f';
 
 len =size(f,2)
 t = [1:len]/10;
-
-figure(1);
-plot(f(1,:), f(2,:));
-ylabel('long vs. lat');
-
-figure(2),
-plot(f(3,:));
-ylabel('altitude');
-
 r2d = 180/pi;
 p = f(4,:)*r2d;
 q = f(5,:)*r2d;
@@ -36,7 +27,18 @@ ail = f(9,:);
 pitch  = f(15,:);
 dpitch = f(16,:);
 ipitch = f(17,:);
-	
+
+tpitch = f(18,:);
+speed = f(19,:);
+
+figure(1);
+plot(f(1,:), f(2,:));
+ylabel('long vs. lat');
+
+figure(2),
+plot(f(3,:));
+ylabel('altitude');
+
 
 figure(3),
 plot(t,p, t,q,t,r);
@@ -47,10 +49,15 @@ factor = 100; % max(abs(q))/ max(abs(elev));
 subplot(2,1,1),plot(t,elev*factor, t, q,t,dq*500, t, iq*50);
 ylabel('radians/sec, or other units');
 legend('elevator','q', 'dq','iq');
-subplot(2,1,2),plot(t, elev, t, pitch, t, dpitch*10, t, ipitch);
-legend('elev', 'gps derived pitch', 'dpitch', 'ipitch');
+subplot(2,1,2),plot(t, elev, t,pitch, t, tpitch, t, dpitch*10, t, ipitch);
+legend('elev', 'gps derived pitch', 'tpitch', 'dpitch', 'ipitch');
 
 figure(5),
 plot(t,rud*100, t,err_head, t, derr_head*10, t, ierr_head/10);
+ylabel('degrees');
 legend('rudder', 'error heading', 'derror heading', 'ierr_head');
 
+figure(6),
+plot(t,speed);
+legend('speed');
+ylabel('meters/second');
