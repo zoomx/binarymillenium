@@ -19,7 +19,8 @@
 #include <cmath>
 
 #include <iostream>
- 
+#include <fstream>
+
 typedef signed int       int32_t;
 typedef unsigned int     uint32_t;
 
@@ -36,17 +37,26 @@ struct known_state {
 	double latitude;
 	double altitude;
 
+	float error_heading; /// degrees
+
 	float p;
 	float q;
 	float r;
+
+	float iq;  // integral of q
 
 	float A_X_pilot;
 	float A_Y_pilot;
 	float A_Z_pilot;
 };
 
-void autopilot(known_state state, known_state old_state, FGNetCtrls& bufctrl) 
+class fileNotFound {};
+
+void autopilot(known_state& state, known_state& old_state, FGNetCtrls& bufctrl,
+std::ofstream& telem) 
 {
+
+	float dt = 0.1;
 	//std::cout << "altitude " << buf.altitude << " bytes " << std::endl;
 
 	/// derive heading from last two lat,long points
@@ -69,48 +79,55 @@ void autopilot(known_state state, known_state old_state, FGNetCtrls& bufctrl)
 	/// vector that points in the direction we need to move
 	//float dir_lat = tdlat/tlen - dlat/dlen;
 	//float dir_long = tdlong/tlen - dlong/dlen;
-	//float dir_deg = atan2(dir_lat, dir_long)*180/M_PI;
-	float dir_deg = theading- heading;
-	if (dir_deg >  180.0) dir_deg = 360.0-dir_deg;
-	if (dir_deg < -180.0) dir_deg = 360.0+dir_deg;
+	//float state.error_heading = atan2(dir_lat, dir_long)*180/M_PI;
+	state.error_heading = theading- heading;
+	if (state.error_heading >  180.0) state.error_heading = 360.0-state.error_heading;
+	if (state.error_heading < -180.0) state.error_heading = 360.0+state.error_heading;
 
 	
 	float dalt = state.altitude - old_state.altitude;
 
+	float derror_heading = (state.error_heading- old_state.error_heading)/dt; 
 
-	/// now send some ctrls out, just anything random to show it works;
-	float val = 0.35*state.q;
+	state.iq = old_state.iq + state.q*dt;
+	//std::cout << state.q << " " <<  state.iq << std::endl;
+
+	float dq = (state.q - old_state.q)/dt;	
+	float val = 0.2*state.q + 0.005*dq + 0.5*state.iq;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.elevator = val;
-
-    val = 0.5* dir_deg/180.0;
+	
+    val = 0.5*state.error_heading/180.0 + 0.2*derror_heading/180.0;
 	   if (val > 1.0) val = 1.0;
 	   if (val <-1.0) val =-1.0;
-	   bufctrl.rudder = val;
-
-
+	//bufctrl.rudder = val;
 	
 	val = 0.95*state.r;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
-	bufctrl.aileron = val;
+	//bufctrl.aileron = val;
 
+	telem << 
+		state.longitude << "," << state.latitude << "," << state.altitude << "," <<
+		state.p << "," << state.q << "," << state.r << "," <<
+		bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
+		dq << "," << state.iq << "," << state.error_heading << "," << derror_heading <<
+			std::endl;
 
 	static int i = 0;
 	i++;
 	if (i % 30 == 0) {
 		std::cout << 
-			" heading= " << heading <<
-			" target heading= " << theading <<
-			" dir heading diff= " << dir_deg <<
-			", lat= " << state.latitude << 
-			", long= " << state.longitude << 
+			//" heading= " << heading <<
+			//" target heading= " << theading <<
+			" err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
+		//	", lat= " << state.latitude << 
+		//	", long= " << state.longitude << 
 			", alt= " << state.altitude <<
-			", pqr= " << 
-			state.p << " " <<
-			state.q << " " <<
-			state.r << " " <<
+			", p=" << state.p <<  
+			", q=" << state.q << ", elev=" << bufctrl.elevator <<
+			", r=" << state.r << ", ail= " << bufctrl.aileron << 
 			std::endl;
 	}
 
@@ -267,6 +284,9 @@ int main(void)
 	struct known_state state; 
 	struct known_state old_state; 
 
+	memset(&state,	0, sizeof(state));
+	memset(&old_state,	0, sizeof(state));
+
 
 	/* Create the UDP socket */
 	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -312,6 +332,23 @@ int main(void)
 	int ret2 = bind(sock2, (struct sockaddr*)&ctrlinclient, sizeof(ctrlinclient) );
 	
 	std::cout << "bind " << ret << " " << ret2 << std::endl;
+	///////////////////////////////////////////////////////////////////
+
+	std::string file = "telemetry.csv";
+	std::ofstream telem(file.c_str(), std::ios_base::out );
+	if (!telem) {
+		std::cout << "File \"" << file << "\" not found.\n";
+		throw fileNotFound();
+		return 2;
+	}
+	telem.precision(10);
+
+    telem <<
+	        "longitude, latitude, altitude" <<
+			        "p, q, r," <<
+					"elevator, rudder, aileron" <<
+							            std::endl;
+
 
 	double time = 0.0; 
 
@@ -363,10 +400,11 @@ int main(void)
 
 			FGProps2NetCtrls(&bufctrl);
 
-			autopilot(state, old_state, bufctrl);
+			autopilot(state, old_state, bufctrl, telem);
 
-			old_state = state;
-	
+			//std::cout << old_state.altitude << " " << state.altitude << std::endl;
+			memcpy(&old_state, &state, sizeof(state));
+
 
 			////////////////////////////////////////////////////////////////////////
 
