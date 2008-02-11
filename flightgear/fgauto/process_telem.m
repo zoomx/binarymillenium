@@ -33,16 +33,24 @@ elev = f(7,:);
 rud = f(8,:);
 ail = f(9,:);
 
+pitch  = f(15,:);
+dpitch = f(16,:);
+ipitch = f(17,:);
+	
+
 figure(3),
 plot(t,p, t,q,t,r);
 legend('p','q','r');
 
 figure(4),
 factor = 100; % max(abs(q))/ max(abs(elev));
-plot(t,q, t, elev*factor,t,dq*500, t, iq*50);
+subplot(2,1,1),plot(t,elev*factor, t, q,t,dq*500, t, iq*50);
 ylabel('radians/sec, or other units');
-legend('q', 'elevator', 'dq','iq');
+legend('elevator','q', 'dq','iq');
+subplot(2,1,2),plot(t, elev, t, pitch, t, dpitch*10, t, ipitch);
+legend('elev', 'gps derived pitch', 'dpitch', 'ipitch');
 
 figure(5),
 plot(t,rud*100, t,err_head, t, derr_head*10, t, ierr_head/10);
 legend('rudder', 'error heading', 'derror heading', 'ierr_head');
+
