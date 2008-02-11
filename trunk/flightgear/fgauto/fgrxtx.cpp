@@ -27,10 +27,13 @@ typedef unsigned int     uint32_t;
 #include "net_fdm.hxx"
 #include "net_ctrls.hxx"
 
-// start pos is 0.653036, -2.11387,
-double target_longitude = -2.15; 
-double target_latitude  = .665; 
 
+
+// start pos is 0.653036, -2.11387,
+const double target_longitude = -2.15; 
+const double target_latitude  = .665; 
+
+const double EARTH_RADIUS_METERS = 6.3e6;
 
 struct known_state {
 	double longitude;
@@ -40,6 +43,10 @@ struct known_state {
 	float error_heading; /// degrees
 	float derror_heading; /// filtered
 	float ierror_heading;
+
+	float pitch;
+	float dpitch;
+	float ipitch;
 
 	float p;
 	float q;
@@ -66,9 +73,9 @@ std::ofstream& telem)
 	
 	/// ignore cos error with angles for now
 	float dlat  = state.latitude  - old_state.latitude;
+	
 	/// is long in degrees west?
 	float dlong = 0.0 - (state.longitude - old_state.longitude);
-	float dlen = sqrtf(dlat*dlat + dlong*dlong);
 
 	float heading = atan2(dlat,dlong)* 180/M_PI;
 
@@ -80,16 +87,18 @@ std::ofstream& telem)
 	float theading = atan2(tdlat,tdlong)* 180/M_PI;
 
 	/// find the angle from horizontal
-	
+		
+	float dx = dlat*EARTH_RADIUS_METERS;
+	float dy = dlong*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
+	float dlenxy = sqrtf(dx*dx + dy*dy);
+	float dlen = sqrtf(dlat*dlat + dlong*dlong);
 	float dalt = state.altitude - old_state.altitude;
 
+	state.pitch = atan2(dalt, dlenxy)/M_PI; /// convert to -1 to 1
 	
 
 
 	/// vector that points in the direction we need to move
-	//float dir_lat = tdlat/tlen - dlat/dlen;
-	//float dir_long = tdlong/tlen - dlong/dlen;
-	//float state.error_heading = atan2(dir_lat, dir_long)*180/M_PI;
 	state.error_heading = theading- heading;
 	if (state.error_heading >  180.0) state.error_heading = 360.0-state.error_heading;
 	if (state.error_heading < -180.0) state.error_heading = 360.0+state.error_heading;
@@ -97,7 +106,7 @@ std::ofstream& telem)
 	
 
 	state.derror_heading = (state.error_heading- old_state.error_heading)/dt;
-	state.derror_heading = 0.002*state.derror_heading + 0.998*old_state.derror_heading;
+	state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
 	
 	static int j = 0;
 	if (j < 10) state.derror_heading = 0;
@@ -108,21 +117,27 @@ std::ofstream& telem)
 	if (state.ierror_heading < -1800.0) state.ierror_heading = -1800.0;
 
 
-
 	state.iq = old_state.iq + state.q*dt;
-	//std::cout << state.q << " " <<  state.iq << std::endl;
-
 	state.dq = (state.q - old_state.q)/dt;
 	/// filter to avoid oscillations
 	state.dq = (state.dq*0.002 + old_state.dq*0.998);	
 	if (j < 10) state.dq = 0;
 	
-	float val = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
+	float valq = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
+
+	state.ipitch = old_state.ipitch + state.pitch*dt;
+	state.dpitch = (state.pitch - old_state.pitch)/dt;
+	state.dpitch = (state.dpitch*0.02 + old_state.dpitch*0.98);	
+	if (j < 10) state.dpitch = 0;
+	
+	float valp = 0.15*state.pitch + 0.1*state.dpitch + 0.35*state.ipitch;
+
+	float val = (valq + valp)/2.0;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.elevator = val;
 	
-    val = 0.5*state.error_heading/180.0 + 8.0*state.derror_heading/180.0 + 0.00001*state.ierror_heading;
+    val = 0.5*state.error_heading/180.0 + 0.5*state.derror_heading/180.0 + 0.000001*state.ierror_heading;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.rudder = val;
@@ -138,21 +153,23 @@ std::ofstream& telem)
 		bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
 		state.dq << "," << state.iq << "," << 
 		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << 
+		state.pitch << "," << state.dpitch << "," << state.ipitch <<
 			std::endl;
 
 	static int i = 0;
 	i++;
 	if (i % 30 == 0) {
 		std::cout << 
-			//" heading= " << heading <<
-			//" target heading= " << theading <<
+	//		" heading= " << heading <<
+	//		" target heading= " << theading <<
 			" err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
 		//	", lat= " << state.latitude << 
 		//	", long= " << state.longitude << 
 			", alt= " << state.altitude <<
-			", p=" << state.p <<  
+			", pitch= " << state.pitch << 
+		//	", p=" << state.p <<  
 			", q=" << state.q << ", elev=" << bufctrl.elevator <<
-			", r=" << state.r << ", ail= " << bufctrl.aileron << 
+		//	", r=" << state.r << ", ail= " << bufctrl.aileron << 
 			std::endl;
 	}
 
