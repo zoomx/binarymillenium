@@ -30,9 +30,9 @@ typedef unsigned int     uint32_t;
 
 
 // start pos is 0.653036, -2.11387,
-const double target_longitude = -2.112; //-2.15; 
-const double target_latitude  = .652; // .663
-const double target_altitude  = 1000; //meters 
+const double target_longitude = -2.118; //-2.15; 
+const double target_latitude  = .651; // .663
+const double target_altitude  = 600; //meters 
 
 const double EARTH_RADIUS_METERS = 6.378155e6;
 const double D2R = M_PI/180.0;
@@ -41,6 +41,11 @@ struct known_state {
 	double longitude;
 	double latitude;
 	double altitude;
+
+	/// distance from target
+	/// this should actually be distance from fixed 0 point since target might move
+	float tdx;
+	float tdy;
 
 	float error_heading; /// degrees
 	float derror_heading; /// filtered
@@ -51,6 +56,10 @@ struct known_state {
 	float error_pitch;
 	float dpitch;  // these are for error_pitch
 	float ipitch;
+
+	float tpitch;  // target pitch
+	float speed;
+	float tlenxy;  // horizontal distance to target
 
 	float p;
 	float q;
@@ -71,79 +80,92 @@ std::ofstream& telem)
 {
 
 	static int j = 0;
+	j++;
 	
 	float dt = 0.1;
 	//std::cout << "altitude " << buf.altitude << " bytes " << std::endl;
 
-	/// derive heading from last two lat,long points
-	
-	/// ignore cos error with angles for now
-	float dlat  = state.latitude  - old_state.latitude;
-	
-	/// is long in degrees west?
-	float dlong = 0.0 - (state.longitude - old_state.longitude);
+	////////////////////////////////////////////////////////////////////////
+	/// GPS section, only update at 1 Hz
+	if (j%int(1.0/dt+0.5) == 0) {
+		float dt_gps = 1.0;
+		/// derive heading from last two lat,long points
+		float dlat  = state.latitude  - old_state.latitude;
+		float dlong = 0.0 - (state.longitude - old_state.longitude);
 
+		float tdlat  = target_latitude  - old_state.latitude;
+		float tdlong = 0.0 - (target_longitude - old_state.longitude);
 
-	float tdlat  = target_latitude  - old_state.latitude;
-	float tdlong = 0.0 - (target_longitude - old_state.longitude);
+		float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
 
-	float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
+		//////////////////////////////////////////////////////////////
+		/// this is not quite right, but works ok
+		float heading = atan2(dlat,dlong)* 180/M_PI;
+		float theading = atan2(tdlat,tdlong)* 180/M_PI;
 
-	//////////////////////////////////////////////////////////////
-	float heading = atan2(dlat,dlong)* 180/M_PI;
-	float theading = atan2(tdlat,tdlong)* 180/M_PI;
+		/// vector that points in the direction we need to move
+		state.error_heading = theading- heading;
+		if (state.error_heading >  180.0) state.error_heading = 360.0-state.error_heading;
+		if (state.error_heading < -180.0) state.error_heading = 360.0+state.error_heading;
 
-	/// vector that points in the direction we need to move
-	state.error_heading = theading- heading;
-	if (state.error_heading >  180.0) state.error_heading = 360.0-state.error_heading;
-	if (state.error_heading < -180.0) state.error_heading = 360.0+state.error_heading;
+		state.derror_heading = (state.error_heading- old_state.error_heading)/dt_gps;
+		state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
 
-	state.derror_heading = (state.error_heading- old_state.error_heading)/dt;
-	state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
-	
-	if (j < 10) state.derror_heading = 0;
-	j++;
+		if (j < 10) state.derror_heading = 0;
 
-	state.ierror_heading = old_state.ierror_heading + state.error_heading*dt;
-	if (state.ierror_heading >  1800.0) state.ierror_heading = 1800.0;
-	if (state.ierror_heading < -1800.0) state.ierror_heading = -1800.0;
+		state.ierror_heading = old_state.ierror_heading + state.error_heading*dt_gps;
+		if (state.ierror_heading >  1800.0) state.ierror_heading = 1800.0;
+		if (state.ierror_heading < -1800.0) state.ierror_heading = -1800.0;
 
-	///////////////////////////////////////////////////////////////////
-	/// find the angle from horizontal
+		///////////////////////////////////////////////////////////////////
+		/// find the angle from horizontal
+
+		float dx = dlong*D2R*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
+		float dy = dlat*D2R*EARTH_RADIUS_METERS;
+		float dlenxy = sqrtf(dx*dx + dy*dy);
+		float dlen = sqrtf(dlat*dlat + dlong*dlong);
+		float dalt = state.altitude - old_state.altitude;
+
+		state.pitch = atan2(dalt, dlenxy)/M_PI; /// convert to -1 to 1
+
+		state.speed = sqrtf(dlenxy*dlenxy + dalt*dalt)/dt_gps;	
+		if (j < 10) state.speed = 0;
+
+		/// find the necessary pitch to descend to the target
+
+		state.tdx = 0.0-(tdlong)*D2R*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
+		state.tdy = (tdlat)*D2R*EARTH_RADIUS_METERS;
+		state.tlenxy = sqrtf(state.tdx*state.tdx + state.tdy*state.tdy);
+
+		float tdalt = target_altitude- old_state.altitude;
+		/// this seems to come out funny -.49 is almost straight down but -0.4 is almost level
+		state.tpitch = atan2(tdalt, state.tlenxy)/M_PI; /// convert to -1 to 1
 		
-	float dx = dlong*D2R*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
-	float dy = dlat*D2R*EARTH_RADIUS_METERS;
-	float dlenxy = sqrtf(dx*dx + dy*dy);
-	float dlen = sqrtf(dlat*dlat + dlong*dlong);
-	float dalt = state.altitude - old_state.altitude;
-
-	state.pitch = atan2(dalt, dlenxy)/M_PI; /// convert to -1 to 1
-
-	float speed = sqrtf(dlenxy*dlenxy + dalt*dalt)/dt;	
-	if (j < 10) speed = 0;
-
-	/// find the necessary pitch to descend to the target
-
-	float tdx = 0.0 - (target_longitude - old_state.longitude)*D2R*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
-	float tdy  = (target_latitude  - old_state.latitude)*D2R*EARTH_RADIUS_METERS;
-	float tlenxy = sqrtf(tdx*tdx + tdy*tdy);
-
-	float tdalt = target_altitude- state.altitude;
-	float tpitch = atan2(tdalt, tlenxy)/M_PI; /// convert to -1 to 1
-	if (j < 10) tpitch = 0;
-
-	///////////////
+		/// don't try to climb or dive too steep
+		if (state.tpitch > -0.1) state.tpitch = -0.1;
+		float min_pitch = -0.48;
+		if (state.tpitch < min_pitch) state.tpitch = min_pitch;
+		
+		if (j < 10) state.tpitch = 0;
+	}
+	//// end GPS section
+	//////////////////////////////////////////////////////////////////////
 
 	state.iq = old_state.iq + state.q*dt;
+	/// TBD saturation limits on iq
 	state.dq = (state.q - old_state.q)/dt;
 	/// filter to avoid oscillations
-	state.dq = (state.dq*0.002 + old_state.dq*0.998);	
+	state.dq = (state.dq*0.02 + old_state.dq*0.98);	
 	if (j < 10) state.dq = 0;
 	
 	float valq = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
 
-	state.error_pitch = tpitch - state.pitch;
+	
+	state.error_pitch = state.tpitch - state.pitch;
 	state.ipitch = old_state.ipitch + state.error_pitch*dt;
+	float max_ip = 4.0;
+	if (state.ipitch >  max_ip) state.ipitch =  max_ip;
+	if (state.ipitch < -max_ip) state.ipitch = -max_ip;
 	state.dpitch = (state.error_pitch - old_state.error_pitch)/dt;
 	state.dpitch = (state.dpitch*0.02 + old_state.dpitch*0.98);	
 	if (j < 10) state.dpitch = 0;
@@ -174,22 +196,23 @@ std::ofstream& telem)
 		state.dq << "," << state.iq << "," << 
 		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << "," << 
 		state.error_pitch << "," << state.dpitch << "," << state.ipitch << "," <<
-		tpitch << "," << speed << 
+		state.tpitch << "," << state.speed << ", " << 
+		state.tdx << "," << state.tdy << ", " << 
 		std::endl;
 
 	static int i = 0;
 	i++;
 	if (i % 30 == 0) {
 		std::cout <<
-			", tlenxy=" << tlenxy << ", speed m/s=" << speed << 
-		//	" tdx=" << tdx << ", tdy=" << tdy <<
+			", tlenxy=" << state.tlenxy << ", speed m/s=" << state.speed << 
+		//	" tdx=" << state.tdx << ", tdy=" << state.tdy <<
 	//		" heading= " << heading <<
 	//		" target heading= " << theading <<
 			", err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
 			//", lat= " << state.latitude << ", long= " << state.longitude << 
 			", alt= " << state.altitude <<
 			", pitch= " << state.pitch <<
-			", tpitch= " << tpitch << 
+			", tpitch= " << state.tpitch << 
 		//	", p=" << state.p <<  
 	//		", q=" << state.q << ", elev=" << bufctrl.elevator <<
 		//	", r=" << state.r << ", ail= " << bufctrl.aileron << 
