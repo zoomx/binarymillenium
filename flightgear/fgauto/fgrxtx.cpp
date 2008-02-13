@@ -75,7 +75,8 @@ struct known_state {
 
 class fileNotFound {};
 
-void autopilot(known_state& state, known_state& old_state, FGNetCtrls& bufctrl,
+void autopilot(known_state& state, known_state& old_state,
+FGNetFDM& buf, FGNetCtrls& bufctrl,
 std::ofstream& telem) 
 {
 
@@ -196,15 +197,18 @@ std::ofstream& telem)
 		state.dq << "," << state.iq << "," << 
 		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << "," << 
 		state.error_pitch << "," << state.dpitch << "," << state.ipitch << "," <<
-		state.tpitch << "," << state.speed << ", " << 
+		state.tpitch << "," << state.speed << "," << 
 		state.tdx << "," << state.tdy << ", " << 
+		bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << 
 		std::endl;
 
 	static int i = 0;
 	i++;
 	if (i % 30 == 0) {
 		std::cout <<
-			", tlenxy=" << state.tlenxy << ", speed m/s=" << state.speed << 
+			", tlenxy=" << state.tlenxy << ", gpsspeed m/s=" << state.speed << 
+			/// is vcas in kt?
+			", vcas=" << buf.vcas*0.5144444 <<
 		//	" tdx=" << state.tdx << ", tdy=" << state.tdy <<
 	//		" heading= " << heading <<
 	//		" target heading= " << theading <<
@@ -488,7 +492,7 @@ int main(void)
 
 			FGProps2NetCtrls(&bufctrl);
 
-			autopilot(state, old_state, bufctrl, telem);
+			autopilot(state, old_state, buf, bufctrl, telem);
 
 			//std::cout << old_state.altitude << " " << state.altitude << std::endl;
 			memcpy(&old_state, &state, sizeof(state));

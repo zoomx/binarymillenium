@@ -39,6 +39,12 @@ speed = f(19,1:l);
 tdx = f(20,1:l);
 tdy = f(21,1:l);
 
+wind = f(22,1:l);
+wind_dir = f(23,1:l);
+press = f(24,1:l);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 figure(1);
 plot(tdx, tdy);
 ylabel('tdx vs. tdy');
@@ -67,8 +73,15 @@ legend('elev', 'gps derived pitch', 'tpitch', 'dpitch', 'ipitch');
 figure(5),
 plot(t,rud*100, t,err_head, t, derr_head*10, t, ierr_head/10);
 ylabel('degrees');
-%legend('rudder', 'error heading', 'derror heading', 'ierr head');
+legend('rudder', 'error heading', 'derror heading', 'ierr head');
 
+figure(6),
+subplot(3,1,1),plot(t,wind);
+ylabel('wind knots');
+subplot(3,1,2),plot(t,wind_dir);
+ylabel('wind dir degrees');
+subplot(3,1,3),plot(t,press);
+ylabel('pressure inhg');
 
 
 
