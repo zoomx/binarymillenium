@@ -31,8 +31,8 @@ typedef unsigned int     uint32_t;
 
 
 //start pos is 0.656384, long= -2.1355,
-const double target_longitude = -2.1357; 
-const double target_latitude  = .6554444;
+const double target_longitude = -2.136; 
+const double target_latitude  = .657;
 const double target_altitude  = 600; //meters 
 
 const double EARTH_RADIUS_METERS = 6.378155e6;
@@ -60,7 +60,7 @@ struct known_state {
 
 	float tpitch;  // target pitch
 	float speed;
-	float tdist;  // direct distance to target
+	double tdist;  // direct distance to target
 	//float tlenxy;  // horizontal distance to target
 
 	float p;
@@ -128,6 +128,7 @@ std::ofstream& telem)
 
 			/// length of vector point straight at center of earth
 			double l2 = sqrtf(x2*x2 + y2*y2 + z2*z2);
+			
 	
 			double dotprod = ( 
 								(dx/l1 * (-x2)/l2) +
@@ -141,16 +142,16 @@ std::ofstream& telem)
 				(yt-y2)*(yt-y2) + 
 				(zt-z2)*(zt-z2)  );
 
-/*				
-			double dotprodt = ( 
-								(xt/state.tdist * (-x2)/l2) +
-								(yt/state.tdist * (-y2)/l2) +
-								(zt/state.tdist * (-z2)/l2)  );
-			
+				
+			double dotprodt =  
+							(	((xt-x2)/state.tdist * (-x2)/l2) +
+								((yt-y2)/state.tdist * (-y2)/l2) +
+								((zt-z2)/state.tdist * (-z2)/l2)  );
 			state.tpitch = acos(dotprodt)/M_PI -0.5;
-*/
 			state.speed = l1/dt;
 		
+			std::cout << buf.agl << " " <<  dotprodt << " " << state.tpitch <<  std::endl;	
+			
 			/// find the heading from the dot product of the vertical axis of the earth, due east is zero
 			/// turns out that dz is the only contributor, everything else is zeroed out
 
@@ -222,7 +223,7 @@ std::ofstream& telem)
 		/// don't try to climb or dive too steep
 		float max_pitch = -0.05;
 		if (state.tpitch > max_pitch) state.tpitch = max_pitch;
-		float min_pitch = -0.48;
+		float min_pitch = -0.34;
 		if (state.tpitch < min_pitch) state.tpitch = min_pitch;
 		
 		if (j < 10) state.tpitch = 0;
