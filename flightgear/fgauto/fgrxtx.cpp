@@ -27,9 +27,12 @@ typedef unsigned int     uint32_t;
 #include "net_fdm.hxx"
 #include "net_ctrls.hxx"
 
+#define WRAP(x,t) {if ((x) > (t)) (x) = 2*(t)-(x); if ((x) < -(t)) (x) = 2.0+(x);}
+
+
 //start pos is 0.656384, long= -2.1355,
-const double target_longitude = -2.137; 
-const double target_latitude  = .654;
+const double target_longitude = -2.1357; 
+const double target_latitude  = .6554444;
 const double target_altitude  = 600; //meters 
 
 const double EARTH_RADIUS_METERS = 6.378155e6;
@@ -67,6 +70,9 @@ struct known_state {
 	float dq; // derivative of q (filtered)
 	float iq;  // integral of q
 
+	float dr;
+	float ir;
+
 	float A_X_pilot;
 	float A_Y_pilot;
 	float A_Z_pilot;
@@ -82,7 +88,7 @@ std::ofstream& telem)
 	static int j = 0;
 	j++;
 	
-	float dt = 0.1;
+	float dt =1.0/10.0;
 	//std::cout << "altitude " << buf.altitude << " bytes " << std::endl;
 
 	static float hspeed;
@@ -91,16 +97,6 @@ std::ofstream& telem)
 	/// GPS section, only update at 1 Hz
 	if (j%int(dt_gps/dt+0.5) == 0) {
 		
-		/*
-		/// derive heading from last two lat,long points
-		float dlat  = state.latitude  - old_state.latitude;
-		float dlong = 0.0 - (state.longitude - old_state.longitude);
-
-		float tdlat  = target_latitude  - old_state.latitude;
-		float tdlong = 0.0 - (target_longitude - old_state.longitude);
-
-		float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
-		*/
 
 		//////////////////////////////////////////////////////////////
 		
@@ -139,31 +135,52 @@ std::ofstream& telem)
 								(dz/l1 * (-z2)/l2)  );
 			
 			state.pitch = acos(dotprod)/M_PI -0.5;
-	
+
 			state.tdist = sqrtf(
 				(xt-x2)*(xt-x2) + 
 				(yt-y2)*(yt-y2) + 
 				(zt-z2)*(zt-z2)  );
 
-
+/*				
+			double dotprodt = ( 
+								(xt/state.tdist * (-x2)/l2) +
+								(yt/state.tdist * (-y2)/l2) +
+								(zt/state.tdist * (-z2)/l2)  );
+			
+			state.tpitch = acos(dotprodt)/M_PI -0.5;
+*/
 			state.speed = l1/dt;
 		
 			/// find the heading from the dot product of the vertical axis of the earth, due east is zero
 			/// turns out that dz is the only contributor, everything else is zeroed out
-		
-			double theading = 0;
-			double heading = acos( dz/l1 )/M_PI ;
-		
-		/*
+
+			/// derive heading from last two lat,long points
+			float dlat  = state.latitude  - old_state.latitude;
+			WRAP(dlat, M_PI);
+			float dlong = 0.0 - (state.longitude - old_state.longitude);
+			WRAP(dlong, M_PI);
+
+			float tdlat  = target_latitude  - old_state.latitude;
+			WRAP(tdlat, M_PI);
+			float tdlong = 0.0 - (target_longitude - old_state.longitude);
+			WRAP(tdlong, M_PI);
+
+			//float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
+	
 			//float heading  = atan2(dy,dx)/M_PI;
 			float heading  = atan2(dlat,dlong)/M_PI;
 			//float theading = atan2(state.tdy,state.tdx)/M_PI;
 			float theading = atan2(tdlat,tdlong)/M_PI;
-		*/
+		
+
+			//double theading = 0;
+			//double heading_dz = acos( dz/l1) )/M_PI + 0.5;
+
+			//std::cout << heading << ", heading_dz=" << heading_dz << std::endl;
+
 			/// vector that points in the direction we need to move
 			state.error_heading = theading- heading;
-			if (state.error_heading >  1.0) state.error_heading = 2.0-state.error_heading;
-			if (state.error_heading < -1.0) state.error_heading = 2.0+state.error_heading;
+			WRAP(state.error_heading, 1.0);
 
 			state.derror_heading = (state.error_heading- old_state.error_heading)/dt_gps;
 			state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
@@ -235,23 +252,37 @@ std::ofstream& telem)
 	
 	float valp = -(0.15*state.error_pitch + 0.1*state.dpitch + 0.35*state.ipitch);
 
-	float val = (valq + valp)/2.0;
+	float val = (0.2*valq + 0.8*valp);
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.elevator = val;
 	
-    val = 0.7*state.error_heading + 0.3*state.derror_heading + 0.000001*state.ierror_heading;
-    if (state.error_heading < 0.1) val += 0.5*state.derror_heading;
+    val = 0.7*state.error_heading + 14.3*state.derror_heading + 0.000001*state.ierror_heading;
+	float fadeval = 0.1;
+    if (fabs(state.error_heading) < fadeval) val*=fabs(state.error_heading)/fadeval;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.rudder = val;
-	//bufctrl.aileron = val*0.2;
-	
-	val = 0.95*state.r;
-	if (val > 1.0) val = 1.0;
-	if (val <-1.0) val =-1.0;
-	//bufctrl.aileron = val;
 
+
+	state.ir = old_state.ir + state.r*dt;
+	/// TBD saturation limits on iq
+	state.dr = (state.r - old_state.r)/dt;
+	/// filter to avoid oscillations
+	state.dr = (state.dr*0.1 + old_state.dr*0.9);	
+	if (j < 10) state.dr = 0;
+	
+	float valr = 0.2*state.r + 0.05*state.dr + 0.0*state.ir;
+	
+	if (state.r < 0.1) valr*= 0.1;
+	valr += val*0.01;
+
+	if (valr > 1.0) valr = 1.0;
+	if (valr <-1.0) valr =-1.0;
+	bufctrl.aileron = valr;
+
+
+	/// save telemetry to file
 	telem << 
 		state.longitude << "," << state.latitude << "," << state.altitude << "," <<
 		state.p << "," << state.q << "," << state.r << "," <<
@@ -260,8 +291,9 @@ std::ofstream& telem)
 		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << "," << 
 		state.error_pitch << "," << state.dpitch << "," << state.ipitch << "," <<
 		state.tpitch << "," << state.speed << "," << 
-		state.tdx << "," << state.tdy << ", " << 
-		bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << 
+		state.tdx << "," << state.tdy << "," << 
+		bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << "," <<  
+		state.dr << "," << state.ir << 
 		std::endl;
 
 	static int i = 0;
@@ -271,11 +303,9 @@ std::ofstream& telem)
 			", tdist=" << state.tdist << ", gpsspeed m/s=" << state.speed << 
 	//		", fdm v= " << sqrtf(buf.v_north*buf.v_north + buf.v_east*buf.v_east + buf.v_down*buf.v_down)*0.3048 <<
 		//	" tdx=" << state.tdx << ", tdy=" << state.tdy <<
-	//		" heading= " << heading <<
-	//		" target heading= " << theading <<
+	//		" heading= " << heading << " target heading= " << theading <<
 			", err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
-//			", lat= " << state.latitude << ", long= " << state.longitude << 
-//			", alt= " << state.altitude <<
+//			", lat= " << state.latitude << ", long= " << state.longitude << ", alt= " << state.altitude <<
 			", pitch= " << state.pitch << ", tpitch= " << state.tpitch << ", elev=" << bufctrl.elevator <<
 		//	", p=" << state.p <<  
 	//		", q=" << state.q << ", elev=" << bufctrl.elevator <<
