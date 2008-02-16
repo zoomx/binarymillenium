@@ -30,8 +30,8 @@ typedef unsigned int     uint32_t;
 //0.656384, long= -2.1355,
 
 // start pos is 0.653036, -2.11387,
-const double target_longitude = -2.135; //-2.15; 
-const double target_latitude  = .656; // .663
+const double target_longitude = -2.137; //-2.15; 
+const double target_latitude  = .658; // .663
 const double target_altitude  = 600; //meters 
 
 const double EARTH_RADIUS_METERS = 6.378155e6;
@@ -91,6 +91,8 @@ std::ofstream& telem)
 	////////////////////////////////////////////////////////////////////////
 	/// GPS section, only update at 1 Hz
 	if (j%int(dt_gps/dt+0.5) == 0) {
+		
+		/*
 		/// derive heading from last two lat,long points
 		float dlat  = state.latitude  - old_state.latitude;
 		float dlong = 0.0 - (state.longitude - old_state.longitude);
@@ -99,53 +101,105 @@ std::ofstream& telem)
 		float tdlong = 0.0 - (target_longitude - old_state.longitude);
 
 		float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
+		*/
 
 		//////////////////////////////////////////////////////////////
-		/// this is not quite right, but works ok
-		float heading = atan2(dlat,dlong)/M_PI;
-		float theading = atan2(tdlat,tdlong)/M_PI;
-
-		/// vector that points in the direction we need to move
-		state.error_heading = theading- heading;
-		if (state.error_heading >  1.0) state.error_heading = 2.0-state.error_heading;
-		if (state.error_heading < -1.0) state.error_heading = 2.0+state.error_heading;
-
-		state.derror_heading = (state.error_heading- old_state.error_heading)/dt_gps;
-		state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
-
-		if (j < 10) state.derror_heading = 0;
-
-		state.ierror_heading = old_state.ierror_heading + state.error_heading*dt_gps;
-		if (state.ierror_heading >  10.0) state.ierror_heading =  10.0;
-		if (state.ierror_heading < -10.0) state.ierror_heading = -10.0;
-
+		
 		///////////////////////////////////////////////////////////////////
 		/// find the angle from horizontal
+		{
+			/// alternate way of getting velocity- this one matches the sim 
+			double x1 = (EARTH_RADIUS_METERS+state.altitude)*cos(state.latitude)*cos(state.longitude);
+			double y1 = (EARTH_RADIUS_METERS+state.altitude)*cos(state.latitude)*sin(state.longitude);
+			double z1 = (EARTH_RADIUS_METERS+state.altitude)*sin(state.latitude);
 
-		float dx = dlong*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
-		float dy = dlat*EARTH_RADIUS_METERS;
+//			double l1 = sqrtf(x1*x1 + y1*y1 + z1*z1);
+
+			double x2 = (EARTH_RADIUS_METERS+old_state.altitude)*cos(old_state.latitude)*cos(old_state.longitude);
+			double y2 = (EARTH_RADIUS_METERS+old_state.altitude)*cos(old_state.latitude)*sin(old_state.longitude);
+			double z2 = (EARTH_RADIUS_METERS+old_state.altitude)*sin(old_state.latitude);
+
+
+			double xt = (EARTH_RADIUS_METERS+target_altitude)*cos(target_latitude)*cos(target_longitude);
+			double yt = (EARTH_RADIUS_METERS+target_altitude)*cos(target_latitude)*sin(target_longitude);
+			double zt = (EARTH_RADIUS_METERS+target_altitude)*sin(target_latitude);
+
+			double dx = (x1-x2);
+			double dy = (y1-y2);
+			double dz = (z1-z2);
+
+			// length of vector pointing from old location to current
+			float l1 = sqrtf(dx*dx + dy*dy + dz*dz);
+
+			/// length of vector point straight at center of earth
+			double l2 = sqrtf(x2*x2 + y2*y2 + z2*z2);
+	
+			double dotprod = ( 
+								(dx/l1 * (-x2)/l2) +
+								(dy/l1 * (-y2)/l2) +
+								(dz/l1 * (-z2)/l2)  );
+			
+			state.pitch = acos(dotprod)/M_PI -0.5;
+	
+			float tdlen = sqrtf(
+				(xt-x2)*(xt-x2) + 
+				(yt-y2)*(yt-y2) + 
+				(zt-z2)*(zt-z2)  );
+
+
+			state.speed = l1/dt;
+			
+			//std::cout << "dotprod=" << dotprod << ", speed=" << speed << ", pitch " << pitch << ", tdlen=" << tdlen << std::endl;
+
+		}
+
+		/*
+		float dx = dlong*2.0*(EARTH_RADIUS_METERS+state.altitude)*cos(state.latitude);
+		float dy = dlat*(EARTH_RADIUS_METERS+state.altitude);
 		float dlenxy = sqrtf(dx*dx + dy*dy);
-		float dlen = sqrtf(dlat*dlat + dlong*dlong);
+		//float dlen = sqrtf(dlat*dlat + dlong*dlong);
 		float dalt = state.altitude - old_state.altitude;
 
 		state.pitch = atan2(dalt, dlenxy)/M_PI; /// convert to -1 to 1
-
 		state.speed = sqrtf(dlenxy*dlenxy + dalt*dalt)/dt_gps;	
-		hspeed = dlenxy/dt_gps;	
 		if (j < 10) state.speed = 0;
+		
+		hspeed = dlenxy/dt_gps;	
 
 		/// find the necessary pitch to descend to the target
 
 		state.tdx = 0.0-(tdlong)*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
 		state.tdy = (tdlat)*EARTH_RADIUS_METERS;
 		state.tlenxy = sqrtf(state.tdx*state.tdx + state.tdy*state.tdy);
+		*/
 
-		//std::cout << tdlong << " " << state.tdx << " " << tdlat << " " << state.tdy << " " << state.tlenxy << std::endl;
+		/*
+		{
+			//float heading  = atan2(dy,dx)/M_PI;
+			float heading  = atan2(dlat,dlong)/M_PI;
+			//float theading = atan2(state.tdy,state.tdx)/M_PI;
+			float theading = atan2(tdlat,tdlong)/M_PI;
+
+			/// vector that points in the direction we need to move
+			state.error_heading = theading- heading;
+			if (state.error_heading >  1.0) state.error_heading = 2.0-state.error_heading;
+			if (state.error_heading < -1.0) state.error_heading = 2.0+state.error_heading;
+
+			state.derror_heading = (state.error_heading- old_state.error_heading)/dt_gps;
+			state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
+
+			if (j < 10) state.derror_heading = 0;
+
+			state.ierror_heading = old_state.ierror_heading + state.error_heading*dt_gps;
+			if (state.ierror_heading >  10.0) state.ierror_heading =  10.0;
+			if (state.ierror_heading < -10.0) state.ierror_heading = -10.0;
+		}
 
 		float tdalt = target_altitude- old_state.altitude;
 		/// this seems to come out funny -.49 is almost straight down but -0.4 is almost level
 		state.tpitch = atan2(tdalt, state.tlenxy)/M_PI; /// convert to -1 to 1
-		
+		*/
+
 		/// don't try to climb or dive too steep
 		float max_pitch = -0.0;
 		if (state.tpitch > max_pitch) state.tpitch = max_pitch;
@@ -154,16 +208,6 @@ std::ofstream& telem)
 		
 		if (j < 10) state.tpitch = 0;
 
-/*
-		/// alternate way of getting velocity 
-		double x1 = dlong*2.0*(EARTH_RADIUS_METERS+state.altidue)*cos(state.latitude);
-		double y1 = dlat*EARTH_RADIUS_METERS;
-		double z1 = 
-		float dlenxy = sqrtf(dx*dx + dy*dy);
-		float dlen = sqrtf(dlat*dlat + dlong*dlong);
-		float dalt = state.altitude - old_state.altitude;
-*/
-	
 	}
 	//// end GPS section
 	//////////////////////////////////////////////////////////////////////
