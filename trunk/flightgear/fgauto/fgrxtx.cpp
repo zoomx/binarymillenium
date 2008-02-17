@@ -31,9 +31,9 @@ typedef unsigned int     uint32_t;
 
 
 //start pos is 0.656384, long= -2.1355,
-const double target_longitude = -2.136; 
-const double target_latitude  = .657;
-const double target_altitude  = 600; //meters 
+const double target_longitude = -2.137; 
+const double target_latitude  = .658;
+const double target_altitude  = 60; //meters 
 
 const double EARTH_RADIUS_METERS = 6.378155e6;
 const double D2R = M_PI/180.0;
@@ -150,7 +150,7 @@ std::ofstream& telem)
 			state.tpitch = acos(dotprodt)/M_PI -0.5;
 			state.speed = l1/dt;
 		
-			std::cout << buf.agl << " " <<  dotprodt << " " << state.tpitch <<  std::endl;	
+			//std::cout << buf.agl << " " <<  dotprodt << " " << state.tpitch <<  std::endl;	
 			
 			/// find the heading from the dot product of the vertical axis of the earth, due east is zero
 			/// turns out that dz is the only contributor, everything else is zeroed out
@@ -165,6 +165,9 @@ std::ofstream& telem)
 			WRAP(tdlat, M_PI);
 			float tdlong = 0.0 - (target_longitude - old_state.longitude);
 			WRAP(tdlong, M_PI);
+
+			state.tdy = 	 (tdlat)*EARTH_RADIUS_METERS;
+			state.tdx = 0.0-(tdlong)*EARTH_RADIUS_METERS*cos(state.latitude);
 
 			//float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
 	
@@ -208,22 +211,26 @@ std::ofstream& telem)
 
 		/// find the necessary pitch to descend to the target
 
-		state.tdx = 0.0-(tdlong)*2.0*EARTH_RADIUS_METERS*cos(state.latitude);
-		state.tdy = (tdlat)*EARTH_RADIUS_METERS;
 		state.tlenxy = sqrtf(state.tdx*state.tdx + state.tdy*state.tdy);
 		*/
-
-		
-		/*
-		float tdalt = target_altitude- old_state.altitude;
-		/// this seems to come out funny -.49 is almost straight down but -0.4 is almost level
-		state.tpitch = atan2(tdalt, state.tlenxy)/M_PI; /// convert to -1 to 1
-		*/
-
-		/// don't try to climb or dive too steep
+				/// don't try to climb or dive too steep
+		/// try to limit velocity with target pitch?
 		float max_pitch = -0.05;
 		if (state.tpitch > max_pitch) state.tpitch = max_pitch;
 		float min_pitch = -0.34;
+
+		float max_speed = 100.0;
+		if (state.speed > max_speed) {
+			/// assume no greater speed than 300 m/s
+			min_pitch = max_pitch + (min_pitch - max_pitch) * (1.0 - (state.speed-max_speed)/300.0);
+		}
+		
+		/// limit velocity based on distance to target?
+		float approach_dist = 3000;
+		if (state.tdist < approach_dist) {
+			min_pitch = max_pitch + (min_pitch - max_pitch)*state.tdist/approach_dist;
+		}
+
 		if (state.tpitch < min_pitch) state.tpitch = min_pitch;
 		
 		if (j < 10) state.tpitch = 0;
@@ -236,7 +243,7 @@ std::ofstream& telem)
 	/// TBD saturation limits on iq
 	state.dq = (state.q - old_state.q)/dt;
 	/// filter to avoid oscillations
-	state.dq = (state.dq*0.02 + old_state.dq*0.98);	
+	state.dq = (state.dq*0.1 + old_state.dq*0.9);	
 	if (j < 10) state.dq = 0;
 	
 	float valq = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
@@ -263,11 +270,21 @@ std::ofstream& telem)
     if (fabs(state.error_heading) < fadeval) val*=fabs(state.error_heading)/fadeval;
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
+	/// limit heading commands above certain height
+	float min_height = 10000;
+	if (state.altitude > min_height) {
+		val = val * (1.0 - (state.altitude-min_height)/(30e3-min_height));
+	}
+	/// limit rudder based on distance to target
+	float approach_dist = 3000;
+	if (state.tdist < approach_dist) {
+		val = val*state.tdist/approach_dist;
+	}
 	bufctrl.rudder = val;
 
 
-	state.ir = old_state.ir + state.r*dt;
 	/// TBD saturation limits on iq
+	state.ir = old_state.ir + state.r*dt;
 	state.dr = (state.r - old_state.r)/dt;
 	/// filter to avoid oscillations
 	state.dr = (state.dr*0.1 + old_state.dr*0.9);	
@@ -294,14 +311,17 @@ std::ofstream& telem)
 		state.tpitch << "," << state.speed << "," << 
 		state.tdx << "," << state.tdy << "," << 
 		bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << "," <<  
-		state.dr << "," << state.ir << 
+		state.dr << "," << state.ir << "," << state.pitch << 
 		std::endl;
 
+
+	/// output some of the state to stdout every few seconds
 	static int i = 0;
 	i++;
 	if (i % 30 == 0) {
 		std::cout <<
-			", tdist=" << state.tdist << ", gpsspeed m/s=" << state.speed << 
+			", hor dist=" << sqrtf(state.tdist*state.tdist - (state.altitude-target_altitude)*(state.altitude-target_altitude)) <<
+			", agl=" << buf.agl << ", alt=" << state.altitude << ", vel=" << state.speed << 
 	//		", fdm v= " << sqrtf(buf.v_north*buf.v_north + buf.v_east*buf.v_east + buf.v_down*buf.v_down)*0.3048 <<
 		//	" tdx=" << state.tdx << ", tdy=" << state.tdy <<
 	//		" heading= " << heading << " target heading= " << theading <<
