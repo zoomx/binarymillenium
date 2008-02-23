@@ -101,21 +101,7 @@ ylabel('radians/second');
 subplot(2,1,2),plot(t,rud, t,elev,t,ail);
 legend('rudder','elevator','aileron');
 
-if (0)
-figure(4),
-factor = 100; % max(abs(q))/ max(abs(elev));
-subplot(2,1,1),plot(t,elev*factor, t, q,t,dq*500, t, iq*10);
-ylabel('radians/sec, or other units');
-legend('elevator','q', 'dq','iq');
-subplot(2,1,2),plot(t, elev, t,pitch, t, tpitch, t, dpitch*50, t, ipitch/5,t,epitch);
-legend('elev', 'gps derived pitch', 'tpitch', 'dpitch', 'ipitch', 'error pitch');
-
-figure(5),
-plot(t,rud, t,err_head, t, derr_head*10, t, ierr_head/10);
-ylabel('degrees');
-legend('rudder', 'error heading', 'derror heading', 'ierr head');
-
-if (0)
+if (1)
 figure(6),
 subplot(3,1,1),plot(t,wind);
 ylabel('wind knots');
@@ -125,6 +111,21 @@ subplot(3,1,3),plot(t,press);
 ylabel('pressure inhg');
 end;
 
+figure(5),
+plot(t,rud, t,err_head, t, derr_head*10, t, ierr_head/10);
+ylabel('degrees');
+legend('rudder', 'error heading', 'derror heading', 'ierr head');
+
+
+
+if (0)
+figure(4),
+factor = 100; % max(abs(q))/ max(abs(elev));
+subplot(2,1,1),plot(t,elev*factor, t, q,t,dq*500, t, iq*10);
+ylabel('radians/sec, or other units');
+legend('elevator','q', 'dq','iq');
+subplot(2,1,2),plot(t, elev, t,pitch, t, tpitch, t, dpitch*50, t, ipitch/5,t,epitch);
+legend('elev', 'gps derived pitch', 'tpitch', 'dpitch', 'ipitch', 'error pitch');
 figure(7);
 plot(t, r, t,dr,t,ir);
 legend('r','dr','ir');

@@ -99,6 +99,10 @@ std::ofstream& telem)
 
 	static float hspeed;
 	float dt_gps = 1.0;
+
+	/// 45 degree angle
+	float min_pitch = -0.25;
+
 	////////////////////////////////////////////////////////////////////////
 	/// GPS section, only update at 1 Hz
 	if (j%int(dt_gps/dt+0.5) == 0) {
@@ -153,7 +157,9 @@ std::ofstream& telem)
 							(	((xt-x2)/state.tdist * (-x2)/l2) +
 								((yt-y2)/state.tdist * (-y2)/l2) +
 								((zt-z2)/state.tdist * (-z2)/l2)  );
-			state.tpitch = acos(dotprodt)/M_PI -0.5;
+			/// add a little something, probably should be proportional to error heading so that we don't lose too much
+			/// altitude when we're not pointing towards the target
+			state.tpitch = 0.1*fabs(state.error_heading) + acos(dotprodt)/M_PI -0.5;
 			state.speed = l1/dt;
 		
 			//std::cout << buf.agl << " " <<  dotprodt << " " << state.tpitch <<  std::endl;	
@@ -171,16 +177,20 @@ std::ofstream& telem)
 			WRAP(tdlat, M_PI);
 			float tdlong = 0.0 - (target_longitude - old_state.longitude);
 			WRAP(tdlong, M_PI);
+			
+			/// the other dx,dy,dz where in a frame where the axis of the earth points up
+			float edx  = 0.0 - dlong*(EARTH_RADIUS_METERS+state.altitude)*cos(state.latitude);
+			float edy  = dlat*(EARTH_RADIUS_METERS+state.altitude);
 
+			state.tdx = 0.0 - (tdlong)*EARTH_RADIUS_METERS*cos(state.latitude);
 			state.tdy = 	 (tdlat)*EARTH_RADIUS_METERS;
-			state.tdx = 0.0-(tdlong)*EARTH_RADIUS_METERS*cos(state.latitude);
 
 			//float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
 	
-			//float heading  = atan2(dy,dx)/M_PI;
-			float heading  = atan2(dlat,dlong)/M_PI;
-			//float theading = atan2(state.tdy,state.tdx)/M_PI;
-			float theading = atan2(tdlat,tdlong)/M_PI;
+			float heading  = atan2(edy,edx)/M_PI;
+			//float heading  = atan2(dlat,dlong)/M_PI;
+			float theading = atan2(state.tdy,state.tdx)/M_PI;
+			//float theading = atan2(tdlat,tdlong)/M_PI;
 		
 
 			//double theading = 0;
@@ -192,8 +202,7 @@ std::ofstream& telem)
 			state.error_heading = theading- heading;
 			WRAP(state.error_heading, 1.0);
 
-			//if (state.error_heading > 0) state.error_heading - 0.05;
-			//if (state.error_heading < 0) state.error_heading + 0.05;
+			state.error_heading = -state.error_heading;
 
 			state.derror_heading = (state.error_heading- old_state.error_heading)/dt_gps;
 			state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
@@ -204,11 +213,8 @@ std::ofstream& telem)
 			if (state.ierror_heading >  10.0) state.ierror_heading =  10.0;
 			if (state.ierror_heading < -10.0) state.ierror_heading = -10.0;
 		}
-
 		/*
-		float dx = dlong*2.0*(EARTH_RADIUS_METERS+state.altitude)*cos(state.latitude);
-		float dy = dlat*(EARTH_RADIUS_METERS+state.altitude);
-		float dlenxy = sqrtf(dx*dx + dy*dy);
+		 * float dlenxy = sqrtf(dx*dx + dy*dy);
 		//float dlen = sqrtf(dlat*dlat + dlong*dlong);
 		float dalt = state.altitude - old_state.altitude;
 
@@ -226,9 +232,7 @@ std::ofstream& telem)
 		/// try to limit velocity with target pitch?
 		float max_pitch = -0.01;
 		if (state.tpitch > max_pitch) state.tpitch = max_pitch;
-		float min_pitch = -0.25;
-
-		float max_speed = 100.0;
+		float max_speed = 70.0;
 		if (state.speed > max_speed) {
 			/// assume no greater speed than 300 m/s
 			min_pitch = max_pitch + (min_pitch - max_pitch) * (1.0 - (state.speed-max_speed)/300.0);
@@ -274,19 +278,25 @@ std::ofstream& telem)
 	bufctrl.elevator = val;
 	
     val = 0.7*state.error_heading + 14.3*state.derror_heading + 0.000001*state.ierror_heading;
-	float fadeval = 0.1;
-    if (fabs(state.error_heading) < fadeval) val*=fabs(state.error_heading)/fadeval;
+	float fadeval = 0.20;
+    if (fabs(state.error_heading) < fadeval) val*= (fabs(state.error_heading)/fadeval;
+	/// ramp down even faster within a few degrees of the target
+    if (fabs(state.error_heading) < fadeval/4.0) val*= (fabs(state.error_heading)/(fadeval/4.0);
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
-	/// limit heading commands above certain height
-	float min_height = 10000;
-	if (state.altitude > min_height) {
-		val = val * (1.0 - (state.altitude-min_height)/(30e3-min_height));
+	
+	/// limit rudder based on pitch, the rudder doesn't work too well at high pitches anyway
+	float abs_min_pitch = -0.5; /// probably need to ensure this is true;
+	if (state.pitch < min_pitch) {
+		/// the ratio should vary from 1.0 to 0.0
+		float slope = 1.0/(abs_min_pitch - min_pitch);
+		float ratio = 1.0 - (state.pitch-min_pitch)*slope;
+		val = val * ratio;
 	}
 	/// limit rudder based on distance to target
 	float approach_dist = 3000;
 	if (state.tdist < approach_dist) {
-		val = val*(0.4+0.6*state.tdist/approach_dist);
+		val = val*(0.75+0.25*state.tdist/approach_dist);
 	}
 	bufctrl.rudder = val;
 
