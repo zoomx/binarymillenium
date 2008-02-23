@@ -96,7 +96,6 @@ std::ofstream& telem)
 	j++;
 	
 	float dt =1.0/10.0;
-	//std::cout << "altitude " << buf.altitude << " bytes " << std::endl;
 
 	static float hspeed;
 	float dt_gps = 1.0;
@@ -330,7 +329,7 @@ std::ofstream& telem)
 
 	/// save telemetry to file
 	telem << 
-		state.longitude << "," << state.latitude << "," << state.altitude << "," <<
+		state.longitude << "," << state.latitude << "," << state.altitude*M2FT << "," <<
 		state.p << "," << state.q << "," << state.r << "," <<
 		bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
 		state.dq << "," << state.iq << "," << 
