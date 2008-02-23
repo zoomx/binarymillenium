@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <time.h>
 
 #define M_PI 3.14592
 #include <cmath>
@@ -31,9 +32,14 @@ typedef unsigned int     uint32_t;
 
 
 //start pos is 0.656384, long= -2.1355,
-const double target_longitude = -2.137; 
-const double target_latitude  = .658;
-const double target_altitude  = 60; //meters 
+const double start_longitude = -2.1355;
+const double start_latitude = 0.656384;
+
+//const double target_longitude = -2.137; 
+double target_longitude = -2.137; 
+//const double target_latitude  = .658;
+double target_latitude  = .658;
+const double target_altitude  = 0.0; //meters 
 
 const double EARTH_RADIUS_METERS = 6.378155e6;
 const double D2R = M_PI/180.0;
@@ -186,6 +192,9 @@ std::ofstream& telem)
 			state.error_heading = theading- heading;
 			WRAP(state.error_heading, 1.0);
 
+			//if (state.error_heading > 0) state.error_heading - 0.05;
+			//if (state.error_heading < 0) state.error_heading + 0.05;
+
 			state.derror_heading = (state.error_heading- old_state.error_heading)/dt_gps;
 			state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
 
@@ -215,9 +224,9 @@ std::ofstream& telem)
 		*/
 				/// don't try to climb or dive too steep
 		/// try to limit velocity with target pitch?
-		float max_pitch = -0.05;
+		float max_pitch = -0.01;
 		if (state.tpitch > max_pitch) state.tpitch = max_pitch;
-		float min_pitch = -0.34;
+		float min_pitch = -0.25;
 
 		float max_speed = 100.0;
 		if (state.speed > max_speed) {
@@ -248,14 +257,13 @@ std::ofstream& telem)
 	
 	float valq = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
 
-	
 	state.error_pitch = state.tpitch - state.pitch;
 	state.ipitch = old_state.ipitch + state.error_pitch*dt;
 	float max_ip = 4.0;
 	if (state.ipitch >  max_ip) state.ipitch =  max_ip;
 	if (state.ipitch < -max_ip) state.ipitch = -max_ip;
 	state.dpitch = (state.error_pitch - old_state.error_pitch)/dt;
-	state.dpitch = (state.dpitch*0.02 + old_state.dpitch*0.98);	
+	state.dpitch = (state.dpitch*0.1 + old_state.dpitch*0.9);	
 	if (j < 10) state.dpitch = 0;
 	
 	float valp = -(0.15*state.error_pitch + 0.1*state.dpitch + 0.35*state.ipitch);
@@ -278,7 +286,7 @@ std::ofstream& telem)
 	/// limit rudder based on distance to target
 	float approach_dist = 3000;
 	if (state.tdist < approach_dist) {
-		val = val*state.tdist/approach_dist;
+		val = val*(0.4+0.6*state.tdist/approach_dist);
 	}
 	bufctrl.rudder = val;
 
@@ -312,6 +320,7 @@ std::ofstream& telem)
 		state.tdx << "," << state.tdy << "," << 
 		bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << "," <<  
 		state.dr << "," << state.ir << "," << state.pitch << 
+		state.A_X_pilot << "," << state.A_Y_pilot << "," << state.A_Z_pilot << "," << 
 		std::endl;
 
 
@@ -487,9 +496,13 @@ int main(void)
 	struct known_state state; 
 	struct known_state old_state; 
 
+	srand ( time(NULL) );
+	target_longitude = start_longitude + (float)(rand()%4000)/1e6 - 0.002; 
+	target_latitude  = start_latitude  + (float)(rand()%4000)/1e6 - 0.002; 
+	std::cout << "t longitude=" << target_longitude << ", t latitude=" << target_latitude << std::endl;
+
 	memset(&state,	0, sizeof(state));
 	memset(&old_state,	0, sizeof(state));
-
 
 	/* Create the UDP socket */
 	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
