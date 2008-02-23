@@ -30,6 +30,7 @@ typedef unsigned int     uint32_t;
 
 #define WRAP(x,t) {if ((x) > (t)) (x) = 2*(t)-(x); if ((x) < -(t)) (x) = 2.0+(x);}
 
+#define M2FT 3.2808399
 
 //start pos is 0.656384, long= -2.1355,
 const double start_longitude = -2.1355;
@@ -157,9 +158,10 @@ std::ofstream& telem)
 							(	((xt-x2)/state.tdist * (-x2)/l2) +
 								((yt-y2)/state.tdist * (-y2)/l2) +
 								((zt-z2)/state.tdist * (-z2)/l2)  );
+			state.tpitch = acos(dotprodt)/M_PI -0.5;
 			/// add a little something, probably should be proportional to error heading so that we don't lose too much
-			/// altitude when we're not pointing towards the target
-			state.tpitch = 0.1*fabs(state.error_heading) + acos(dotprodt)/M_PI -0.5;
+			/// altitude when we're not pointing towards the target and low in altitude
+			if (state.altitude < 1000) state.tpitch += 0.2*fabs(state.error_heading);
 			state.speed = l1/dt;
 		
 			//std::cout << buf.agl << " " <<  dotprodt << " " << state.tpitch <<  std::endl;	
@@ -230,7 +232,7 @@ std::ofstream& telem)
 		*/
 				/// don't try to climb or dive too steep
 		/// try to limit velocity with target pitch?
-		float max_pitch = -0.01;
+		float max_pitch = -0.005;
 		if (state.tpitch > max_pitch) state.tpitch = max_pitch;
 		float max_speed = 70.0;
 		if (state.speed > max_speed) {
@@ -252,6 +254,7 @@ std::ofstream& telem)
 	//// end GPS section
 	//////////////////////////////////////////////////////////////////////
 
+	/// ELEVATOR - PITCH 
 	state.iq = old_state.iq + state.q*dt;
 	/// TBD saturation limits on iq
 	state.dq = (state.q - old_state.q)/dt;
@@ -276,12 +279,16 @@ std::ofstream& telem)
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	bufctrl.elevator = val;
-	
+
+	////////////////////////////////////////////
+	/// RUDDER - HEADING
+
     val = 0.7*state.error_heading + 14.3*state.derror_heading + 0.000001*state.ierror_heading;
 	float fadeval = 0.20;
-    if (fabs(state.error_heading) < fadeval) val*= (fabs(state.error_heading)/fadeval;
-	/// ramp down even faster within a few degrees of the target
-    if (fabs(state.error_heading) < fadeval/4.0) val*= (fabs(state.error_heading)/(fadeval/4.0);
+    if (fabs(state.error_heading) < fadeval) val*= fabs(state.error_heading)/fadeval;
+	/// ramp down rudder even faster within a few degrees of the target
+	/// the thing we want to avoid is flying directly over the target, we want to come at it from few degrees to the side
+    if (fabs(state.error_heading) < fadeval/4.0) val*= fabs(state.error_heading)/(fadeval/4.0);
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
 	
@@ -300,6 +307,8 @@ std::ofstream& telem)
 	}
 	bufctrl.rudder = val;
 
+	//////////////////////////////////////////////////
+	/// AILERON - ROLL
 
 	/// TBD saturation limits on iq
 	state.ir = old_state.ir + state.r*dt;
@@ -317,6 +326,7 @@ std::ofstream& telem)
 	if (valr <-1.0) valr =-1.0;
 	bufctrl.aileron = valr;
 
+	/////////////////////////////////////////////////////
 
 	/// save telemetry to file
 	telem << 
@@ -326,11 +336,11 @@ std::ofstream& telem)
 		state.dq << "," << state.iq << "," << 
 		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << "," << 
 		state.error_pitch << "," << state.dpitch << "," << state.ipitch << "," <<
-		state.tpitch << "," << state.speed << "," << 
-		state.tdx << "," << state.tdy << "," << 
+		state.tpitch << "," << state.speed*M2FT << "," << 
+		state.tdx*M2FT << "," << state.tdy*M2FT << "," << 
 		bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << "," <<  
 		state.dr << "," << state.ir << "," << state.pitch << 
-		state.A_X_pilot << "," << state.A_Y_pilot << "," << state.A_Z_pilot << "," << 
+		state.A_X_pilot*M2FT << "," << state.A_Y_pilot*M2FT << "," << state.A_Z_pilot*M2FT << "," << 
 		std::endl;
 
 
@@ -339,10 +349,10 @@ std::ofstream& telem)
 	i++;
 	if (i % 30 == 0) {
 		std::cout <<
-			", hor dist=" << sqrtf(state.tdist*state.tdist - (state.altitude-target_altitude)*(state.altitude-target_altitude)) <<
-			", agl=" << buf.agl << ", alt=" << state.altitude << ", vel=" << state.speed << 
+			", hor dist=" << M2FT*sqrtf(state.tdist*state.tdist - (state.altitude-target_altitude)*(state.altitude-target_altitude)) <<
+			", agl=" << buf.agl*M2FT << ", alt=" << state.altitude*M2FT << ", vel=" << state.speed*M2FT << 
 	//		", fdm v= " << sqrtf(buf.v_north*buf.v_north + buf.v_east*buf.v_east + buf.v_down*buf.v_down)*0.3048 <<
-		//	" tdx=" << state.tdx << ", tdy=" << state.tdy <<
+		//	" tdx=" << state.tdx*M2FT << ", tdy=" << state.tdy*M2FT <<
 	//		" heading= " << heading << " target heading= " << theading <<
 			", err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
 //			", lat= " << state.latitude << ", long= " << state.longitude << ", alt= " << state.altitude <<
