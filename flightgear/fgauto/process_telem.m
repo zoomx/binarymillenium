@@ -65,10 +65,10 @@ if (0)
 figure(1);
 %instead of lat(end) should use coords of actual target, and make an x where the target is
 subplot(2,1,1),plot(t,y);
-ylabel('dist feets');
+ylabel('dist feet');
 xlabel('time seconds');
 subplot(2,1,2),plot(t, y2);
-ylabel('dist feets');
+ylabel('dist feet');
 xlabel('time seconds');
 end;
 
@@ -79,19 +79,19 @@ plot(tdx,tdy,'b');
 hold on;
 plot(0,0,'rx');
 hold off;
-xlabel('distance feets');
-ylabel('distance feets');
+xlabel('distance feet');
+ylabel('distance feet');
 subplot(2,1,2),plot(sqrt(tdx.*tdx+tdy.*tdy),alt,'b');
 xlabel('distance');
 ylabel('altitude');
 
 figure(2),
 subplot(2,1,1),plot(t,alt);
-ylabel('altitude feets');
+ylabel('altitude feet');
 xlabel('time seconds');
 
 subplot(2,1,2),plot(t,speed);
-ylabel('feets/second');
+ylabel('feet/second');
 legend('speed');
 
 figure(3),

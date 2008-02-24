@@ -32,13 +32,10 @@ typedef unsigned int     uint32_t;
 
 #define M2FT 3.2808399
 
-//start pos is 0.656384, long= -2.1355,
 const double start_longitude = -2.1355;
 const double start_latitude = 0.656384;
 
-//const double target_longitude = -2.137; 
 double target_longitude = -2.137; 
-//const double target_latitude  = .658;
 double target_latitude  = .658;
 const double target_altitude  = 0.0; //meters 
 
@@ -68,7 +65,6 @@ struct known_state {
 	float tpitch;  // target pitch
 	float speed;
 	double tdist;  // direct distance to target
-	//float tlenxy;  // horizontal distance to target
 
 	float p;
 	float q;
@@ -103,13 +99,20 @@ std::ofstream& telem)
 	/// 45 degree angle
 	float min_pitch = -0.25;
 
+	/// make the random target base on starting altitude
+	if (j == 1) {
+		float dist = state.altitude;
+		float div = 3e6;
+		target_longitude = start_longitude + (float)(rand()%(int)dist)/div - dist/div*0.5; 
+		target_latitude  = start_latitude  + (float)(rand()%(int)dist)/div - dist/div*0.5; 
+		std::cout << "t longitude=" << target_longitude << ", t latitude=" << target_latitude << std::endl;
+	}
+
 	////////////////////////////////////////////////////////////////////////
 	/// GPS section, only update at 1 Hz
 	if (j%int(dt_gps/dt+0.5) == 0) {
 		
 
-		//////////////////////////////////////////////////////////////
-		
 		///////////////////////////////////////////////////////////////////
 		/// find the angle from horizontal
 		{
@@ -118,13 +121,11 @@ std::ofstream& telem)
 			double y1 = (EARTH_RADIUS_METERS+state.altitude)*cos(state.latitude)*sin(state.longitude);
 			double z1 = (EARTH_RADIUS_METERS+state.altitude)*sin(state.latitude);
 
-//			double l1 = sqrtf(x1*x1 + y1*y1 + z1*z1);
-
 			double x2 = (EARTH_RADIUS_METERS+old_state.altitude)*cos(old_state.latitude)*cos(old_state.longitude);
 			double y2 = (EARTH_RADIUS_METERS+old_state.altitude)*cos(old_state.latitude)*sin(old_state.longitude);
 			double z2 = (EARTH_RADIUS_METERS+old_state.altitude)*sin(old_state.latitude);
 
-
+			// delta xyz to target
 			double xt = (EARTH_RADIUS_METERS+target_altitude)*cos(target_latitude)*cos(target_longitude);
 			double yt = (EARTH_RADIUS_METERS+target_altitude)*cos(target_latitude)*sin(target_longitude);
 			double zt = (EARTH_RADIUS_METERS+target_altitude)*sin(target_latitude);
@@ -163,8 +164,6 @@ std::ofstream& telem)
 			if (state.altitude < 1000) state.tpitch += 0.2*fabs(state.error_heading);
 			state.speed = l1/dt;
 		
-			//std::cout << buf.agl << " " <<  dotprodt << " " << state.tpitch <<  std::endl;	
-			
 			/// find the heading from the dot product of the vertical axis of the earth, due east is zero
 			/// turns out that dz is the only contributor, everything else is zeroed out
 
@@ -186,19 +185,10 @@ std::ofstream& telem)
 			state.tdx = 0.0 - (tdlong)*EARTH_RADIUS_METERS*cos(state.latitude);
 			state.tdy = 	 (tdlat)*EARTH_RADIUS_METERS;
 
-			//float tlen = sqrtf(tdlat*tdlat + tdlong*tdlong);
 	
 			float heading  = atan2(edy,edx)/M_PI;
-			//float heading  = atan2(dlat,dlong)/M_PI;
 			float theading = atan2(state.tdy,state.tdx)/M_PI;
-			//float theading = atan2(tdlat,tdlong)/M_PI;
 		
-
-			//double theading = 0;
-			//double heading_dz = acos( dz/l1) )/M_PI + 0.5;
-
-			//std::cout << heading << ", heading_dz=" << heading_dz << std::endl;
-
 			/// vector that points in the direction we need to move
 			state.error_heading = theading- heading;
 			WRAP(state.error_heading, 1.0);
@@ -214,22 +204,8 @@ std::ofstream& telem)
 			if (state.ierror_heading >  10.0) state.ierror_heading =  10.0;
 			if (state.ierror_heading < -10.0) state.ierror_heading = -10.0;
 		}
-		/*
-		 * float dlenxy = sqrtf(dx*dx + dy*dy);
-		//float dlen = sqrtf(dlat*dlat + dlong*dlong);
-		float dalt = state.altitude - old_state.altitude;
-
-		state.pitch = atan2(dalt, dlenxy)/M_PI; /// convert to -1 to 1
-		state.speed = sqrtf(dlenxy*dlenxy + dalt*dalt)/dt_gps;	
-		if (j < 10) state.speed = 0;
 		
-		hspeed = dlenxy/dt_gps;	
-
-		/// find the necessary pitch to descend to the target
-
-		state.tlenxy = sqrtf(state.tdx*state.tdx + state.tdy*state.tdy);
-		*/
-				/// don't try to climb or dive too steep
+		/// don't try to climb or dive too steep
 		/// try to limit velocity with target pitch?
 		float max_pitch = -0.005;
 		if (state.tpitch > max_pitch) state.tpitch = max_pitch;
@@ -282,7 +258,7 @@ std::ofstream& telem)
 	////////////////////////////////////////////
 	/// RUDDER - HEADING
 
-    val = 0.7*state.error_heading + 14.3*state.derror_heading + 0.000001*state.ierror_heading;
+    val = 1.8*state.error_heading + 14.3*state.derror_heading + 0.000001*state.ierror_heading;
 	float fadeval = 0.20;
     if (fabs(state.error_heading) < fadeval) val*= fabs(state.error_heading)/fadeval;
 	/// ramp down rudder even faster within a few degrees of the target
@@ -290,7 +266,8 @@ std::ofstream& telem)
     if (fabs(state.error_heading) < fadeval/4.0) val*= fabs(state.error_heading)/(fadeval/4.0);
 	if (val > 1.0) val = 1.0;
 	if (val <-1.0) val =-1.0;
-	
+
+
 	/// limit rudder based on pitch, the rudder doesn't work too well at high pitches anyway
 	float abs_min_pitch = -0.5; /// probably need to ensure this is true;
 	if (state.pitch < min_pitch) {
@@ -299,14 +276,28 @@ std::ofstream& telem)
 		float ratio = 1.0 - (state.pitch-min_pitch)*slope;
 		val = val * ratio;
 	}
+	
+	/// change the ailerons independently of the rudders when low to the ground
+	float aileron_heading_val = val;
+	
 	/// limit rudder based on distance to target
-	float approach_dist = 3000;
+	/*float approach_dist = 1500;
 	if (state.tdist < approach_dist) {
-		val = val*(0.75+0.25*state.tdist/approach_dist);
-	}
+		val = val*(0.3+0.7*state.tdist/approach_dist);
+	}*/
+
+	// this assumes a high quality heigh map is flying, I should simulate a lower quality than
+	// this 'perfect' value
+	float agl_limit = 150;
+	if (buf.agl < agl_limit)  val *= (buf.agl/agl_limit);
+
 	bufctrl.rudder = val;
 
-	//////////////////////////////////////////////////
+	agl_limit = 90;
+	if (buf.agl < agl_limit)  aileron_heading_val *= (buf.agl/agl_limit);
+
+
+	///////////////////////////////////////////////////////////////////
 	/// AILERON - ROLL
 
 	/// TBD saturation limits on iq
@@ -315,17 +306,19 @@ std::ofstream& telem)
 	/// filter to avoid oscillations
 	state.dr = (state.dr*0.1 + old_state.dr*0.9);	
 	if (j < 10) state.dr = 0;
-	
+
 	float valr = 0.2*state.r + 0.05*state.dr + 0.0*state.ir;
 	
 	if (state.r < 0.1) valr*= 0.1;
-	valr += val*0.01;
+	
+	/// use some of the heading command on the ailerons 
+	valr += aileron_heading_val*0.01;
 
 	if (valr > 1.0) valr = 1.0;
 	if (valr <-1.0) valr =-1.0;
 	bufctrl.aileron = valr;
 
-	/////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////
 
 	/// save telemetry to file
 	telem << 
@@ -516,10 +509,6 @@ int main(void)
 	struct known_state old_state; 
 
 	srand ( time(NULL) );
-	target_longitude = start_longitude + (float)(rand()%4000)/1e6 - 0.002; 
-	target_latitude  = start_latitude  + (float)(rand()%4000)/1e6 - 0.002; 
-	std::cout << "t longitude=" << target_longitude << ", t latitude=" << target_latitude << std::endl;
-
 	memset(&state,	0, sizeof(state));
 	memset(&old_state,	0, sizeof(state));
 
