@@ -28,17 +28,20 @@ typedef unsigned int     uint32_t;
 #include "net_fdm.hxx"
 #include "net_ctrls.hxx"
 
+/// doesn't work if beyond a single t away
 #define WRAP(x,t) {if ((x) > (t)) (x) = 2*(t)-(x); if ((x) < -(t)) (x) = 2.0+(x);}
+#define CLAMP(x,t) {if ((x) > (t)) (x) = (t);  if ((x) < -(t)) (x) = -(t); }
 
 #define M2FT 3.2808399
 
+		double target_longitude = -2.137; 
+		double target_latitude  = .658;
+		double target_altitude  = 0.0; //meters 
+
+
+
 const double start_longitude = -2.1355;
 const double start_latitude = 0.656384;
-
-double target_longitude = -2.137; 
-double target_latitude  = .658;
-const double target_altitude  = 0.0; //meters 
-
 const double EARTH_RADIUS_METERS = 6.378155e6;
 const double D2R = M_PI/180.0;
 
@@ -79,13 +82,220 @@ struct known_state {
 	float A_X_pilot;
 	float A_Y_pilot;
 	float A_Z_pilot;
+
+	///
+};
+
+/// 12 bits of fraction precision
+const signed int FIX1 = 1<<12;
+
+signed int float_to_fixed(double val)
+{
+	return (signed int)(val*FIX1);
+}
+
+double fixed_to_float(signed int fixed_val)
+{
+	return (float)(fixed_val)/(float)(FIX1);
+}
+
+/// GPS integer equivalents
+/// last 4 bits behind decimal
+//const signed int GPS_POS90 = 1<<24;
+//const signed int GPS_NEG90 = -GPS_POS90;
+
+
+
+struct known_state_ints
+{
+	
+	signed int longitude;
+	signed int latitude;
+	signed int altitude;
+
+	/// distance from target
+	/// this should actually be distance from fixed 0 point since target might move
+	signed int tdx;
+	signed int tdy;
+
+	signed int error_heading; /// degrees
+	signed int derror_heading; /// filtered
+	signed int ierror_heading;
+
+	signed int pitch;
+	
+	signed int error_pitch;
+	signed int dpitch;  // these are for error_pitch
+	signed int ipitch;
+
+	signed int tpitch;  // target pitch
+	signed int speed;
+	signed int tdist;  // direct distance to target
+
+	signed int p;
+	signed int q;
+	signed int r;
+
+	signed int dq; // derivative of q (filtered)
+	signed int iq;  // integral of q
+
+	signed int dr;
+	signed int ir;
+
+	signed int elevator;
+
+	signed int A_X_pilot;
+	signed int A_Y_pilot;
+	signed int A_Z_pilot;
+
 };
 
 class fileNotFound {};
 
+void state_fixed_to_float(known_state_ints& state_ints, known_state& state)
+{
+	state.p = fixed_to_float(state_ints.p);
+	state.q = fixed_to_float(state_ints.q);
+	state.r = fixed_to_float(state_ints.r);
+	
+	state.dq = fixed_to_float(state_ints.dq);
+	state.dr = fixed_to_float(state_ints.dr);
+	state.iq = fixed_to_float(state_ints.iq);
+	state.ir = fixed_to_float(state_ints.iq);
+
+}
+
+void autopilot_ints(known_state_ints& state, known_state_ints& old_state,
+					FGNetFDM& buf, FGNetCtrls& bufctrl)
+{
+	static int j = 0;
+	j++;
+
+	/// 45 degree angle
+	//signed int min_pitch = -FIX1*45;
+
+	/// need sqrt, cos, acos in fixed point
+
+	signed int dt = FIX1/10;
+
+	/// do rate dampening only for now
+	
+	/// ELEVATOR - PITCH 
+	state.iq = old_state.iq + state.q*dt;
+	/// TBD saturation limits on iq
+	CLAMP(state.iq, (signed int)(M_PI*FIX1*100));
+
+	state.dq = (state.q - old_state.q);
+	/// filter to avoid oscillations
+	//state.dq = (state.dq*0.1 + old_state.dq*0.9);	
+	if (j < 10) state.dq = 0;
+
+	/*
+	state.error_pitch = state.tpitch - state.pitch;
+	state.ipitch = old_state.ipitch + state.error_pitch*dt;
+	float max_ip = 4.0;
+	if (state.ipitch >  max_ip) state.ipitch =  max_ip;
+	if (state.ipitch < -max_ip) state.ipitch = -max_ip;
+	state.dpitch = (state.error_pitch - old_state.error_pitch)/dt;
+	state.dpitch = (state.dpitch*0.1 + old_state.dpitch*0.9);	
+	if (j < 10) state.dpitch = 0;
+	
+	float valp = -(0.15*state.error_pitch + 0.1*state.dpitch + 0.35*state.ipitch);
+
+	float val = (0.2*valq + 0.8*valp);
+	*/
+
+	signed int valq  = 14*state.q/100;
+	signed int valdq = 10*state.dq/100;
+	signed int valiq = 1*state.iq/200000;
+	//0.15*state.q; //+ 0.1*state.dq + 0.35*state.iq;
+	signed int val = valq + valdq + valiq + 15*FIX1/100;  /// try biasing
+	CLAMP(val,FIX1);
+
+	state.elevator = val;
+
+	/// rate limit
+	signed int limit_rate = FIX1/30;
+	if (state.elevator > (old_state.elevator + limit_rate)) state.elevator = old_state.elevator+limit_rate;
+	if (state.elevator < (old_state.elevator - limit_rate)) state.elevator = old_state.elevator-limit_rate;
+	
+	bufctrl.elevator = fixed_to_float(state.elevator);
+
+	std::cout << val << " " << valq << " " << valdq << " " << valiq << std::endl;
+	////////////////////////////////////////////
+	/// RUDDER - HEADING
+
+	#if 0
+    val = 1.8*state.error_heading + 14.3*state.derror_heading + 0.000001*state.ierror_heading;
+	float fadeval = 0.20;
+    if (fabs(state.error_heading) < fadeval) val*= fabs(state.error_heading)/fadeval;
+	/// ramp down rudder even faster within a few degrees of the target
+	/// the thing we want to avoid is flying directly over the target, we want to come at it from few degrees to the side
+    if (fabs(state.error_heading) < fadeval/4.0) val*= fabs(state.error_heading)/(fadeval/4.0);
+	if (val > 1.0) val = 1.0;
+	if (val <-1.0) val =-1.0;
+
+
+	/// limit rudder based on pitch, the rudder doesn't work too well at high pitches anyway
+	float abs_min_pitch = -0.5; /// probably need to ensure this is true;
+	if (state.pitch < min_pitch) {
+		/// the ratio should vary from 1.0 to 0.0
+		float slope = 1.0/(abs_min_pitch - min_pitch);
+		float ratio = 1.0 - (state.pitch-min_pitch)*slope;
+		val = val * ratio;
+	}
+	
+	/// change the ailerons independently of the rudders when low to the ground
+	float aileron_heading_val = val;
+	
+	/// limit rudder based on distance to target
+	/*float approach_dist = 1500;
+	if (state.tdist < approach_dist) {
+		val = val*(0.3+0.7*state.tdist/approach_dist);
+	}*/
+
+	// this assumes a high quality heigh map is flying, I should simulate a lower quality than
+	// this 'perfect' value
+	float agl_limit = 150;
+	if (buf.agl < agl_limit)  val *= (buf.agl/agl_limit);
+
+	bufctrl.rudder = val;
+	
+	agl_limit = 90;
+	if (buf.agl < agl_limit)  aileron_heading_val *= (buf.agl/agl_limit);
+
+#endif 
+	val = 40*state.p/100;
+	CLAMP(val,FIX1);
+	bufctrl.rudder = fixed_to_float(val);
+
+	///////////////////////////////////////////////////////////////////
+	/// AILERON - ROLL
+
+#if 0
+	/// TBD saturation limits on iq
+	state.ir = old_state.ir + state.r*dt;
+	/// filter to avoid oscillations
+	state.dr = (state.dr*0.1 + old_state.dr*0.9);	
+	if (j < 10) state.dr = 0;
+
+	float valr = 0.2*state.r + 0.05*state.dr + 0.0*state.ir;
+	
+	if (state.r < 0.1) valr*= 0.1;
+	
+	/// use some of the heading command on the ailerons 
+	valr += aileron_heading_val*0.01;
+#endif
+	state.dr = (state.r - old_state.r)/dt;
+
+	signed int valr = /*5*state.q/100 +*/ -60*state.r/100 + 5*state.dr/100;
+	CLAMP(valr,FIX1);
+	bufctrl.aileron = fixed_to_float(valr);
+
+}
+
 void autopilot(known_state& state, known_state& old_state,
-FGNetFDM& buf, FGNetCtrls& bufctrl,
-std::ofstream& telem) 
+			   FGNetFDM& buf, FGNetCtrls& bufctrl)
 {
 
 	static int j = 0;
@@ -99,20 +309,12 @@ std::ofstream& telem)
 	/// 45 degree angle
 	float min_pitch = -0.25;
 
-	/// make the random target base on starting altitude
-	if (j == 1) {
-		float dist = state.altitude;
-		float div = 3e6;
-		target_longitude = start_longitude + (float)(rand()%(int)dist)/div - dist/div*0.5; 
-		target_latitude  = start_latitude  + (float)(rand()%(int)dist)/div - dist/div*0.5; 
-		std::cout << "t longitude=" << target_longitude << ", t latitude=" << target_latitude << std::endl;
-	}
+	
 
 	////////////////////////////////////////////////////////////////////////
 	/// GPS section, only update at 1 Hz
 	if (j%int(dt_gps/dt+0.5) == 0) {
 		
-
 		///////////////////////////////////////////////////////////////////
 		/// find the angle from horizontal
 		{
@@ -229,131 +431,98 @@ std::ofstream& telem)
 	//// end GPS section
 	//////////////////////////////////////////////////////////////////////
 
-	/// ELEVATOR - PITCH 
-	state.iq = old_state.iq + state.q*dt;
-	/// TBD saturation limits on iq
-	state.dq = (state.q - old_state.q)/dt;
-	/// filter to avoid oscillations
-	state.dq = (state.dq*0.1 + old_state.dq*0.9);	
-	if (j < 10) state.dq = 0;
-	
-	float valq = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
-
-	state.error_pitch = state.tpitch - state.pitch;
-	state.ipitch = old_state.ipitch + state.error_pitch*dt;
-	float max_ip = 4.0;
-	if (state.ipitch >  max_ip) state.ipitch =  max_ip;
-	if (state.ipitch < -max_ip) state.ipitch = -max_ip;
-	state.dpitch = (state.error_pitch - old_state.error_pitch)/dt;
-	state.dpitch = (state.dpitch*0.1 + old_state.dpitch*0.9);	
-	if (j < 10) state.dpitch = 0;
-	
-	float valp = -(0.15*state.error_pitch + 0.1*state.dpitch + 0.35*state.ipitch);
-
-	float val = (0.2*valq + 0.8*valp);
-	if (val > 1.0) val = 1.0;
-	if (val <-1.0) val =-1.0;
-	bufctrl.elevator = val;
-
-	////////////////////////////////////////////
-	/// RUDDER - HEADING
-
-    val = 1.8*state.error_heading + 14.3*state.derror_heading + 0.000001*state.ierror_heading;
-	float fadeval = 0.20;
-    if (fabs(state.error_heading) < fadeval) val*= fabs(state.error_heading)/fadeval;
-	/// ramp down rudder even faster within a few degrees of the target
-	/// the thing we want to avoid is flying directly over the target, we want to come at it from few degrees to the side
-    if (fabs(state.error_heading) < fadeval/4.0) val*= fabs(state.error_heading)/(fadeval/4.0);
-	if (val > 1.0) val = 1.0;
-	if (val <-1.0) val =-1.0;
 
 
-	/// limit rudder based on pitch, the rudder doesn't work too well at high pitches anyway
-	float abs_min_pitch = -0.5; /// probably need to ensure this is true;
-	if (state.pitch < min_pitch) {
-		/// the ratio should vary from 1.0 to 0.0
-		float slope = 1.0/(abs_min_pitch - min_pitch);
-		float ratio = 1.0 - (state.pitch-min_pitch)*slope;
-		val = val * ratio;
-	}
-	
-	/// change the ailerons independently of the rudders when low to the ground
-	float aileron_heading_val = val;
-	
-	/// limit rudder based on distance to target
-	/*float approach_dist = 1500;
-	if (state.tdist < approach_dist) {
-		val = val*(0.3+0.7*state.tdist/approach_dist);
-	}*/
+		/// ELEVATOR - PITCH 
+		state.iq = old_state.iq + state.q*dt;
+		/// TBD saturation limits on iq
+		state.dq = (state.q - old_state.q)/dt;
+		/// filter to avoid oscillations
+		state.dq = (state.dq*0.1 + old_state.dq*0.9);	
+		if (j < 10) state.dq = 0;
 
-	// this assumes a high quality heigh map is flying, I should simulate a lower quality than
-	// this 'perfect' value
-	float agl_limit = 150;
-	if (buf.agl < agl_limit)  val *= (buf.agl/agl_limit);
+		float valq = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
 
-	bufctrl.rudder = val;
+		state.error_pitch = state.tpitch - state.pitch;
+		state.ipitch = old_state.ipitch + state.error_pitch*dt;
+		float max_ip = 4.0;
+		if (state.ipitch >  max_ip) state.ipitch =  max_ip;
+		if (state.ipitch < -max_ip) state.ipitch = -max_ip;
+		state.dpitch = (state.error_pitch - old_state.error_pitch)/dt;
+		state.dpitch = (state.dpitch*0.1 + old_state.dpitch*0.9);	
+		if (j < 10) state.dpitch = 0;
 
-	agl_limit = 90;
-	if (buf.agl < agl_limit)  aileron_heading_val *= (buf.agl/agl_limit);
+		float valp = -(0.15*state.error_pitch + 0.1*state.dpitch + 0.35*state.ipitch);
+
+		float val = (0.2*valq + 0.8*valp);
+		if (val > 1.0) val = 1.0;
+		if (val <-1.0) val =-1.0;
+		bufctrl.elevator = val;
+
+		////////////////////////////////////////////
+		/// RUDDER - HEADING
+
+		val = 1.8*state.error_heading + 14.3*state.derror_heading + 0.000001*state.ierror_heading;
+		float fadeval = 0.20;
+		if (fabs(state.error_heading) < fadeval) val*= fabs(state.error_heading)/fadeval;
+		/// ramp down rudder even faster within a few degrees of the target
+		/// the thing we want to avoid is flying directly over the target, we want to come at it from few degrees to the side
+		if (fabs(state.error_heading) < fadeval/4.0) val*= fabs(state.error_heading)/(fadeval/4.0);
+		if (val > 1.0) val = 1.0;
+		if (val <-1.0) val =-1.0;
 
 
-	///////////////////////////////////////////////////////////////////
-	/// AILERON - ROLL
+		/// limit rudder based on pitch, the rudder doesn't work too well at high pitches anyway
+		float abs_min_pitch = -0.5; /// probably need to ensure this is true;
+		if (state.pitch < min_pitch) {
+			/// the ratio should vary from 1.0 to 0.0
+			float slope = 1.0/(abs_min_pitch - min_pitch);
+			float ratio = 1.0 - (state.pitch-min_pitch)*slope;
+			val = val * ratio;
+		}
 
-	/// TBD saturation limits on iq
-	state.ir = old_state.ir + state.r*dt;
-	state.dr = (state.r - old_state.r)/dt;
-	/// filter to avoid oscillations
-	state.dr = (state.dr*0.1 + old_state.dr*0.9);	
-	if (j < 10) state.dr = 0;
+		/// change the ailerons independently of the rudders when low to the ground
+		float aileron_heading_val = val;
 
-	float valr = 0.2*state.r + 0.05*state.dr + 0.0*state.ir;
-	
-	if (state.r < 0.1) valr*= 0.1;
-	
-	/// use some of the heading command on the ailerons 
-	valr += aileron_heading_val*0.01;
+		/// limit rudder based on distance to target
+		/*float approach_dist = 1500;
+		  if (state.tdist < approach_dist) {
+		  val = val*(0.3+0.7*state.tdist/approach_dist);
+		  }*/
 
-	if (valr > 1.0) valr = 1.0;
-	if (valr <-1.0) valr =-1.0;
-	bufctrl.aileron = valr;
+		// this assumes a high quality heigh map is flying, I should simulate a lower quality than
+		// this 'perfect' value
+		float agl_limit = 150;
+		if (buf.agl < agl_limit)  val *= (buf.agl/agl_limit);
+
+		bufctrl.rudder = val;
+
+		agl_limit = 90;
+		if (buf.agl < agl_limit)  aileron_heading_val *= (buf.agl/agl_limit);
+
+
+		///////////////////////////////////////////////////////////////////
+		/// AILERON - ROLL
+
+		/// TBD saturation limits on iq
+		state.ir = old_state.ir + state.r*dt;
+		state.dr = (state.r - old_state.r)/dt;
+		/// filter to avoid oscillations
+		state.dr = (state.dr*0.1 + old_state.dr*0.9);	
+		if (j < 10) state.dr = 0;
+
+		float valr = 0.2*state.r + 0.05*state.dr + 0.0*state.ir;
+
+		if (state.r < 0.1) valr*= 0.1;
+
+		/// use some of the heading command on the ailerons 
+		valr += aileron_heading_val*0.01;
+
+		if (valr > 1.0) valr = 1.0;
+		if (valr <-1.0) valr =-1.0;
+		bufctrl.aileron = valr;
 
 	////////////////////////////////////////////////////////////////////////
-
-	/// save telemetry to file
-	telem << 
-		state.longitude << "," << state.latitude << "," << state.altitude*M2FT << "," <<
-		state.p << "," << state.q << "," << state.r << "," <<
-		bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
-		state.dq << "," << state.iq << "," << 
-		state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << "," << 
-		state.error_pitch << "," << state.dpitch << "," << state.ipitch << "," <<
-		state.tpitch << "," << state.speed*M2FT << "," << 
-		state.tdx*M2FT << "," << state.tdy*M2FT << "," << 
-		bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << "," <<  
-		state.dr << "," << state.ir << "," << state.pitch << 
-		state.A_X_pilot*M2FT << "," << state.A_Y_pilot*M2FT << "," << state.A_Z_pilot*M2FT << "," << 
-		std::endl;
-
-
-	/// output some of the state to stdout every few seconds
-	static int i = 0;
-	i++;
-	if (i % 30 == 0) {
-		std::cout <<
-			", hor dist=" << M2FT*sqrtf(state.tdist*state.tdist - (state.altitude-target_altitude)*(state.altitude-target_altitude)) <<
-			", agl=" << buf.agl*M2FT << ", alt=" << state.altitude*M2FT << ", vel=" << state.speed*M2FT << 
-	//		", fdm v= " << sqrtf(buf.v_north*buf.v_north + buf.v_east*buf.v_east + buf.v_down*buf.v_down)*0.3048 <<
-		//	" tdx=" << state.tdx*M2FT << ", tdy=" << state.tdy*M2FT <<
-	//		" heading= " << heading << " target heading= " << theading <<
-			", err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
-//			", lat= " << state.latitude << ", long= " << state.longitude << ", alt= " << state.altitude <<
-			", pitch= " << state.pitch << ", tpitch= " << state.tpitch << ", elev=" << bufctrl.elevator <<
-		//	", p=" << state.p <<  
-	//		", q=" << state.q << ", elev=" << bufctrl.elevator <<
-		//	", r=" << state.r << ", ail= " << bufctrl.aileron << 
-			std::endl;
-	}
 
 }
 
@@ -508,9 +677,16 @@ int main(void)
 	struct known_state state; 
 	struct known_state old_state; 
 
+	struct known_state_ints state_ints; 
+	struct known_state_ints old_state_ints; 
+	
 	srand ( time(NULL) );
-	memset(&state,	0, sizeof(state));
+	memset(&state,		0, sizeof(state));
 	memset(&old_state,	0, sizeof(state));
+
+	memset(&state_ints,		0, sizeof(state_ints));
+	memset(&old_state_ints,	0, sizeof(state_ints));
+
 
 	/* Create the UDP socket */
 	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -576,6 +752,13 @@ int main(void)
 
 	double time = 0.0; 
 
+	float dist = 40e3; //state.altitude;
+	float div = 3e6;
+	target_longitude = start_longitude + (float)(rand()%(int)dist)/div - dist/div*0.5; 
+	target_latitude  = start_latitude  + (float)(rand()%(int)dist)/div - dist/div*0.5; 
+	std::cout << "t longitude=" << target_longitude << ", t latitude=" << target_latitude << std::endl;
+
+
 	int i = 0;
 	while(1) {
 	 
@@ -609,6 +792,20 @@ int main(void)
 		state.A_Y_pilot = buf.A_Y_pilot;
 		state.A_Z_pilot = buf.A_Z_pilot;
 
+		/// fixed point version
+		
+		state_ints.longitude = float_to_fixed(buf.longitude);
+		state_ints.latitude  = float_to_fixed(buf.latitude);
+		state_ints.altitude  = float_to_fixed(buf.altitude);
+
+		state_ints.p = float_to_fixed(buf.p);
+		state_ints.q = float_to_fixed(buf.q);
+		state_ints.r = float_to_fixed(buf.r);
+
+		state_ints.A_X_pilot = float_to_fixed(buf.A_X_pilot);
+		state_ints.A_Y_pilot = float_to_fixed(buf.A_Y_pilot);
+		state_ints.A_Z_pilot = float_to_fixed(buf.A_Z_pilot);
+
 
 		if (received < 0) {
 			perror("recvfrom");
@@ -624,10 +821,55 @@ int main(void)
 
 			FGProps2NetCtrls(&bufctrl);
 
-			autopilot(state, old_state, buf, bufctrl, telem);
+			//autopilot(state, old_state, buf, bufctrl);
+			autopilot_ints(state_ints, old_state_ints, buf, bufctrl);
+
+			state_fixed_to_float(state_ints,state);
+
+			/// output to file and stdout 
+			{
+				/// save telemetry to file
+				telem << 
+					state.longitude << "," << state.latitude << "," << state.altitude*M2FT << "," <<
+					state.p << "," << state.q << "," << state.r << "," <<
+					bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
+					state.dq << "," << state.iq << "," << 
+					state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << "," << 
+					state.error_pitch << "," << state.dpitch << "," << state.ipitch << "," <<
+					state.tpitch << "," << state.speed*M2FT << "," << 
+					state.tdx*M2FT << "," << state.tdy*M2FT << "," << 
+					bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << "," <<  
+					state.dr << "," << state.ir << "," << state.pitch << 
+					state.A_X_pilot*M2FT << "," << state.A_Y_pilot*M2FT << "," << state.A_Z_pilot*M2FT << "," << 
+					std::endl;
+
+
+				/// output some of the state to stdout every few seconds
+				static int i = 0;
+				i++;
+				if (i % 30 == 0) {
+					std::cout <<
+						", hor dist=" << M2FT*sqrtf(state.tdist*state.tdist - (state.altitude-target_altitude)*(state.altitude-target_altitude)) <<
+						", agl=" << buf.agl*M2FT << ", alt=" << state.altitude*M2FT << ", vel=" << state.speed*M2FT << 
+						//		", fdm v= " << sqrtf(buf.v_north*buf.v_north + buf.v_east*buf.v_east + buf.v_down*buf.v_down)*0.3048 <<
+						//	" tdx=" << state.tdx*M2FT << ", tdy=" << state.tdy*M2FT <<
+						//		" heading= " << heading << " target heading= " << theading <<
+						", err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
+						//			", lat= " << state.latitude << ", long= " << state.longitude << ", alt= " << state.altitude <<
+						", pitch= " << state.pitch << ", tpitch= " << state.tpitch << ", elev=" << bufctrl.elevator <<
+						//	", p=" << state.p <<  
+						//		", q=" << state.q << ", elev=" << bufctrl.elevator <<
+						//	", r=" << state.r << ", ail= " << bufctrl.aileron << 
+						std::endl;
+				}
+			}
+
 
 			//std::cout << old_state.altitude << " " << state.altitude << std::endl;
 			memcpy(&old_state, &state, sizeof(state));
+			
+			
+			memcpy(&old_state_ints, &state_ints, sizeof(state_ints));
 
 
 			////////////////////////////////////////////////////////////////////////
