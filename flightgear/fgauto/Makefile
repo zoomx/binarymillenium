@@ -8,10 +8,11 @@ LDFLAGS = -Wl
 #-shared  
 
 all: objects
-	$(CC) -o fgrxtx fgrxtx.o $(LDFLAGS)
+	$(CC) -o fgrxtx fgrxtx.o auto_float.o $(LDFLAGS)
 
-objects: fgrxtx.cpp
+objects: fgrxtx.cpp  
 	$(CC) $(CCFLAGS) -o fgrxtx.o fgrxtx.cpp
+	$(CC) $(CCFLAGS) -o auto_float.o auto_float.cpp
 
 clean: 
-	- rm -f fgrxtx.o fgrxtx.dll *~
+	- rm -f fgrxtx.o fgrxtx.dll atan_fixed.o *~

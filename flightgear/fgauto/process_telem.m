@@ -55,6 +55,9 @@ ir = f(26,range);
 
 pitch = f(27,range);
 
+accel_x = f(28,range);
+accel_y = f(29,range);
+accel_z = f(30,range);
 
 
 y = (lat-lat(end))*6e6;
@@ -72,7 +75,6 @@ ylabel('dist feet');
 xlabel('time seconds');
 end;
 
-if(0)
 figure(10);
 subplot(2,1,1),
 %plot(y2,y,'b');
@@ -95,7 +97,6 @@ subplot(2,1,2),plot(t,speed);
 ylabel('feet/second');
 legend('speed');
 
-end;
 figure(3),
 subplot(2,1,1),plot(t,p, t,q,t,r);
 legend('p','q','r');
@@ -111,12 +112,12 @@ subplot(3,1,2),plot(t,wind_dir);
 ylabel('wind dir degrees');
 subplot(3,1,3),plot(t,press);
 ylabel('pressure inhg');
+end
 
 figure(5),
 plot(t,rud, t,err_head, t, derr_head*10, t, ierr_head/10);
 ylabel('degrees');
 legend('rudder', 'error heading', 'derror heading', 'ierr head');
-end;
 
 figure(4),
 factor = 100; % max(abs(q))/ max(abs(elev));
@@ -133,3 +134,8 @@ plot(t, r, t,dr,t,ir);
 legend('r','dr','ir');
 
 end;
+
+figure(20)
+plot(t,accel_x,t,accel_y, t,accel_z);
+legend('x','y','z');
+
