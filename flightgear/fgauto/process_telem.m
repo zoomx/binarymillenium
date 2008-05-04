@@ -9,7 +9,7 @@ f = f';
 
 len =size(f,2)
 
-s = 20;
+s = 50;
 l = round(len*0.9);
 range = [s:l];
 
