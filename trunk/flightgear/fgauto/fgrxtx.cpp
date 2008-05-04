@@ -299,7 +299,7 @@ int main(void)
 	double time = 0.0; 
 
 	float dist = 40e3; //state.altitude;
-	float div = 1e7;
+	float div = 5e6;
 
 
 	double target_longitude = -2.137; 
@@ -348,9 +348,9 @@ int main(void)
 		state.q = FPFIX(buf.q);
 		state.r = FPFIX(buf.r);
 
-		state.A_X_pilot = FPFIX(buf.A_X_pilot*M2FT);
-		state.A_Y_pilot = FPFIX(buf.A_Y_pilot*M2FT);
-		state.A_Z_pilot = FPFIX(buf.A_Z_pilot*M2FT);
+		state.A_X_pilot = FPFIX(buf.A_X_pilot);
+		state.A_Y_pilot = FPFIX(buf.A_Y_pilot);
+		state.A_Z_pilot = FPFIX(buf.A_Z_pilot);
 
 		state.target_long= target_longitude;
 		state.target_lat = target_latitude;

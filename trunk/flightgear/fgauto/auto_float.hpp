@@ -90,10 +90,6 @@ struct known_state {
 	float rudder;
 	float aileron;
 };
-
-/// 12 bits of fraction precision
-const signed int FIX1 = 1<<12;
-
 void autopilot(known_state& state, known_state& old_state, float dt);
 
 #endif
