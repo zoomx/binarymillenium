@@ -69,6 +69,12 @@ class fileNotFound {};
 // lose precision
 #define FPFIX(x) fixed_to_float(float_to_fixed(x))
 
+
+/// 12 bits of fraction precision
+const signed int FIX1 = 1<<10;
+
+
+
 signed int float_to_fixed(double val);
 signed int float_to_fixed16(double val);
 double fixed_to_float(signed int fixed_val);
