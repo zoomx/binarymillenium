@@ -28,6 +28,7 @@ typedef unsigned int     uint32_t;
 #include "net_ctrls.hxx"
 
 #include "fgrxtx.hpp"
+#include "auto_float.hpp"
 
 signed int float_to_fixed(double val)
 {
@@ -331,24 +332,31 @@ int main(void)
 
 		FGNetFDM2Props( &buf);
 
-		state.longitude = buf.longitude;
-		state.latitude = buf.latitude;
-		state.altitude = buf.altitude;
-	
+		static int j;
+		if (j%10 == 0) {
+			state.longitude= (float)((int)(180e4/M_PI*buf.longitude))/(180e4/M_PI);;
+			state.latitude = (float)((int)(180e4/M_PI*buf.latitude))/(180e4/M_PI);
+			state.altitude = buf.altitude*M2FT;
+		} else {
+			state.longitude= old_state.longitude;
+			state.latitude = old_state.latitude;
+			state.altitude = old_state.altitude;
+		}
+		j++;
+
 		state.p = FPFIX(buf.p);
 		state.q = FPFIX(buf.q);
 		state.r = FPFIX(buf.r);
 
-		state.A_X_pilot = FPFIX(buf.A_X_pilot);
-		state.A_Y_pilot = FPFIX(buf.A_Y_pilot);
-		state.A_Z_pilot = FPFIX(buf.A_Z_pilot);
+		state.A_X_pilot = FPFIX(buf.A_X_pilot*M2FT);
+		state.A_Y_pilot = FPFIX(buf.A_Y_pilot*M2FT);
+		state.A_Z_pilot = FPFIX(buf.A_Z_pilot*M2FT);
 
-		state.target_long = target_longitude;
+		state.target_long= target_longitude;
 		state.target_lat = target_latitude;
 		state.target_alt = target_altitude;
 		
 		#if 0
-		static int j;
 		/// fixed point version
 		if (j%10 == 0) {
 		    /// convert to arc-minutes
@@ -426,7 +434,12 @@ int main(void)
 
 			FGProps2NetCtrls(&bufctrl);
 
-			autopilot(state, old_state, buf, bufctrl);
+			float dt =1.0/10.0;
+			autopilot(state, old_state,dt);
+			bufctrl.elevator = FPFIX(state.elevator);
+			bufctrl.aileron  = FPFIX(state.aileron);
+			bufctrl.rudder   = FPFIX(state.rudder);
+
 			//autopilot_ints(state_ints, old_state_ints, buf, bufctrl);
 			//state_fixed_to_float(state_ints,state);
 
@@ -434,17 +447,18 @@ int main(void)
 			{
 				/// save telemetry to file
 				telem << 
-					state.longitude << "," << state.latitude << "," << state.altitude*M2FT << "," <<
+					buf.longitude << "," << buf.latitude << "," << buf.altitude*M2FT << "," <<
 					state.p << "," << state.q << "," << state.r << "," <<
 					bufctrl.elevator << "," << bufctrl.rudder << "," << bufctrl.aileron << "," <<
 					state.dq << "," << state.iq << "," << 
 					state.error_heading << "," << state.derror_heading << "," << state.ierror_heading << "," << 
 					state.error_pitch << "," << state.dpitch << "," << state.ipitch << "," <<
-					state.tpitch << "," << state.speed*M2FT << "," << 
-					state.tdx*M2FT << "," << state.tdy*M2FT << "," << 
+					state.tpitch << "," << state.speed << "," << 
+					state.tdx << "," << state.tdy << "," << 
 					bufctrl.wind_speed_kt << "," << bufctrl.wind_dir_deg << "," << bufctrl.press_inhg << "," <<  
 					state.dr << "," << state.ir << "," << state.pitch << 
-					state.A_X_pilot*M2FT << "," << state.A_Y_pilot*M2FT << "," << state.A_Z_pilot*M2FT << "," << 
+					state.A_X_pilot << "," << state.A_Y_pilot << "," << state.A_Z_pilot << "," << 
+					state.longitude << "," << state.latitude << "," << state.altitude << "," <<
 					std::endl;
 
 
@@ -452,12 +466,13 @@ int main(void)
 				static int i = 0;
 				i++;
 				std::cout.precision(2);
-				if (i % 30 == 0) {
+				//if ((state.longitude != old_state.longitude ) || (state.latitude != old_state.latitude)) {
+				if (i%30==0) {
 					std::cout <<
-						", hor dist=" << M2FT*sqrtf(state.tdist*state.tdist - (state.altitude-target_altitude)*(state.altitude-target_altitude)) <<
-						//", agl=" << buf.agl*M2FT << ", alt=" << state.altitude*M2FT << ", vel=" << state.speed*M2FT << 
+						", hor dist=" << sqrtf(state.tdist*state.tdist - (state.altitude-target_altitude)*(state.altitude-target_altitude)) <<
+						//", agl=" << buf.agl << ", alt=" << state.altitude << ", vel=" << state.speed << 
 						//		", fdm v= " << sqrtf(buf.v_north*buf.v_north + buf.v_east*buf.v_east + buf.v_down*buf.v_down)*0.3048 <<
-						//	" tdx=" << state.tdx*M2FT << ", tdy=" << state.tdy*M2FT <<
+						//	" tdx=" << state.tdx << ", tdy=" << state.tdy <<
 						//		" heading= " << heading << " target heading= " << theading <<
 						", err_head= " << state.error_heading << ", rud=" << bufctrl.rudder <<
 						//			", lat= " << state.latitude << ", long= " << state.longitude << ", alt= " << state.altitude <<
