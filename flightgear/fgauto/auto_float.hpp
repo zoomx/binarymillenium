@@ -3,28 +3,19 @@
 
 #include <cmath>
 
-#include <iostream>
-#include <fstream>
-
-
-
-/// doesn't work if beyond a single t away
-#define WRAP(x,t) {if ((x) > (t)) (x) = 2*(t)-(x); if ((x) < -(t)) (x) = 2.0+(x);}
-#define CLAMP(x,t) {if ((x) > (t)) (x) = (t);  if ((x) < -(t)) (x) = -(t); }
-
 #define M2FT 3.2808399
-//#define M_PI 3.14592
+
+#define WRAP(x,t) {if ((x) > (t)) (x) = 2*(t)-(x); if ((x) < -(t)) (x) = 2.0+(x);}
 
 const double EARTH_RADIUS_METERS = 6.378155e6;
 const double EARTH_RADIUS_FEET = EARTH_RADIUS_METERS*M2FT;
 const double D2R = M_PI/180.0;
 const double ARCM2R = D2R/60.0;
 
-
-
-
-
 struct known_state {
+	unsigned int counter;
+	unsigned int last_changed_pos;
+
 	///////////////////
 	/// sensor values
 	double longitude;
@@ -61,10 +52,11 @@ struct known_state {
 	float tdy_e;
 	float tdz_e;
 
-	float error_heading; /// degrees
+	float error_heading; /// 
 	float derror_heading; /// filtered
 	float ierror_heading;
 
+	/// derived from a blend of accelerometers and gps
 	float pitch;
 	
 	float error_pitch;
@@ -90,6 +82,7 @@ struct known_state {
 	float rudder;
 	float aileron;
 };
+
 void autopilot(known_state& state, known_state& old_state, float dt);
 
 #endif

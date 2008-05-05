@@ -299,12 +299,12 @@ int main(void)
 	double time = 0.0; 
 
 	float dist = 40e3; //state.altitude;
-	float div = 5e6;
+	float div = 3e7;
 
 
 	double target_longitude = -2.137; 
 	double target_latitude  = .658;
-	double target_altitude  = 0.0; //meters 
+	double target_altitude  = 50.0; //meters 
 
 	target_longitude = start_longitude + (float)(rand()%(int)dist)/div - dist/div*0.5; 
 	target_latitude  = start_latitude  + (float)(rand()%(int)dist)/div - dist/div*0.5; 
@@ -490,8 +490,7 @@ int main(void)
 			//std::cout << old_state.altitude << " " << state.altitude << std::endl;
 			memcpy(&old_state, &state, sizeof(state));
 			
-			
-			memcpy(&old_state_ints, &state_ints, sizeof(state_ints));
+			//memcpy(&old_state_ints, &state_ints, sizeof(state_ints));
 
 
 			////////////////////////////////////////////////////////////////////////
