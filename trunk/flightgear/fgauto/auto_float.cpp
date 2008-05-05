@@ -17,13 +17,9 @@ float find_acc_pitch(float ax, float ay, float az)
 void autopilot(known_state& state, known_state& old_state, float dt)
 {
 	/// need to replace this with a flag that says whether the balloon and chute has been cut away.
-	static int j = 0;
-	j++;
+	state.counter = old_state.counter + 1;
 
-
-	static float hspeed;
-
-	/// 45 degree angle
+	/// 45 degree angle downward
 	float min_pitch = -0.25;
 
 	/// did the lat or long change noticieably?  If not we're probably falling straight down	
@@ -33,9 +29,9 @@ void autopilot(known_state& state, known_state& old_state, float dt)
 	/// GPS section, will only update at 1 Hz
 	//if (changed_pos || (state.altitude != old_state.altitude)) {
 	if (changed_pos) {
-		static int last_j = 0;
-		float dt_gps = (j-last_j)*dt;
-		last_j = j;
+		float dt_gps = (state.counter-state.last_changed_pos)*dt;
+		state.last_changed_pos = state.counter;
+		
 		///////////////////////////////////////////////////////////////////
 		/// find the angle from horizontal
 		/// alternate way of getting velocity- this one matches the sim 
@@ -132,7 +128,7 @@ void autopilot(known_state& state, known_state& old_state, float dt)
 		state.derror_heading = (state.error_heading- old_state.error_heading)/dt_gps;
 		state.derror_heading = 0.1*state.derror_heading + 0.9*old_state.derror_heading;
 
-		if (j < 10) state.derror_heading = 0;
+		if (state.counter < 10) state.derror_heading = 0;
 
 		state.ierror_heading = old_state.ierror_heading + state.error_heading*dt_gps;
 		if (state.ierror_heading >  10.0) state.ierror_heading =  10.0;
@@ -142,6 +138,7 @@ void autopilot(known_state& state, known_state& old_state, float dt)
 		/// try to limit velocity with target pitch?
 		float max_pitch = -0.005;
 		if (state.tpitch > max_pitch) state.tpitch = max_pitch;
+		
 		#if 0
 		float max_speed = 70.0;
 		if (state.speed > max_speed) {
@@ -158,7 +155,7 @@ void autopilot(known_state& state, known_state& old_state, float dt)
 
 		if (state.tpitch < min_pitch) state.tpitch = min_pitch;
 
-		if (j < 10) state.tpitch = 0;
+		if (state.counter < 10) state.tpitch = 0;
 
 	} else {
 		state.pitch = old_state.pitch*0.98 + -0.5*0.02;
@@ -187,7 +184,7 @@ void autopilot(known_state& state, known_state& old_state, float dt)
 	state.dq = (state.q - old_state.q)/dt;
 	/// filter to avoid oscillations
 	state.dq = (state.dq*0.1 + old_state.dq*0.9);	
-	if (j < 10) state.dq = 0;
+	if (state.counter < 10) state.dq = 0;
 
 	float pitch_stab = 0.15*state.q + 0.1*state.dq + 0.35*state.iq;
 
@@ -200,7 +197,7 @@ void autopilot(known_state& state, known_state& old_state, float dt)
 	if (state.ipitch < -max_ip) state.ipitch = -max_ip;
 	state.dpitch = (state.error_pitch - old_state.error_pitch)/dt;
 	state.dpitch = (state.dpitch*0.1 + old_state.dpitch*0.9);	
-	if (j < 10) state.dpitch = 0;
+	if (state.counter < 10) state.dpitch = 0;
 
 	float pitch_targeting = -(0.15*state.error_pitch + 0.1*state.dpitch + 0.35*state.ipitch);
 
@@ -242,10 +239,8 @@ void autopilot(known_state& state, known_state& old_state, float dt)
 	  val = val*(0.3+0.7*state.tdist/approach_dist);
 	  }*/
 
-	// this assumes a high quality heigh map is flying, I should simulate a lower quality than
-	// this 'perfect' value
-	//float agl_limit = 150;
-	//if (buf.agl < agl_limit)  heading_targeting *= (buf.agl/agl_limit);
+	float alt_limit = state.target_alt + 25;
+	if (state.altitude < alt_limit)  heading_targeting *= (state.altitude/alt_limit);
 
 	heading_targeting *= (float)(state.acc_orientation);	
 	/// crude filtering
@@ -264,7 +259,7 @@ void autopilot(known_state& state, known_state& old_state, float dt)
 	state.dr = (state.r - old_state.r)/dt;
 	/// filter to avoid oscillations
 	state.dr = (state.dr*0.1 + old_state.dr*0.9);	
-	if (j < 10) state.dr = 0;
+	if (state.counter < 10) state.dr = 0;
 
 	float roll_stab = 0.2*state.r + 0.05*state.dr + 0.0*state.ir;
 

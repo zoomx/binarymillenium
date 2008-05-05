@@ -8,6 +8,12 @@
 #include "net_fdm.hxx"
 #include "net_ctrls.hxx"
 
+
+/// doesn't work if beyond a single t away
+#define CLAMP(x,t) {if ((x) > (t)) (x) = (t);  if ((x) < -(t)) (x) = -(t); }
+
+
+
 const double start_longitude = -2.1355;
 const double start_latitude = 0.656384;
 
