@@ -42,7 +42,7 @@
 
 /* some constants */
 
-#define NUM 6			/* number of boxes */
+#define NUM 7			/* number of boxes */
 #define SIDE (0.3)		/* side length of a box */
 #define MASS (1.0)		/* mass of a box */
 #define RADIUS (0.1732f)	/* sphere radius */
@@ -126,18 +126,20 @@ static void simLoop (int pause)
 		dJointAddHingeTorque(joint[2], -0.121*k2_angle);
 
 		dReal h1_angle = dJointGetHingeAngle(joint[1]);
-		dJointAddHingeTorque(joint[1], -0.15*k1_angle);
+		dJointAddHingeTorque(joint[1], -0.2*h1_angle);
 		
 		dReal h2_angle = dJointGetHingeAngle(joint[3]);
-		dJointAddHingeTorque(joint[3], -0.151*k2_angle);
+		dJointAddHingeTorque(joint[3], -0.2*h2_angle);
 		
 		dReal t_angle = dJointGetHinge2Angle1(joint[4]);
-		dJointAddHinge2Torques(joint[4], -0.221*k2_angle,0);
+		//dReal t_angle2= dJointGetHinge2Angle2(joint[4]);
+		dJointAddHinge2Torques(joint[4], -0.221*t_angle,0);
+		
 	
 		const dReal* torso_vel = dBodyGetLinearVel(body[5]);	
 		
-		float sc = 1.0;
-		float hc = 3.5;
+		float sc = 4.5;
+		float hc = 6.5;
 		//if (torso_vel[1] < 0.0) {
 			/// continue to spread legs apart
 			if (h1_angle < h2_angle) { 
@@ -180,13 +182,16 @@ static void simLoop (int pause)
   dsSetTexture (DS_WOOD);
 
   const dReal ss[3] = {SIDE, SIDE, SIDE*2};
-  const dReal sships[3] = {2*SIDE, SIDE, SIDE};
-  const dReal sstorso[3] = {2*SIDE, SIDE, 2.5*SIDE};
+  const dReal sships[3] = {2*SIDE, SIDE, SIDE*0.7};
+  const dReal sstorso[3] = {2*SIDE, SIDE, 2*SIDE};
+  const dReal sshead[3] = {SIDE, SIDE, SIDE};
   for (i=0; i<NUM; i++) {
   	if (i == 4)
   		dsDrawBox(dBodyGetPosition(body[i]),dBodyGetRotation(body[i]),sships);
   	else if (i == 5)
   		dsDrawBox(dBodyGetPosition(body[i]),dBodyGetRotation(body[i]),sstorso);
+  	else if (i == 6)
+  		dsDrawBox(dBodyGetPosition(body[i]),dBodyGetRotation(body[i]),sshead);
 	else
   		dsDrawBox(dBodyGetPosition(body[i]),
 				      	   		  dBodyGetRotation(body[i]),ss);
@@ -225,18 +230,27 @@ int main (int argc, char **argv)
   for (i=0; i<NUM; i++) {
     body[i] = dBodyCreate (world);
     dMassSetBox (&m,1,SIDE,SIDE,SIDE*2);
-    dMassAdjust (&m,MASS);
-    dBodySetMass (body[i],&m);
 
-	if (i < 4)
+	if (i < 4) {
     	sphere[i] = dCreateBox (space,SIDE,SIDE,SIDE*2);
-	else if (i == 4)
+    	dMassAdjust (&m,MASS);
+	} else if (i == 4) {
     	sphere[i] = dCreateBox (space,SIDE*2,SIDE,SIDE*0.7);
-	else if (i == 5)
-    	sphere[i] = dCreateBox (space,SIDE*2,SIDE,SIDE*2.5);
-	else
+    	dMassAdjust (&m,MASS*0.7);
+	} else if (i == 5) {
+    	sphere[i] = dCreateBox (space,SIDE*2,SIDE,SIDE*2);
+    	dMassAdjust (&m,MASS*1.1);
+	} else if (i == 6) {
+    	sphere[i] = dCreateBox (space,SIDE,SIDE,SIDE);
+    	dMassAdjust (&m,MASS/2);
+	} else {
    	 	sphere[i] = dCreateBox (space,SIDE,SIDE,SIDE);
-    dGeomSetBody (sphere[i],body[i]);
+    	dMassAdjust (&m,MASS);
+   	}
+
+	dBodySetMass (body[i],&m);
+    
+	dGeomSetBody (sphere[i],body[i]);
   }
 	
  k = -1;
@@ -250,7 +264,9 @@ int main (int argc, char **argv)
  	
   dBodySetPosition (body[4],k,-k,SIDE*4.7);
   
-  dBodySetPosition (body[5],k,-k,SIDE*6.7);
+  dBodySetPosition (body[5],k,-k,SIDE*6.2);
+  
+  dBodySetPosition (body[6],k,-k,SIDE*8.2);
 
     joint[0] = dJointCreateHinge (world,0);
 	dJointAttach(joint[0], body[0],body[1]);
@@ -283,14 +299,24 @@ int main (int argc, char **argv)
 
     joint[4] = dJointCreateHinge2 (world,0);
 	dJointAttach(joint[4], body[4],body[5]);
-	dJointSetHinge2Anchor (joint[4],k,-k,5.3*SIDE);
+	dJointSetHinge2Anchor (joint[4],k,-k,4.8*SIDE);
     dJointSetHinge2Axis1 (joint[4],1,0,0);
     dJointSetHinge2Axis2 (joint[4],0,0,1);
 	dJointSetHinge2Param(joint[4],dParamLoStop,-0.3);
-	dJointSetHinge2Param(joint[4],dParamHiStop,1.4);
+	dJointSetHinge2Param(joint[4],dParamHiStop,1.3);
+	dJointSetHinge2Param(joint[4],dParamLoStop2, -0.1);
+	dJointSetHinge2Param(joint[4],dParamHiStop2,  0.1);
 
 
-
+    joint[5] = dJointCreateUniversal (world,0);
+	dJointAttach(joint[5], body[5],body[6]);
+	dJointSetUniversalAnchor (joint[5],k,-k,7.2*SIDE);
+	dJointSetUniversalAxis1(joint[5], 1,0,0);
+	dJointSetUniversalAxis2(joint[5], 0,1,0);
+	dJointSetUniversalParam(joint[5],dParamLoStop, -0.7);
+	dJointSetUniversalParam(joint[5],dParamHiStop,  0.7);
+	dJointSetUniversalParam(joint[5],dParamLoStop2, -0.7);
+	dJointSetUniversalParam(joint[5],dParamHiStop2,  0.7);
 
 /* run simulation */
   dsSimulationLoop (argc,argv,600,400,&fn);
