@@ -16,6 +16,12 @@ float find_acc_pitch(float ax, float ay, float az)
 
 void autopilot(known_state& state, known_state& old_state, float dt)
 {
+	/// probably belonds outside of the autopilot, but works in here
+	state.header[0] = 'h';
+	state.header[1] = 'a';
+	state.header[2] = 'b';
+	state.header[3] = 't';
+
 	/// need to replace this with a flag that says whether the balloon and chute has been cut away.
 	state.counter = old_state.counter + 1;
 
