@@ -13,8 +13,13 @@ const double D2R = M_PI/180.0;
 const double ARCM2R = D2R/60.0;
 
 struct known_state {
+	char header[4];
+
 	unsigned int counter;
 	unsigned int last_changed_pos;
+
+	/// the rightmost bit is whether the balloon is attached
+	unsigned int flags;
 
 	///////////////////
 	/// sensor values

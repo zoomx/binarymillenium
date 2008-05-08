@@ -305,11 +305,10 @@ int main(void)
 	double target_longitude = -2.137; 
 	double target_latitude  = .658;
 	double target_altitude  = 50.0; //meters 
+	std::cout << "struct size " << sizeof(state) << std::endl;
 
-	target_longitude = start_longitude + (float)(rand()%(int)dist)/div - dist/div*0.5; 
-	target_latitude  = start_latitude  + (float)(rand()%(int)dist)/div - dist/div*0.5; 
-	std::cout << "t longitude=" << target_longitude << ", t latitude=" << target_latitude << std::endl;
-
+	FILE* telem_file;
+	telem_file = fopen("telem.bin","wb");
 
 	int i = 0;
 	while(1) {
@@ -332,8 +331,13 @@ int main(void)
 
 		FGNetFDM2Props( &buf);
 
-		static int j;
-		if (j%10 == 0) {
+		if (i == 1) {
+			target_longitude = buf.longitude + (float)(rand()%(int)dist)/div - dist/div*0.5; 
+			target_latitude  = buf.latitude  + (float)(rand()%(int)dist)/div - dist/div*0.5; 
+			std::cout << "t longitude=" << target_longitude << ", t latitude=" << target_latitude << std::endl;
+		}
+
+		if (i%10 == 0) {
 			state.longitude= (float)((int)(180e4/M_PI*buf.longitude))/(180e4/M_PI);;
 			state.latitude = (float)((int)(180e4/M_PI*buf.latitude))/(180e4/M_PI);
 			state.altitude = buf.altitude*M2FT;
@@ -342,7 +346,6 @@ int main(void)
 			state.latitude = old_state.latitude;
 			state.altitude = old_state.altitude;
 		}
-		j++;
 
 		state.p = FPFIX(buf.p);
 		state.q = FPFIX(buf.q);
@@ -486,6 +489,7 @@ int main(void)
 				}
 			}
 
+			fwrite((void*)&state, 1, sizeof(state), telem_file);
 
 			//std::cout << old_state.altitude << " " << state.altitude << std::endl;
 			memcpy(&old_state, &state, sizeof(state));
@@ -509,5 +513,8 @@ int main(void)
 
 		usleep(3000);
 	}
+
+	fclose(telem_file);
+
 return 0;
 }
