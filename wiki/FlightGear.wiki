@@ -27,6 +27,7 @@ To set up flightgear to interact with this correctly, it needs to output the nat
 
 I've done some more looking and I think there is software similar to this (and maybe more correctly implemented) in the latest flightgear cvs.  One of the reasons that was so hard to find is there are no documents or web pages that explain it, just a few references in the flightgear mailing list.  
 
+Check out http://vimeo.com/877752 for a video of my flight control code in use.
 
 = Getting Body Angle Rates = 
 
@@ -53,5 +54,3 @@ In native_fdm.cxx, add the following to FGProps2NetFDM:
 }}}
 
 And now on the autopilot app side it can get pqr.  Other values that are applicable to aparticular system could be gotten out of flightgear in the same way, assuming they exist already in the fdm.
-
-
