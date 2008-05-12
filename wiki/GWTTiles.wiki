@@ -14,12 +14,10 @@ http://binarymillenium.googlecode.com/svn/wiki/gwt/gwt_tiles.png
 Code:
 http://binarymillenium.googlecode.com/svn/trunk/gwt/tiles/
 
-Run tiles-compile & tiles-shell to run it (or open it in a browser).
+Run tiles-compile & tiles-shell to run it (or open it in a browser).  The GWTDIR variable needs to be set to where GWT is installed.
 
 In order to upload the game to svn properly, subversion needs to know that the html files are in fact html rather than text:
 
 svn propset svn:mime-type text/html *html 
-
-
 
 
