@@ -11,7 +11,7 @@ http://code.google.com/p/binarymillenium/source/browse/trunk/processing/kmeans/k
 
 By playing with the weighting of spatial distance vs. color distance, different effects can be achieve.  Also, I haven't tried it but operating in HSV or other color spaces rather than RGB might be interesting.
 
-The following picture shows an image where spatial distances are given heavy weight relative to color distances- the result is pretty abstract.
+The following picture shows an image where spatial distances are given heavy weight relative to color distances- the result is mostly abstract.
 
 http://binarymillenium.googlecode.com/svn/wiki/images/kmeans.png
 
@@ -24,3 +24,5 @@ Speed gains could be achieved by not searching the entire image for every cluste
 Usually an edge-finding filter is run on the image to highlight the different clusters, and the voronoi diagram appearance becomes more pronounced.
 
 A variation of this algorithm I believe was run on at least on of the 2005 Darpa Grand Challenge vehicles to discover the region of driveable road seen in forward facing cameras.
+
+TODO- make a frei0r or gephex module version of this.
