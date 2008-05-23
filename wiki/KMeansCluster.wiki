@@ -1,0 +1,15 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+This algorithm selects random points in a source image and then assigns pixels nearby in color and location to their cluster.  In the next iteration, the average color and location becomes the new cluster center, and new sets of cluster pixels around it are found, until a solution is coverged upon (is there any way not to converge?).
+
+http://binarymillenium.googlecode.com/svn/wiki/images/kmeans.png
+
+= Details =
+
+By playing with the weighting of spatial distance vs. color distance, different effects can be achieve.  Also, I haven't tried it but operating in HSV or other color spaces rather than RGB might be interesting.
+
+Usually an edge-finding filter is run on the image to highlight the different clusters, and the voronoi diagram appearance becomes more pronounced.
+
+A variation of this algorithm I believe was run on at least on of the 2005 Darpa Grand Challenge vehicles to discover the region of driveable road seen in forward facing cameras.
