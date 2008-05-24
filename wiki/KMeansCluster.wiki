@@ -25,4 +25,15 @@ Usually an edge-finding filter is run on the image to highlight the different cl
 
 A variation of this algorithm I believe was run on at least on of the 2005 Darpa Grand Challenge vehicles to discover the region of driveable road seen in forward facing cameras.
 
-TODO- make a frei0r or gephex module version of this.
+
+*Update*
+
+There's a factor of two inefficiency in the processing version that I've corrected in a frei0r version.
+
+Video of the frei0r version here:
+
+http://vimeo.com/1059913
+
+Also source to the frei0r:
+
+http://code.google.com/p/binarymillenium/source/browse/trunk/frei0r/cluster/
