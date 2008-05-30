@@ -17,10 +17,15 @@ float space_weight = 0.3;
 color cols[] = new color[knum];
 int col_center[][] = new int[knum][2];
 
-int col_indices[];
 
 int counter = 0;
 
+  float new_cols[][] = new float[knum][3];
+  int new_cols_num[] = new int[knum];
+  
+  float new_col_center_x[] = new float[knum];
+  float new_col_center_y[] = new float[knum];
+  
 ///////////
 
 float color_dist(color c1, color c2) {
@@ -56,26 +61,49 @@ return dist(0,0, col_dist, space_weight*space_dist);
 
 void find_means() {
   
-  float new_cols[][] = new float[knum][3];
-  int new_cols_num[] = new int[knum];
-  
-  float new_col_center_x[] = new float[knum];
-  float new_col_center_y[] = new float[knum];
-  
   for (int j = 0; j < a.height; j++) {
   for (int i = 0; i < a.width;  i++) {
     
       int pixind = j*a.width + i;
-      int ind = col_indices[pixind];
+
       
-      new_cols[ind][0] += (red(a.pixels[pixind]));
-      new_cols[ind][1] += (green(a.pixels[pixind]));
-      new_cols[ind][2] += (blue(a.pixels[pixind]));
+       
+   ///////////////
+   float dist_closest = sqrt(255*255*3); 
+   int ind_closest = 0;
+   
+   
+   for (int k = 0; k< knum; k++) {
+     
+      //float col_dist = color_dist(a.pixels[pixind],cols[k]);
+      float col_dist = color_space_dist(a.pixels[pixind],cols[k], i,j, col_center[k][0], col_center[k][1]);
       
-      new_col_center_x[ind] += i;
-      new_col_center_y[ind] += j;
+      if (col_dist < dist_closest) {
+         ind_closest = k;
+         dist_closest = col_dist; 
+      }
       
-      new_cols_num[ind]++;
+   }
+   
+   b.pixels[pixind] = cols[ind_closest];
+   
+   b.modified = true;
+   
+   
+      /////////////
+ 
+      new_cols[ind_closest][0] += (red(a.pixels[pixind]));
+      new_cols[ind_closest][1] += (green(a.pixels[pixind]));
+      new_cols[ind_closest][2] += (blue(a.pixels[pixind]));
+      
+      new_col_center_x[ind_closest] += i;
+      new_col_center_y[ind_closest] += j;
+      
+      new_cols_num[ind_closest]++;
+   
+   
+   
+   
   }
   }
   
@@ -101,6 +129,14 @@ void find_means() {
        col_center[k][0] = int(new_x);
        col_center[k][1] = int(new_y);
               
+              
+       new_cols[k][0] = 0;
+       new_cols[k][1] = 0;
+       new_cols[k][2] = 0;
+       new_col_center_x[k] = 0;
+       new_col_center_y[k] = 0;
+       new_cols_num[k] = 0;
+       
               /*          
      print(k + ", " + red(cols[k]) + " " + green(cols[k]) + " " + blue(cols[k]) + 
                ",    " + float(new_cols_num[k])/(a.width*a.height) +"\n");
@@ -114,44 +150,6 @@ void find_means() {
        
     }
     */
-  
-}
-
-//////
-
-void recolor() {
-  
-    counter++;
-  print("step " + counter + "\r\n");
-  
-for (int j = 0; j < a.height; j++) {
-  for (int i = 0; i < a.width; i++) {
-     
-   int pixind = j*a.width + i;
-    //print(pixind + " ");
-    
-   float dist_closest = sqrt(255*255*3); 
-   int ind_closest = 0;
-   
-   
-   for (int k = 0; k< knum; k++) {
-      //float col_dist = color_dist(a.pixels[pixind],cols[k]);
-      float col_dist = color_space_dist(a.pixels[pixind],cols[k], i,j, col_center[k][0], col_center[k][1]);
-      
-      if (col_dist < dist_closest) {
-         ind_closest = k;
-         dist_closest = col_dist; 
-      }
-   }   
-   
-   col_indices[pixind] = ind_closest;
-   b.pixels[pixind] = cols[ind_closest];
-   
-   b.modified = true;
- }
-}
-
-
   
 }
 
@@ -215,13 +213,6 @@ for (int i = 0; i < knum; i++) {
   
 }
 
-col_indices = new int[a.width*a.height];
-
-
-
-
-
-
 }
 
 
@@ -232,10 +223,11 @@ void draw() {
 /// image() caches the image , so need to set modified to true to redraw it
 image(b, 0, 0); // Displays the image from point (0,0)
 image(a, a.width, 0);
-//image(a, width/2, 0, a.width/2, a.height/2);
+
 
   
-recolor();
+
 find_means();
+
 
 }
