@@ -74,7 +74,7 @@ float worst_cost;
 
 void setup() {
   
-  frameRate(6);
+  frameRate(10);
   
   visited_map = new visited[MAP_SIZE][MAP_SIZE];
  
@@ -108,6 +108,8 @@ void setup() {
      
   }
   }
+  raw_map[start_x][start_y] = 0.0;
+  raw_map[goal_x][goal_y] = 0.0;
   
   cur_x = start_x;
   cur_y = start_y;
@@ -126,9 +128,11 @@ void setup() {
   //move();
 }
 
-boolean test_pos(int test_x, int test_y) {
+boolean test_pos(int test_x, int test_y, int old_x, int old_y) {
   if ((test_x < MAP_SIZE) &&  (test_y  < MAP_SIZE)  && (test_x >= 0) && (test_y >= 0) && 
-        (visited_map[test_x][test_y].expanded != true) && (expand_ind < to_expand.length)) {
+        (visited_map[test_x][test_y].expanded != true) && (expand_ind < to_expand.length)  && 
+        /*( raw_map[test_x][test_y] < 0.99*MAX_COST) && */
+        ((test_x != old_x) || (test_y != old_y))){
     return true;
   } else {
     return false;
@@ -173,13 +177,13 @@ void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
        /////////////////////////////////////////
 
        
-       if (test_pos(test_x+1,test_y)) to_expand[expand_ind++] = new pos(test_x+1,test_y, test_x, test_y);
-              if (test_pos(test_x,test_y+1)) to_expand[expand_ind++] = new pos(test_x,test_y+1, test_x, test_y);
-              if (test_pos(test_x,test_y-1)) to_expand[expand_ind++] = new pos(test_x,test_y-1, test_x, test_y);
-              if (test_pos(test_x-1,test_y)) to_expand[expand_ind++] = new pos(test_x-1,test_y, test_x, test_y);
+       if (test_pos(test_x+1,test_y,old_x,old_y)) to_expand[expand_ind++] = new pos(test_x+1,test_y, test_x, test_y);
+       if (test_pos(test_x,test_y+1,old_x,old_y)) to_expand[expand_ind++] = new pos(test_x,test_y+1, test_x, test_y);
+       if (test_pos(test_x,test_y-1,old_x,old_y)) to_expand[expand_ind++] = new pos(test_x,test_y-1, test_x, test_y);
+       if (test_pos(test_x-1,test_y,old_x,old_y)) to_expand[expand_ind++] = new pos(test_x-1,test_y, test_x, test_y);
 
        
-       visited_map[test_x][test_y].expanded = true;
+       //visited_map[test_x][test_y].expanded = true;
        
 }
 
