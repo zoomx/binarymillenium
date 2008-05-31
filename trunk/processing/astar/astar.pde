@@ -4,14 +4,14 @@ binarymillenium June 2008
 
 */
 
-int MAP_SIZE  = 40;
-float MAX_COST = 18.0;
+int MAP_SIZE  = 15;
+float MAX_COST = 2.0;
 /// granulariti of cost_map
 float DIV = 3.0;
    
 float raw_map[][];
 
-int draw_scale = 14;
+int draw_scale = 15;
 
 int start_x;
 int start_y;
@@ -28,22 +28,47 @@ class visited {
   int from_x;
   int from_y;
   
+  boolean expanded;
   /// where 
  
   float total_cost;  
 };
 
+/*
 class cost_pos {
   int x;
   int y;
   float cost;
 };
+*/
+
+class pos {
+int x;
+int y; 
+
+int old_x;
+int old_y;
+
+pos(int x1, int y1, int x2, int y2)
+{
+    x = x1;
+    y = y1;
+    old_x = x2;
+    old_y = y2;
+}
+
+}
+
+pos to_expand[];
+int expand_ind = 0;
   
 visited visited_map[][];
 
 /// estimate of the cost to get to the goal
 float estimated_cost_map[][];
 float max_estimate;
+
+float min_cost;
 
 void setup() {
   
@@ -55,8 +80,8 @@ void setup() {
   
   raw_map = new float[MAP_SIZE][MAP_SIZE];
 
-  start_x = (int)random(0,MAP_SIZE-1);
-  start_y = (int)random(0,MAP_SIZE-1)/2;
+  start_x = (int)random(0,MAP_SIZE-3)+1;
+  start_y = (int)random(0,MAP_SIZE-1)/2+1;
   
   goal_x = (int)random(0,MAP_SIZE-1);
   goal_y =  (int)(0.5+random(0,MAP_SIZE-1)/2);  
@@ -65,8 +90,11 @@ void setup() {
   for (int j = 0; j < MAP_SIZE; j++) {
  
      raw_map[i][j] = MAX_COST * (noise(i/DIV,  j/DIV));
+    
+     
      
      visited_map[i][j] = new visited();
+     visited_map[i][j].expanded = false;
       
      estimated_cost_map[i][j] = abs(i - goal_x) + abs(j - goal_y);
      if (estimated_cost_map[i][j]  > max_estimate) {
@@ -82,32 +110,97 @@ void setup() {
   size(MAP_SIZE*draw_scale,MAP_SIZE*draw_scale);
   
   colorMode(RGB, 1.0);
+  
+  
+  to_expand = new pos[MAP_SIZE*MAP_SIZE*2];
+  
+  min_cost = 1e6;
+  
+  move();
+}
+
+boolean test_pos(int test_x, int test_y) {
+  if ((test_x < MAP_SIZE) &&  (test_y  < MAP_SIZE)  && (test_x >= 0) && (test_y >= 0) &&
+        (visited_map[test_x][test_y].expanded != true)) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 
 
-cost_pos test_cost(cost_pos cp, int test_x, int test_y) {
-  
-  if ((test_x < MAP_SIZE-1) &&  (test_y  < MAP_SIZE-1)  && (test_x >= 0) && (test_y >= 0)) {
-     
-       float new_cost =  raw_map[test_x][test_y] + estimated_cost_map[test_x][test_y];
 
-       if ((new_cost < cp.cost) && (visited_map[test_x][test_y].total_cost == 0.0)) {
-           cp.cost = new_cost ;  
-         
-           cp.x = test_x;
-           cp.y = test_y; 
-       }
+
+//cost_pos
+void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
+  
+  if (!test_pos(test_x,test_y)) return;
+  
+       float test_cost =  raw_map[test_x][test_y] + 1.0 + estimated_cost_map[test_x][test_y];
+
+           
+           /// every move has a cost of 1.0
+           float new_cost = visited_map[old_x][old_y].total_cost + 1.0 + raw_map[test_x][test_y];
+           
+           if (new_cost > min_cost) return;
+           
+           if ((visited_map[test_x][test_y].total_cost == 0.0) || (new_cost < visited_map[test_x][test_y].total_cost)) {
+             visited_map[test_x][test_y].total_cost = new_cost;
+           
+             visited_map[test_x][test_y].from_x = old_x;
+             visited_map[test_x][test_y].from_y = old_y;
+           }
+       
        
        if ((test_x == goal_x) && (test_y == goal_y)) {
-           cp.cost = 0;  
-         
-           cp.x = test_x;
-           cp.y = test_y; 
+           min_cost = new_cost;
+          return;
        }
-     } 
-   
-   return cp;
+       
+       print(test_x + " " + test_y + " " + expand_ind + " " + min_cost + "\n");
+       
+       /////////////////////////////////////////
+       int dx = test_x - goal_x;
+       int dy = test_y - goal_y;
+       
+       if (test_pos(test_x+1,test_y)) to_expand[expand_ind++] = new pos(test_x+1,test_y, test_x, test_y);
+              if (test_pos(test_x,test_y+1)) to_expand[expand_ind++] = new pos(test_x,test_y+1, test_x, test_y);
+              if (test_pos(test_x,test_y-1)) to_expand[expand_ind++] = new pos(test_x,test_y-1, test_x, test_y);
+              if (test_pos(test_x-1,test_y)) to_expand[expand_ind++] = new pos(test_x-1,test_y, test_x, test_y);
+       /*
+       if (abs(dx) < abs(dy))  {
+         
+         if (dx > 0) {
+              if (test_pos(test_x+1,test_y)) to_expand[expand_ind++] = new pos(test_x+1,test_y, test_x, test_y);
+              if (test_pos(test_x,test_y+1)) to_expand[expand_ind++] = new pos(test_x,test_y+1, test_x, test_y);
+              if (test_pos(test_x,test_y-1)) to_expand[expand_ind++] = new pos(test_x,test_y-1, test_x, test_y);
+              if (test_pos(test_x-1,test_y)) to_expand[expand_ind++] = new pos(test_x-1,test_y, test_x, test_y);
+         } else {
+              if (test_pos(test_x-1,test_y)) to_expand[expand_ind++] = new pos(test_x-1,test_y, test_x, test_y);
+              if (test_pos(test_x,test_y+1)) to_expand[expand_ind++] = new pos(test_x,test_y+1, test_x, test_y);
+              if (test_pos(test_x,test_y-1)) to_expand[expand_ind++] = new pos(test_x,test_y-1, test_x, test_y);
+              if (test_pos(test_x+1,test_y)) to_expand[expand_ind++] = new pos(test_x+1,test_y, test_x, test_y);
+         }
+         
+       } else {
+         
+         if (dy > 0) {
+           if (test_pos(test_x,test_y+1)) to_expand[expand_ind++] = new pos(test_x,test_y+1, test_x, test_y);
+           if (test_pos(test_x+1,test_y)) to_expand[expand_ind++] = new pos(test_x+1,test_y, test_x, test_y);
+           if (test_pos(test_x-1,test_y)) to_expand[expand_ind++] = new pos(test_x-1,test_y, test_x, test_y);
+           if (test_pos(test_x,test_y-1)) to_expand[expand_ind++] = new pos(test_x,test_y-1, test_x, test_y);
+         } else {
+            if (test_pos(test_x,test_y-1)) to_expand[expand_ind++] = new pos(test_x,test_y-1, test_x, test_y);
+                    if (test_pos(test_x+1,test_y)) to_expand[expand_ind++] = new pos(test_x+1,test_y, test_x, test_y);
+               if (test_pos(test_x-1,test_y)) to_expand[expand_ind++] = new pos(test_x-1,test_y, test_x, test_y);
+                  if (test_pos(test_x,test_y+1)) to_expand[expand_ind++] = new pos(test_x,test_y+1, test_x, test_y);
+         }
+       }*/
+       ////
+       
+       visited_map[test_x][test_y].expanded = true;
+       
 }
 
 /////////////////////////////////////////////////
@@ -117,34 +210,23 @@ void move() {
   int dy = (goal_y - cur_y);
   
   if ((dx != 0) || (dy != 0)) {
-    
-   cost_pos cp = new cost_pos();
-   cp.x = cur_x;
-   cp.y = cur_y;
-   cp.cost = 1e6;
+     
+   to_expand[expand_ind++] = new pos(cur_x, cur_y, cur_x-1, cur_y);
+ 
+   int i = 0;
    
-  cp = test_cost(cp, cur_x-1,cur_y);
-  cp = test_cost(cp, cur_x+1,cur_y);
-  cp = test_cost(cp, cur_x,cur_y+1);
-  cp = test_cost(cp, cur_x,cur_y-1);
-  
-    //////////////////////////////////////////////////////
+   while (i < expand_ind) {
+     test_cost( to_expand[i].x,to_expand[i].y, to_expand[i].old_x, to_expand[i].old_y);
+     i++;
     
-    int new_x = cp.x;
-    int new_y = cp.y;
+   }
 
   
-  /// every move has a cost of 1.0
-    visited_map[new_x][new_y].total_cost = visited_map[cur_x][cur_y].total_cost + 1.0 + raw_map[new_x][new_y];
-  
-    cur_x = new_x;
-    cur_y = new_y;
-  
-    print(visited_map[cur_x][cur_y].total_cost + ", original estimate: " + 
-                                                 estimated_cost_map[start_x][start_y] + "\n");
-       
+
   }  
 }
+
+
 
 //////////////////////////////////////////
 void draw() {
@@ -168,19 +250,34 @@ void draw() {
      rect(i*draw_scale+draw_scale/2,j*draw_scale+draw_scale/2,draw_scale/4,draw_scale/4);
      }
      
-     /// draw the visited cost
+  }}
      
-     /// draw the estimated cost map
+     
+for (int i = 0; i < MAP_SIZE; i++) {
+  for (int j = 0; j < MAP_SIZE; j++) {
+     /// draw the visited cost
      if (visited_map[i][j].total_cost != 0.0) {
-     c = 1.0-visited_map[i][j].total_cost/visited_map[cur_x][cur_y].total_cost;
-    c1 = color(c/2,c,c/2);
+       
+    float c = 1.0-visited_map[i][j].total_cost/visited_map[cur_x][cur_y].total_cost;
+    color c1 = color(c/2,c,c/2+0.2);
     fill(c1);
-    noStroke();
-     rect(i*draw_scale,j*draw_scale+draw_scale/2,draw_scale/4,draw_scale/4);
-     }
+    strokeWeight(2);
+    stroke(c1);
+    //noStroke();
+     //rect(i*draw_scale,j*draw_scale+draw_scale/2,draw_scale/4,draw_scale/4);
+     
+     line( visited_map[i][j].from_x*draw_scale + draw_scale/2,
+           visited_map[i][j].from_y*draw_scale + draw_scale/2,
+           i*draw_scale + draw_scale/2,
+           j*draw_scale + draw_scale/2);
+           
+     }  
+     
   }
   }
   
+  
+  noStroke();
   
   color c1 = color(0,1.0,0);
   fill(c1);
@@ -190,10 +287,11 @@ void draw() {
   fill(c2);
        rect(goal_x*draw_scale,goal_y*draw_scale,draw_scale/2,draw_scale/2);
 
+// draw the current position
   color c3 = color(0,0,1.0);
   fill(c3);
-       rect(cur_x*draw_scale + draw_scale/2,cur_y*draw_scale,draw_scale/2,draw_scale/2);
+       rect(cur_x*draw_scale + draw_scale/4,cur_y*draw_scale + draw_scale/4,draw_scale/2,draw_scale/2);
 
 
-  move();
+  //move();
 }
