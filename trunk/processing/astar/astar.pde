@@ -3,9 +3,8 @@ A-star / A* search
 binarymillenium June 2008
 
 */
-
-int MAP_SIZE  = 19;
-float MAX_COST = 18.0;
+int MAP_SIZE  = 15;
+float MAX_COST = 28.0;
 /// granulariti of cost_map
 float DIV = 3.0;
    
@@ -29,10 +28,14 @@ class visited {
   int from_y;
   
   boolean expanded;
+  
+  boolean too_costly;
   /// where 
  
   float total_cost;  
 };
+
+visited visited_map[][];
 
 
 class cost_pos {
@@ -49,21 +52,24 @@ int y;
 int old_x;
 int old_y;
 
-pos(int x1, int y1, int x2, int y2)
+float cost;
+
+pos(int x1, int y1, int x2, int y2, float new_cost)
 {
     x = x1;
     y = y1;
     old_x = x2;
     old_y = y2;
+    
+    /// estimated cost to goal
+    cost = new_cost;
 }
 
 }
 
 pos to_expand[];
-int expand_ind = 0;
-  
-visited visited_map[][];
 
+  
 /// estimate of the cost to get to the goal
 float estimated_cost_map[][];
 float max_estimate;
@@ -73,6 +79,7 @@ float min_cost;
 float worst_cost;
 
 
+///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 void setup() {
   
@@ -120,13 +127,10 @@ void setup() {
   
   colorMode(RGB, 1.0);
   
-  
-  to_expand = new pos[MAP_SIZE*MAP_SIZE*4];
-  
   min_cost = 1e6;
   
-  
-  to_expand[expand_ind++] = new pos(cur_x, cur_y, cur_x-1, cur_y);
+  to_expand = new pos[0]; //MAP_SIZE*MAP_SIZE*4];
+  to_expand = (pos[]) append(to_expand, new pos(cur_x, cur_y, cur_x-1, cur_y,estimated_cost_map[cur_x][cur_y] ));
   //move();
 }
 
@@ -137,23 +141,80 @@ boolean test_only_pos(int test_x, int test_y) {
     return false;
 }
 
-boolean test_pos(int test_x, int test_y, int old_x, int old_y) {
+boolean test_pos(int test_x, int test_y, int x, int y, int old_x, int old_y) {
    if (test_only_pos(test_x, test_y) && 
-        (visited_map[test_x][test_y].expanded != true) && (expand_ind < to_expand.length)  && 
-        /*( raw_map[test_x][test_y] < 0.99*MAX_COST) && */
-        ((test_x != old_x) || (test_y != old_y))){
+        //(visited_map[test_x][test_y].expanded != true)   && 
+        //( raw_map[test_x][test_y] < 0.99*MAX_COST) && 
+        ((test_x != old_x) || (test_y != old_y)) &&
+        /// is this one necessary to prevent multiple expansions?
+        ((visited_map[test_x][test_y].from_x != x) || (visited_map[test_x][test_y].from_y != y))
+        
+        ){
     return true;
   } else {
     return false;
   }
 }
 
+//////////////////////////////////////////////
+pos[] sort_remaining(pos[] unsorted, int ind)
+{
+  /// sort the next points by likelihood of being closer to goal
+       
+  pos sorted[] = new pos[0]; 
+  if ((unsorted.length -ind) < 1) {
+    return sorted;
+  }
+         
+         
+  sorted = new pos[unsorted.length-ind];
+        
+        //print(unsorted.length + " " + ind + "\n");
+        
+  if (false) {
+    float next_cost[] = new float[unsorted.length-ind];
+       
+        //for (int i = 0; i < next.length; i++) {
+          //next[i] = new cost_pos();
+        //}
+        
+              
+         for (int i = ind; i < unsorted.length; i++) {
+           next_cost[i-ind] =  unsorted[i].cost;
+         }      
+       
+         next_cost = sort(next_cost);
+       
+         for (int i = 0; i < next_cost.length; i++) {
+           for (int j = 0; j < sorted.length; j++) {
+           if (next_cost[i] == unsorted[j + ind].cost) {
+               sorted[i] = unsorted[j + ind];
+             }
+           }
+         }
+      
+      
+       } else {
+      
+         for (int j = 0; j < sorted.length; j++) {
+           sorted[j] = unsorted[j+ind];
+         }
+ 
+       }
+       
+       return sorted;
+}
 
 
-
-
+////////////////////////////////////////////////////////////////////////////////
 //cost_pos
-void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
+void test_cost(int test_x, int test_y, int old_x, int old_y) {
+  
+  /// this position might have been tested since it was put on the  queue
+  if (!test_pos(test_x,test_y,old_x,old_y,-1,-1)) {
+    //visited_map[test_x][test_y].too_costly = true;
+      return;
+  }
   
   /// every move has a cost of 1.0
   float new_cost = visited_map[old_x][old_y].total_cost + 1.0 + raw_map[test_x][test_y];
@@ -161,11 +222,16 @@ void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
   float test_cost =  new_cost + estimated_cost_map[test_x][test_y];
 
   
-
-  if (test_cost > min_cost) return;   
+  
+/*
+  if (test_cost > min_cost) {
+    visited_map[test_x][test_y].too_costly = true;
+    return;   
+  }*/
 
   /// if this square has been searched before with a lower cost, don't bother updating it with this path    
   if ((visited_map[test_x][test_y].total_cost != 0.0) && (new_cost > visited_map[test_x][test_y].total_cost)) {
+    visited_map[test_x][test_y].too_costly = true;
     return;
   }
                
@@ -185,11 +251,8 @@ void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
        
        /////////////////////////////////////////
        
-       /// sort the next points by likelihood of being closer to goal
        cost_pos next[] = new cost_pos[4];
-        cost_pos sorted_next[] = new cost_pos[4];
-       float next_cost[] = new float[4];
-       
+
         for (int i = 0; i < next.length; i++) {
           next[i] = new cost_pos();
         }
@@ -199,26 +262,11 @@ void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
        next[2].x = test_x;    next[2].y = test_y+1;
        next[3].x = test_x;    next[3].y = test_y-1;
               
-       for (int i = 0; i < next.length; i++) {
-         next[i].cost = test_only_pos(next[i].x,next[i].y) ? estimated_cost_map[next[i].x][next[i].y] : 1000;
-         next_cost[i] =  next[i].cost;
-       }      
-       
-       next_cost = sort(next_cost);
-       
-       for (int i = 0; i < next_cost.length; i++) {
-         for (int j = 0; j < next.length; j++) {
-           if (next_cost[i] == next[j].cost) {
-               sorted_next[i] = next[j];
-           }
-         }
-       }
-       
-       
 
-       for (int i = 0; i < sorted_next.length; i++) {
-         if (test_pos(sorted_next[i].x,sorted_next[i].y,old_x,old_y)) to_expand[expand_ind++] =
-              new pos(sorted_next[i].x,sorted_next[i].y, test_x, test_y);
+       for (int i = 0; i < next.length; i++) {
+         if (test_pos(next[i].x,next[i].y,test_x, test_y, old_x,old_y))  
+               to_expand = (pos[]) append(to_expand, new pos(next[i].x,next[i].y, test_x, test_y, 
+                                          estimated_cost_map[next[i].x][next[i].y]));
        }
 
 
@@ -227,42 +275,36 @@ void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
        
 }
 
-// expand ind
-int ei = 0;
+
+//////////////////////////////////
+
 /////////////////////////////////////////////////
 void move() {
-  
-  //int dx = (goal_x - cur_x);
-  //int dy = (goal_y - cur_y);
-  
-  //if ((dx != 0) || (dy != 0)) {
-     
    
- 
-   int next_ind =  min(expand_ind, ei+1, to_expand.length);
+  int step = 1;
+   int next_ind =  min(step, to_expand.length);
    
-   while (ei < next_ind) {
+   for (int ei = 0; ei < next_ind; ei++) {
      test_cost( to_expand[ei].x,to_expand[ei].y, to_expand[ei].old_x, to_expand[ei].old_y);
-     ei++;
      
      //if (ei == expand_ind) print("finished");
-    
    }
    
+
    
+   /// all the remaining elements are sorted by estimated cost
+   to_expand = sort_remaining(to_expand, step);
 
-  
+   if (to_expand.length > 0) {
+   cur_x = to_expand[0].x;
+   cur_y = to_expand[0].y;
+   }
 
-  //}  
-  
-  cur_x = to_expand[ei-1].x;
-  cur_y = to_expand[ei-1].y;
-  
  
   k++;
   
-  if (k%30 == 0) {
-  print(cur_x + " " + cur_y + ", " + ei + " " + expand_ind + 
+  if ((k%30 == 0) && (to_expand.length > 0)) {
+  print(cur_x + " " + cur_y + ", " + to_expand.length + 
           ", min_cost " + min_cost + ", new_cost " + visited_map[cur_x][cur_y].total_cost + "\n");
   }
 }
@@ -273,7 +315,7 @@ void move() {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 void draw() {
-    for (int i = 0; i < MAP_SIZE; i++) {
+  for (int i = 0; i < MAP_SIZE; i++) {
   for (int j = 0; j < MAP_SIZE; j++) {
     
     /// draw the cost map
@@ -293,11 +335,21 @@ void draw() {
      rect(i*draw_scale+draw_scale/2,j*draw_scale+draw_scale/2,draw_scale/4,draw_scale/4);
      }
      
+     /*
+     
+     if (visited_map[i][j].too_costly) {
+         c1 = color(1.0,0.9,0.05);
+        fill(c1);
+        noStroke();
+        rect(i*draw_scale+draw_scale/2,j*draw_scale+draw_scale/2,draw_scale/3,draw_scale/3);
+     }
+     */
+     
   }}
      
      
-for (int i = 0; i < MAP_SIZE; i++) {
-  for (int j = 0; j < MAP_SIZE; j++) {
+   for (int i = 0; i < MAP_SIZE; i++) {
+   for (int j = 0; j < MAP_SIZE; j++) {
      /// draw the visited cost
      if (visited_map[i][j].total_cost != 0.0) {
        
@@ -325,16 +377,50 @@ for (int i = 0; i < MAP_SIZE; i++) {
   
   color c1 = color(0,1.0,0);
   fill(c1);
-       rect(start_x*draw_scale,start_y*draw_scale,draw_scale/2,draw_scale/2);
+  rect(start_x*draw_scale,start_y*draw_scale,draw_scale/2,draw_scale/2);
 
   color c2 = color(1.0,0,0);
   fill(c2);
-       rect(goal_x*draw_scale,goal_y*draw_scale,draw_scale/2,draw_scale/2);
+  rect(goal_x*draw_scale,goal_y*draw_scale,draw_scale/2,draw_scale/2);
 
-// draw the current position
+
+
+//////////////////////////////////////////////////
+// draw the successful path
+if (visited_map[goal_x][goal_y].total_cost != 0.0) {
+  
+   int x = goal_x;
+ int y = goal_y;
+ 
+  do {
+
+  
+  color c4 = color(0.1,1.0,0.1);
+  stroke(c4);
+       line( visited_map[x][y].from_x*draw_scale + draw_scale/2+1,
+           visited_map[x][y].from_y*draw_scale + draw_scale/2+1,
+           x*draw_scale + draw_scale/2+1,
+           y*draw_scale + draw_scale/2+1);
+           
+           x = visited_map[x][y].from_x;
+           y = visited_map[x][y].from_y;
+           
+  } while ((x != start_x) || (y != start_y));
+}
+
+
+/// draw positions queued to be evaluated in the future
+for (int i = 0; i < to_expand.length; i++) {
+   color c3 = color(0.3,1.0,1.0);
+  fill(c3);
+  rect(to_expand[i].x*draw_scale + draw_scale/4,to_expand[i].y*draw_scale + draw_scale/4,draw_scale/2.5,draw_scale/2.5);
+
+}
+
+  // draw the current position
   color c3 = color(0,0,1.0);
   fill(c3);
-       rect(cur_x*draw_scale + draw_scale/4,cur_y*draw_scale + draw_scale/4,draw_scale/2,draw_scale/2);
+  rect(cur_x*draw_scale + draw_scale/4,cur_y*draw_scale + draw_scale/4,draw_scale/2,draw_scale/2);
 
 
   move();
