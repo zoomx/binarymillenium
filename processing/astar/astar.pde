@@ -34,13 +34,13 @@ class visited {
   float total_cost;  
 };
 
-/*
+
 class cost_pos {
   int x;
   int y;
   float cost;
 };
-*/
+
 
 class pos {
 int x;
@@ -72,9 +72,11 @@ float min_cost;
 /// the worst cost found so far to anywhere
 float worst_cost;
 
+
+//////////////////////////////////////////////////////////
 void setup() {
   
-  frameRate(10);
+  frameRate(30);
   
   visited_map = new visited[MAP_SIZE][MAP_SIZE];
  
@@ -128,8 +130,15 @@ void setup() {
   //move();
 }
 
+boolean test_only_pos(int test_x, int test_y) {
+  if ((test_x < MAP_SIZE) &&  (test_y  < MAP_SIZE)  && (test_x >= 0) && (test_y >= 0)) 
+    return true;
+  else 
+    return false;
+}
+
 boolean test_pos(int test_x, int test_y, int old_x, int old_y) {
-  if ((test_x < MAP_SIZE) &&  (test_y  < MAP_SIZE)  && (test_x >= 0) && (test_y >= 0) && 
+   if (test_only_pos(test_x, test_y) && 
         (visited_map[test_x][test_y].expanded != true) && (expand_ind < to_expand.length)  && 
         /*( raw_map[test_x][test_y] < 0.99*MAX_COST) && */
         ((test_x != old_x) || (test_y != old_y))){
@@ -151,7 +160,7 @@ void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
   
   float test_cost =  new_cost + estimated_cost_map[test_x][test_y];
 
-  print(test_x + " " + test_y + ", " + ei + " " + expand_ind + ", min_cost " + min_cost + ", new_cost " + new_cost + "\n");
+  
 
   if (test_cost > min_cost) return;   
 
@@ -175,12 +184,43 @@ void test_cost(/*cost_pos cp, */int test_x, int test_y, int old_x, int old_y) {
        
        
        /////////////////////////////////////////
-
        
-       if (test_pos(test_x+1,test_y,old_x,old_y)) to_expand[expand_ind++] = new pos(test_x+1,test_y, test_x, test_y);
-       if (test_pos(test_x,test_y+1,old_x,old_y)) to_expand[expand_ind++] = new pos(test_x,test_y+1, test_x, test_y);
-       if (test_pos(test_x,test_y-1,old_x,old_y)) to_expand[expand_ind++] = new pos(test_x,test_y-1, test_x, test_y);
-       if (test_pos(test_x-1,test_y,old_x,old_y)) to_expand[expand_ind++] = new pos(test_x-1,test_y, test_x, test_y);
+       /// sort the next points by likelihood of being closer to goal
+       cost_pos next[] = new cost_pos[4];
+        cost_pos sorted_next[] = new cost_pos[4];
+       float next_cost[] = new float[4];
+       
+        for (int i = 0; i < next.length; i++) {
+          next[i] = new cost_pos();
+        }
+        
+       next[0].x = test_x+1;  next[0].y = test_y;
+       next[1].x = test_x-1;  next[1].y = test_y;
+       next[2].x = test_x;    next[2].y = test_y+1;
+       next[3].x = test_x;    next[3].y = test_y-1;
+              
+       for (int i = 0; i < next.length; i++) {
+         next[i].cost = test_only_pos(next[i].x,next[i].y) ? estimated_cost_map[next[i].x][next[i].y] : 1000;
+         next_cost[i] =  next[i].cost;
+       }      
+       
+       next_cost = sort(next_cost);
+       
+       for (int i = 0; i < next_cost.length; i++) {
+         for (int j = 0; j < next.length; j++) {
+           if (next_cost[i] == next[j].cost) {
+               sorted_next[i] = next[j];
+           }
+         }
+       }
+       
+       
+
+       for (int i = 0; i < sorted_next.length; i++) {
+         if (test_pos(sorted_next[i].x,sorted_next[i].y,old_x,old_y)) to_expand[expand_ind++] =
+              new pos(sorted_next[i].x,sorted_next[i].y, test_x, test_y);
+       }
+
 
        
        //visited_map[test_x][test_y].expanded = true;
@@ -217,11 +257,21 @@ void move() {
   
   cur_x = to_expand[ei-1].x;
   cur_y = to_expand[ei-1].y;
+  
+ 
+  k++;
+  
+  if (k%30 == 0) {
+  print(cur_x + " " + cur_y + ", " + ei + " " + expand_ind + 
+          ", min_cost " + min_cost + ", new_cost " + visited_map[cur_x][cur_y].total_cost + "\n");
+  }
 }
 
+ int k = 0;
+ 
 
+////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////
 void draw() {
     for (int i = 0; i < MAP_SIZE; i++) {
   for (int j = 0; j < MAP_SIZE; j++) {
