@@ -24,6 +24,8 @@ int goal_y;
 int cur_x;
 int cur_y;
 
+boolean finished = false;
+
 class visited_point {
  
   /// where this node was visited from
@@ -345,6 +347,31 @@ void move() {
      cur_x = first.x;
      cur_y = first.y;
      
+     
+     /// detect first finish
+     if ((to_expand.length == 0) && (finished == false)) {
+         finished = true;
+         
+         if (false && visited_map[goal_x][goal_y].visited) {
+         int x = goal_x;
+         int y = goal_y;
+ 
+  do {
+  
+      
+          final int from_x = visited_map[x][y].from_x;
+          final int from_y = visited_map[x][y].from_y;
+            print("to " + x + ", " + y + " from " + from_x + ", " + from_y +"\n");
+           
+           x = from_x;
+           y = from_y;
+           
+  } while ((x != start_x) || (y != start_y));
+  
+         }
+       
+     }
+     
             k++;
             
      if ((false) && (k%30 == 0) && (to_expand.length > 0)) {
@@ -381,16 +408,7 @@ void draw() {
     noStroke();
      rect(i*draw_scale+draw_scale/2,j*draw_scale+draw_scale/2,draw_scale/4,draw_scale/4);
      }
-     
-     /*
-     
-     if (visited_map[i][j].too_costly) {
-         c1 = color(1.0,0.9,0.05);
-        fill(c1);
-        noStroke();
-        rect(i*draw_scale+draw_scale/2,j*draw_scale+draw_scale/2,draw_scale/3,draw_scale/3);
-     }
-     */
+
      
   }}
      
@@ -448,13 +466,15 @@ if (visited_map[goal_x][goal_y].visited == true) {
   stroke(c4);
   do {
   
-       line(visited_map[x][y].from_x*draw_scale + draw_scale/2+1,
-            visited_map[x][y].from_y*draw_scale + draw_scale/2+1,
+      int from_x = visited_map[x][y].from_x;
+      int from_y = visited_map[x][y].from_y;
+       line(from_x*draw_scale + draw_scale/2+1,
+            from_y*draw_scale + draw_scale/2+1,
             x*draw_scale + draw_scale/2+1,
             y*draw_scale + draw_scale/2+1);
            
-           x = visited_map[x][y].from_x;
-           y = visited_map[x][y].from_y;
+           x = from_x;
+           y = from_y;
            
   } while ((x != start_x) || (y != start_y));
    strokeWeight(2);
