@@ -7,6 +7,9 @@ int MAP_SIZE  = 15;
 float MAX_COST = 10.0;
 /// granulariti of cost_map
 float DIV = 3.0;
+
+/// if a cost is slightly less expensive, don't change the path
+float EPS = 0.01;
    
 float raw_map[][];
 
@@ -21,7 +24,7 @@ int goal_y;
 int cur_x;
 int cur_y;
 
-class visited {
+class visited_point {
  
   /// where this node was visited from
   int from_x;
@@ -29,13 +32,13 @@ class visited {
   
   boolean expanded;
   
-  boolean too_costly;
+  boolean visited;
   /// where 
  
-  float total_cost;  
+  //float total_cost;  
 };
 
-visited visited_map[][];
+visited_point visited_map[][];
 
 
 class cost_pos {
@@ -89,7 +92,7 @@ void setup() {
   
   frameRate(30);
   
-  visited_map = new visited[MAP_SIZE][MAP_SIZE];
+  visited_map = new visited_point[MAP_SIZE][MAP_SIZE];
  
   estimated_cost_map = new float[MAP_SIZE][MAP_SIZE];
   
@@ -101,18 +104,21 @@ void setup() {
   goal_x = (int)random(0,MAP_SIZE-1);
   goal_y =  (int)(0.5+random(0,MAP_SIZE-1)/2);  
   
+  
+  //////////////////////////////////////////
+  // make cost map
   for (int i = 0; i < MAP_SIZE; i++) {
   for (int j = 0; j < MAP_SIZE; j++) {
  
       float temp_noise =  (noise(i/DIV,  j/DIV));
       temp_noise*= 1.9/MAX_COST;
       if (temp_noise > 1.0/MAX_COST) temp_noise = 1.0;
-      else temp_noise = 0;
+      else temp_noise = 0.01;
      raw_map[i][j] = MAX_COST * temp_noise;
     
      
      
-     visited_map[i][j] = new visited();
+     visited_map[i][j] = new visited_point();
      visited_map[i][j].expanded = false;
       
      estimated_cost_map[i][j] = abs(i - goal_x) + abs(j - goal_y);
@@ -134,10 +140,12 @@ void setup() {
   
   min_cost = 1e6;
   
-  to_expand = new pos[0]; //MAP_SIZE*MAP_SIZE*4];
-  to_expand = (pos[]) append(to_expand, new pos(cur_x, cur_y, cur_x-1, cur_y,estimated_cost_map[cur_x][cur_y] ));
-  //move();
+  to_expand = new pos[0];
+  
+  visit(start_x,start_y, start_x,start_y, true );
 }
+
+/////////////////////////////////
 
 boolean test_only_pos(int test_x, int test_y) {
   if ((test_x < MAP_SIZE) &&  (test_y  < MAP_SIZE)  && (test_x >= 0) && (test_y >= 0)) 
@@ -146,21 +154,32 @@ boolean test_only_pos(int test_x, int test_y) {
     return false;
 }
 
-boolean test_pos(int test_x, int test_y, int x, int y, int old_x, int old_y, float new_cost) {
-   if (test_only_pos(test_x, test_y) && 
-        //(visited_map[test_x][test_y].expanded != true)   && 
-        //( raw_map[test_x][test_y] < 0.99*MAX_COST) && 
-        ((test_x != old_x) || (test_y != old_y)) &&  // don't backtrack
-        /// even if this path has been traced, retrace if new_cost is lower
-        ((visited_map[test_x][test_y].from_x != x) 
-          || (visited_map[test_x][test_y].from_y != y) 
-          || ((visited_map[test_x][test_y].total_cost > new_cost)) )
-        
-        ){
-    return true;
-  } else {
-    return false;
-  }
+
+
+///////////////////////////////////////////////
+
+
+float get_total_cost(int end_x, int end_y)
+{
+    int x = end_x;
+    int y = end_y;
+    
+    if (visited_map[x][y].visited == false) return 1e6;
+    
+   float total_cost = 0;
+   do {
+          
+     /// moving costs 1.0 -- could just have raw_map have minimum of 1.0 also
+           total_cost += 1.0 + raw_map[x][y];
+       
+     
+           
+           x = visited_map[x][y].from_x;
+           y = visited_map[x][y].from_y;
+           
+  } while ((x != start_x) || (y != start_y));
+  
+  return total_cost;
 }
 
 ////////////////////////////////////////////////////
@@ -192,35 +211,66 @@ pos[] append_in_order(pos[] old, pos newpos) {
   
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//cost_pos
-void test_cost(int test_x, int test_y, int old_x, int old_y) {
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+boolean test_pos(int test_x, int test_y, int x, int y, int old_x, int old_y, float new_cost) {
+  
+  /// valid point on the map?
+  if (test_only_pos(test_x, test_y) == false) return false;
+  
+  //(visited_map[test_x][test_y].expanded != true)   && 
+        
+  /// black squares are impassable
+  if ( raw_map[test_x][test_y] > 0.99*MAX_COST) return false;
+        
+  /// don't backtrack
+  if ((test_x == old_x) && (test_y == old_y)) return false;  
    
-    /// every move has a cost of 1.0
-  float new_cost = visited_map[old_x][old_y].total_cost + 1.0 + raw_map[test_x][test_y];
+  /// if the total cost to get to this point has been found and is lower than this route, don't bother
+  if ( get_total_cost(test_x,test_y) <= new_cost + EPS) return false;
+   
+  /// don't retrace a completed path
+  if ((visited_map[test_x][test_y].from_x == x) && (visited_map[test_x][test_y].from_y == y)) return false; 
+     
+  if ((new_cost + estimated_cost_map[test_x][test_y]) > min_cost) return false;      
+         
+  return true;
+ 
+}
+
+
+
+
+
+
+int min_counter = 0;
+////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+void visit(int test_x, int test_y, int old_x, int old_y) {
+  visit(test_x, test_y, old_x, old_y, false);
+}
+
+void visit(int test_x, int test_y, int old_x, int old_y, boolean init) {
+   
+    /// every move has a cost of 1.0 to square this with the estimated cost
+  float new_cost = 0.0;
+ 
+  if (!init) {
+   new_cost = get_total_cost(old_x,old_y) + 1.0 + raw_map[test_x][test_y];
+  
   
   /// this position might have been tested since it was put on the  queue
-  if (!test_pos(test_x,test_y,old_x,old_y, -1,-1, new_cost)) {
-    //visited_map[test_x][test_y].too_costly = true;
+  if ((test_pos(test_x,test_y, old_x,old_y, -1,-1, new_cost) == false)) {
       return;
   }
-  
-
-  
-  float test_cost =  new_cost + estimated_cost_map[test_x][test_y];
-
-  if (test_cost > min_cost) {
-    visited_map[test_x][test_y].too_costly = true;
-    return;   
   }
-
-  /// if this square has been searched before with a lower cost, don't bother updating it with this path    
-  if ((visited_map[test_x][test_y].total_cost != 0.0) && (new_cost > visited_map[test_x][test_y].total_cost)) {
-    visited_map[test_x][test_y].too_costly = true;
-    return;
-  }
+  
+  visited_map[test_x][test_y].visited = true;
+  
                
-  visited_map[test_x][test_y].total_cost = new_cost;
+  //visited_map[test_x][test_y].total_cost = new_cost;
   if (new_cost > worst_cost) worst_cost = new_cost;
            
   visited_map[test_x][test_y].from_x = old_x;
@@ -231,7 +281,7 @@ void test_cost(int test_x, int test_y, int old_x, int old_y) {
      
       min_cost = new_cost;
       
-      print(" min_cost " + min_cost + ", " + to_expand.length + "\n");
+      print(min_counter++ + " min_cost " + min_cost + ", " + to_expand.length + "\n");
       return;
    }
        
@@ -252,16 +302,26 @@ void test_cost(int test_x, int test_y, int old_x, int old_y) {
               
 
        for (int i = 0; i < next.length; i++) {
-         if (test_pos(next[i].x,next[i].y,test_x, test_y, old_x,old_y, -1.0)) { 
+         
+         if (test_only_pos(next[i].x,next[i].y)) {
+           /// this is somewhat redundant- pass the estimated cost in instead?
+           float estimated_cost2 = new_cost + 1.0 + raw_map[next[i].x][next[i].y];
+         
+         
+           if (test_pos(next[i].x,next[i].y,test_x, test_y, old_x,old_y, estimated_cost2)) { 
+           
                to_expand = append_in_order(to_expand, 
                               new pos(next[i].x,next[i].y, 
                                       test_x,   test_y, 
                                       estimated_cost_map[next[i].x][next[i].y]));
+            }
           }
        }
-
-
-       
+         
+         
+          
+    
+  
        //visited_map[test_x][test_y].expanded = true;
        
 }
@@ -273,25 +333,26 @@ void test_cost(int test_x, int test_y, int old_x, int old_y) {
 void move() {
    
    if (to_expand.length > 0) {
+     
+     /// take the first position and remove it from the queue, then evaluate it
      pos first = to_expand[0];
      pos new_to_expand[] = new pos[to_expand.length-1];
      arraycopy(to_expand, 1, new_to_expand, 0, to_expand.length-1);
      to_expand = new_to_expand;
      
-     test_cost( first.x,first.y, first.old_x, first.old_y);
-     
+     visit( first.x,first.y, first.old_x, first.old_y);
         
-   cur_x = first.x;
-   cur_y = first.y;
-   }
-   
-   
-       k++;
-  
-  if ((k%30 == 0) && (to_expand.length > 0)) {
+     cur_x = first.x;
+     cur_y = first.y;
+     
+            k++;
+            
+     if ((false) && (k%30 == 0) && (to_expand.length > 0)) {
     print(cur_x + " " + cur_y + ", " + to_expand.length + 
-          ", min_cost " + min_cost + ", new_cost " + visited_map[cur_x][cur_y].total_cost + "\n");
-  }
+          ", min_cost " + min_cost + ", new_cost " + get_total_cost(cur_x,cur_y) + "\n");
+  
+   }
+   }
 
 }
 
@@ -334,13 +395,16 @@ void draw() {
   }}
      
      
+    
+   ////////////////////////////////////////////////////////////////////////////////////// 
+   /// draw the visited cost
    for (int i = 0; i < MAP_SIZE; i++) {
    for (int j = 0; j < MAP_SIZE; j++) {
-     /// draw the visited cost
-     if (visited_map[i][j].total_cost != 0.0) {
+     
+     if (visited_map[i][j].visited == true) {
        
        /// draw
-    float c = 1.0-visited_map[i][j].total_cost/worst_cost;
+    float c = 1.0-get_total_cost(i,j)/worst_cost;
     color c1 = color(c/2,c,c/2+0.5);
     fill(c1);
     strokeWeight(2);
@@ -358,7 +422,7 @@ void draw() {
      
   }
   }
-  
+  /////////////////////////////////////////////////////////////////////////////
   
   noStroke();
   
@@ -374,7 +438,7 @@ void draw() {
 
 //////////////////////////////////////////////////
 // draw the successful path
-if (visited_map[goal_x][goal_y].total_cost != 0.0) {
+if (visited_map[goal_x][goal_y].visited == true) {
   
    int x = goal_x;
  int y = goal_y;
@@ -384,10 +448,10 @@ if (visited_map[goal_x][goal_y].total_cost != 0.0) {
   stroke(c4);
   do {
   
-       line( visited_map[x][y].from_x*draw_scale + draw_scale/2+1,
-           visited_map[x][y].from_y*draw_scale + draw_scale/2+1,
-           x*draw_scale + draw_scale/2+1,
-           y*draw_scale + draw_scale/2+1);
+       line(visited_map[x][y].from_x*draw_scale + draw_scale/2+1,
+            visited_map[x][y].from_y*draw_scale + draw_scale/2+1,
+            x*draw_scale + draw_scale/2+1,
+            y*draw_scale + draw_scale/2+1);
            
            x = visited_map[x][y].from_x;
            y = visited_map[x][y].from_y;
@@ -399,7 +463,7 @@ if (visited_map[goal_x][goal_y].total_cost != 0.0) {
 
 /// draw positions queued to be evaluated in the future
 for (int i = 0; i < to_expand.length; i++) {
-  float f = (float)i/to_expand.length;
+  float f = 1.0-(float)i/to_expand.length;
    color c3 = color(0.3 + f/2.0,f,f);
   fill(c3);
   noStroke();
