@@ -1,19 +1,27 @@
-/*
+/**
 A-star / A* search
 binarymillenium June 2008
 
+binarymillenium.com
+
+GNU GPL
+
+
+colormode(RGB,1.0) is broken with applet export, use the 0-255 int color mode instead.
 */
-int MAP_SIZE  = 15;
-float MAX_COST = 10.0;
+
+
+final int MAP_SIZE  = 20;
+final float MAX_COST = 1.5;
 /// granulariti of cost_map
-float DIV = 3.0;
+final float DIV = 3.0;
 
 /// if a cost is slightly less expensive, don't change the path
-float EPS = 0.01;
+final float EPS = 0.01;
    
 float raw_map[][];
 
-int draw_scale = 15;
+final int draw_scale = 19;
 
 int start_x;
 int start_y;
@@ -25,6 +33,7 @@ int cur_x;
 int cur_y;
 
 boolean finished = false;
+
 
 class visited_point {
  
@@ -83,22 +92,28 @@ pos to_expand[];
 float estimated_cost_map[][];
 float max_estimate;
 
-float min_cost;
 /// the worst cost found so far to anywhere
 float worst_cost;
+
+
 
 
 ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 void setup() {
   
-  frameRate(30);
+  size(MAP_SIZE*draw_scale,MAP_SIZE*draw_scale);
   
-  visited_map = new visited_point[MAP_SIZE][MAP_SIZE];
+  frameRate(5);
+  //colorMode(RGB, 1.0);
+ PFont fontA = loadFont("AlArabiya-20.vlw");
+ textFont(fontA, 20);
  
   estimated_cost_map = new float[MAP_SIZE][MAP_SIZE];
   
   raw_map = new float[MAP_SIZE][MAP_SIZE];
+
+  visited_map = new visited_point[MAP_SIZE][MAP_SIZE];
 
   start_x = (int)random(0,MAP_SIZE-3)+1;
   start_y = (int)random(0,MAP_SIZE-1)/2+1;
@@ -115,7 +130,7 @@ void setup() {
       float temp_noise =  (noise(i/DIV,  j/DIV));
       temp_noise*= 1.9/MAX_COST;
       if (temp_noise > 1.0/MAX_COST) temp_noise = 1.0;
-      else temp_noise = 0.01;
+      //else temp_noise = 0.01;
      raw_map[i][j] = MAX_COST * temp_noise;
     
      
@@ -124,6 +139,7 @@ void setup() {
      visited_map[i][j].expanded = false;
       
      estimated_cost_map[i][j] = abs(i - goal_x) + abs(j - goal_y);
+     
      if (estimated_cost_map[i][j]  > max_estimate) {
         max_estimate = estimated_cost_map[i][j]; 
      }
@@ -136,19 +152,47 @@ void setup() {
   cur_x = start_x;
   cur_y = start_y;
   
-  size(MAP_SIZE*draw_scale,MAP_SIZE*draw_scale);
-  
-  colorMode(RGB, 1.0);
-  
-  min_cost = 1e6;
+
   
   to_expand = new pos[0];
   
-  visit(start_x,start_y, start_x,start_y, true );
+ visit(start_x,start_y, start_x,start_y, true );
+ 
+ 
 }
 
-/////////////////////////////////
 
+
+/////////////////////////////////
+// test to see if position is on path to goal
+boolean on_goal_path(int test_x, int test_y) {
+  
+  int x = goal_x;
+  int y = goal_y;
+  
+  if (visited_map[test_x][test_y].visited == false) return false;
+  if (visited_map[goal_x][goal_y].visited == false) return false;
+  
+  do {
+          
+  /// moving costs 1.0 -- could just have raw_map have minimum of 1.0 also
+           
+           if ((x == test_x) && (y == test_y)) return true;
+           
+           int from_x =  visited_map[x][y].from_x;
+           int from_y =  visited_map[x][y].from_y;
+           
+           x = from_x;
+           y = from_y;
+           
+  } while ((x != start_x) || (y != start_y));
+  
+  return false;
+  
+}
+
+
+///
 boolean test_only_pos(int test_x, int test_y) {
   if ((test_x < MAP_SIZE) &&  (test_y  < MAP_SIZE)  && (test_x >= 0) && (test_y >= 0)) 
     return true;
@@ -173,11 +217,12 @@ float get_total_cost(int end_x, int end_y)
           
      /// moving costs 1.0 -- could just have raw_map have minimum of 1.0 also
            total_cost += 1.0 + raw_map[x][y];
-       
-     
            
-           x = visited_map[x][y].from_x;
-           y = visited_map[x][y].from_y;
+           int from_x =  visited_map[x][y].from_x;
+           int from_y =  visited_map[x][y].from_y;
+           
+           x = from_x;
+           y = from_y;
            
   } while ((x != start_x) || (y != start_y));
   
@@ -234,7 +279,7 @@ boolean test_pos(int test_x, int test_y, int x, int y, int old_x, int old_y, flo
   /// don't retrace a completed path
   if ((visited_map[test_x][test_y].from_x == x) && (visited_map[test_x][test_y].from_y == y)) return false; 
      
-  if ((new_cost + estimated_cost_map[test_x][test_y]) > min_cost) return false;      
+  if ((new_cost + estimated_cost_map[test_x][test_y]) > get_total_cost(goal_x,goal_y)) return false;      
          
   return true;
  
@@ -280,11 +325,11 @@ void visit(int test_x, int test_y, int old_x, int old_y, boolean init) {
        
    /// found the goal? 
    if ((test_x == goal_x) && (test_y == goal_y)) {
-     
-      min_cost = new_cost;
       
-      print(min_counter++ + " min_cost " + min_cost + ", " + to_expand.length + "\n");
+     print(min_counter++ + " min_cost " + get_total_cost(goal_x,goal_y) + ", " + to_expand.length + "\n");
       return;
+   } else if (on_goal_path(test_x,test_y)) {
+     print(min_counter++ + " min_cost " + get_total_cost(goal_x,goal_y) + ", " + to_expand.length + "\n");
    }
        
 
@@ -350,6 +395,7 @@ void move() {
      
      /// detect first finish
      if ((to_expand.length == 0) && (finished == false)) {
+       noLoop();
          finished = true;
          
          if (false && visited_map[goal_x][goal_y].visited) {
@@ -361,7 +407,7 @@ void move() {
       
           final int from_x = visited_map[x][y].from_x;
           final int from_y = visited_map[x][y].from_y;
-            print("to " + x + ", " + y + " from " + from_x + ", " + from_y +"\n");
+           // print("to " + x + ", " + y + " from " + from_x + ", " + from_y +"\n");
            
            x = from_x;
            y = from_y;
@@ -375,8 +421,8 @@ void move() {
             k++;
             
      if ((false) && (k%30 == 0) && (to_expand.length > 0)) {
-    print(cur_x + " " + cur_y + ", " + to_expand.length + 
-          ", min_cost " + min_cost + ", new_cost " + get_total_cost(cur_x,cur_y) + "\n");
+   // print(cur_x + " " + cur_y + ", " + to_expand.length + 
+    //      ", min_cost " + get_total_cost(goal_x,goal_y) + ", new_cost " + get_total_cost(cur_x,cur_y) + "\n");
   
    }
    }
@@ -386,14 +432,19 @@ void move() {
  int k = 0;
  
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 void draw() {
+  
+  rect(10,10,10,10);
+  
   for (int i = 0; i < MAP_SIZE; i++) {
   for (int j = 0; j < MAP_SIZE; j++) {
     
     /// draw the cost map
-    float c = 1.0-(raw_map[i][j]/MAX_COST);
+    int c = (int)(255*(1.0-(raw_map[i][j]/MAX_COST)));
     color c1 = color(c,c,c);
     fill(c1);
     noStroke();
@@ -402,7 +453,7 @@ void draw() {
      
      if (false) {
      /// draw the estimated cost map
-     c = 1.0-estimated_cost_map[i][j]/max_estimate;
+     c = (int)(255*(1.0-estimated_cost_map[i][j]/max_estimate));
     c1 = color(c,c,c/2);
     fill(c1);
     noStroke();
@@ -412,7 +463,7 @@ void draw() {
      
   }}
      
-     
+  
     
    ////////////////////////////////////////////////////////////////////////////////////// 
    /// draw the visited cost
@@ -422,7 +473,7 @@ void draw() {
      if (visited_map[i][j].visited == true) {
        
        /// draw
-    float c = 1.0-get_total_cost(i,j)/worst_cost;
+    float c = (int)(255*(1.0-get_total_cost(i,j)/worst_cost));
     color c1 = color(c/2,c,c/2+0.5);
     fill(c1);
     strokeWeight(2);
@@ -438,17 +489,19 @@ void draw() {
            
      }  
      
+     
   }
   }
   /////////////////////////////////////////////////////////////////////////////
   
+  
   noStroke();
   
-  color c1 = color(0,1.0,0);
+  color c1 = color(0,255,0);
   fill(c1);
   rect(start_x*draw_scale+draw_scale/4,start_y*draw_scale+draw_scale/4,draw_scale/2,draw_scale/2);
 
-  color c2 = color(1.0,0,0);
+  color c2 = color(255,0,0);
   fill(c2);
   rect(goal_x*draw_scale+draw_scale/4,goal_y*draw_scale+draw_scale/4,draw_scale/2,draw_scale/2);
 
@@ -462,7 +515,7 @@ if (visited_map[goal_x][goal_y].visited == true) {
  int y = goal_y;
  
  strokeWeight(draw_scale/3);
- color c4 = color(0.1,1.0,0.1);
+ color c4 = color(10,255,10);
   stroke(c4);
   do {
   
@@ -483,8 +536,8 @@ if (visited_map[goal_x][goal_y].visited == true) {
 
 /// draw positions queued to be evaluated in the future
 for (int i = 0; i < to_expand.length; i++) {
-  float f = 1.0-(float)i/to_expand.length;
-   color c3 = color(0.3 + f/2.0,f,f);
+  int f = (int)(255*(1.0-(float)i/to_expand.length));
+   color c3 = color(50 + f/2,f,f);
   fill(c3);
   noStroke();
   
@@ -494,10 +547,18 @@ for (int i = 0; i < to_expand.length; i++) {
 }
 
   // draw the current position
-  color c3 = color(0,0,1.0);
+  color c3 = color(0,0,255);
   fill(c3);
   rect(cur_x*draw_scale + draw_scale/4,cur_y*draw_scale + draw_scale/4,draw_scale/2,draw_scale/2);
 
 
   move();
+  
+  
+  fill(color(220,190,230));
+  text("binarymillenium.com", 80, MAP_SIZE*draw_scale-15);
+  
 }
+
+
+
