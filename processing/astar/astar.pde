@@ -11,11 +11,13 @@ colormode(RGB,1.0) is broken with applet export, use the 0-255 int color mode in
 */
 
 
-final int MAP_SIZE  = 20;
+final int MAP_SIZE  = 15;
 final float MAX_COST = 1.5;
 /// granulariti of cost_map
 final float DIV = 3.0;
 
+ //PFont fontA; 
+ 
 /// if a cost is slightly less expensive, don't change the path
 final float EPS = 0.01;
    
@@ -104,10 +106,10 @@ void setup() {
   
   size(MAP_SIZE*draw_scale,MAP_SIZE*draw_scale);
   
-  frameRate(5);
-  //colorMode(RGB, 1.0);
- PFont fontA = loadFont("AlArabiya-20.vlw");
- textFont(fontA, 20);
+  frameRate(20);
+
+//fontA = loadFont("AlArabiya-20.vlw");
+ 
  
   estimated_cost_map = new float[MAP_SIZE][MAP_SIZE];
   
@@ -115,11 +117,11 @@ void setup() {
 
   visited_map = new visited_point[MAP_SIZE][MAP_SIZE];
 
-  start_x = (int)random(0,MAP_SIZE-3)+1;
-  start_y = (int)random(0,MAP_SIZE-1)/2+1;
+  start_x = (int)random(0,MAP_SIZE-2)+1;
+  start_y = (int)random(0,MAP_SIZE-2)+1;
   
-  goal_x = (int)random(0,MAP_SIZE-1);
-  goal_y =  (int)(0.5+random(0,MAP_SIZE-1)/2);  
+  goal_x = (int)random(0,MAP_SIZE-2)+1;
+  goal_y = (int)random(0,MAP_SIZE-2)+1;  
   
   
   //////////////////////////////////////////
@@ -234,9 +236,10 @@ float get_total_cost(int end_x, int end_y)
 pos[] append_in_order(pos[] old, pos newpos) {
    pos sorted[] = new pos[old.length + 1];
     
-   if ((old.length > 0) && (newpos.cost < old[0].cost)) {
+   if ((old.length > 0) && (newpos.cost <= old[0].cost)) {
      sorted[0] = newpos;
      arraycopy(old, 0, sorted, 1, old.length);
+     
      return sorted;  
    }
    
@@ -246,6 +249,7 @@ pos[] append_in_order(pos[] old, pos newpos) {
            arraycopy(old, sorted, i+1);
            sorted[i+1] = newpos;
            arraycopy(old, i+1, sorted, i+2, old.length - (i+1) );
+               
            
            return sorted;
        }
@@ -253,7 +257,8 @@ pos[] append_in_order(pos[] old, pos newpos) {
    }
 
    /// the newpos must have a high cost than all the others in old   
-   sorted = (pos[]) append(old, newpos);
+   sorted = (pos[]) append(old, newpos);           
+   
    return sorted;
   
 }
@@ -327,7 +332,12 @@ void visit(int test_x, int test_y, int old_x, int old_y, boolean init) {
    if ((test_x == goal_x) && (test_y == goal_y)) {
       
      print(min_counter++ + " min_cost " + get_total_cost(goal_x,goal_y) + ", " + to_expand.length + "\n");
+      
+
+      
+      
       return;
+      
    } else if (on_goal_path(test_x,test_y)) {
      print(min_counter++ + " min_cost " + get_total_cost(goal_x,goal_y) + ", " + to_expand.length + "\n");
    }
@@ -554,9 +564,10 @@ for (int i = 0; i < to_expand.length; i++) {
 
   move();
   
-  
-  fill(color(220,190,230));
-  text("binarymillenium.com", 80, MAP_SIZE*draw_scale-15);
+  // fonts are broken with export it seems
+ // fill(color(220,190,230));
+ // textFont(fontA, 20);
+ // text("binarymillenium.com", 80, MAP_SIZE*draw_scale-15);
   
 }
 
