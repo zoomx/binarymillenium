@@ -1,0 +1,15 @@
+#summary Astar search algorithm
+
+= Introduction =
+
+The popluar A* search or A-star search algorithm searches a cost map for the optimal route from a start point to a destination.  
+
+= Details =
+
+After one route is found, any searched route estimated to be longer than the found route is discarded.  Routes with lower estimates are searched first.  The estimate uses the city-block measure of distance.
+
+Embedded processing jar file is here:
+http://binarymillenium.googlecode.com/svn/trunk/processing/astar/svnapplet/index.html
+
+http://binarymillenium.googlecode.com/svn/trunk/processing/astar/images/fail.png
+http://binarymillenium.googlecode.com/svn/trunk/processing/astar/images/success.png
