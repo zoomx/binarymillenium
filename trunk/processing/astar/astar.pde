@@ -8,6 +8,9 @@ GNU GPL
 
 
 colormode(RGB,1.0) is broken with applet export, use the 0-255 int color mode instead.
+
+Reload to see a new random cost map and start and goal points.
+
 */
 
 
