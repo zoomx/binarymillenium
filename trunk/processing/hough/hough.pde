@@ -9,7 +9,7 @@
 
 PImage a,b;  // Declare variable "a" of type PImage
 
-  String name = "test4.png";
+  String name = "test2.jpg";
  float max_red =0.0;
 
 float thetamax = PI/2;
@@ -73,9 +73,9 @@ void find_means(int k_start, int k_num) {
   for (int r = 0; r < min_hw;  r++) {
     int pixind = k*b.width + r;
         
-    int new_r = (int)(255*( rtheta[r][k][0]/max_red ));
-    int new_g = (int)(255*( rtheta[r][k][1]/max_red ));
-    int new_b = (int)(255*( rtheta[r][k][2]/max_red ));
+    int new_r = (int)(255*( rtheta[r][k][0]/(max_red*0.8) ));
+    int new_g = (int)(255*( rtheta[r][k][1]/(max_red*0.8) ));
+    int new_b = (int)(255*( rtheta[r][k][2]/(max_red*0.8) ));
     
     b.pixels[pixind] = color(new_r, new_g, new_b);
     
