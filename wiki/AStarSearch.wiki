@@ -2,7 +2,7 @@
 
 = Introduction =
 
-The popluar A* search or A-star search algorithm searches a cost map for the optimal route from a start point to a destination.  
+The popluar A{{{*}}} search or A-star search (A-asterisk?) algorithm searches a cost map for the optimal route from a start point to a destination.  
 
 = Details =
 
