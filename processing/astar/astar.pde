@@ -7,9 +7,16 @@ binarymillenium.com
 GNU GPL
 
 
+
+The red dot is the goal, the green dot is the start, and the blue dot is the square currently being visited.  Lighter blue small boxes show position that are queued for future visiting.  The think green line is the current shortest route to the goal, if any.  The thinning lines are alternate searched routes, which will terminate where the estimated cost to the goal plus the accumulated cost exceed the cost of the route that has already been found.  Black boxes are impassable, while darker grey boxes on the grid are more costly than ligher grey or white boxes.  Open the java console to see updates about the current best found path. 
+
+
 colormode(RGB,1.0) is broken with applet export, use the 0-255 int color mode instead.
 
 Reload to see a new random cost map and start and goal points.
+
+<a href="http://code.google.com/p/binarymillenium/wiki/AStarSearch">more discussion</a>
+
 
 */
 
