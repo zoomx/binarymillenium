@@ -2,6 +2,7 @@
 * optical flow 
 *
 * binarymillenium
+*
 * June 2008
 *
 * Licensed under the latest version of the GNU GPL
@@ -13,25 +14,27 @@ PImage a;
 color old_pixels[];
 
     
-     // weight the center pixel most heavily, make this a gaussian later
-    float weight(int i,int j) {
-      /*
+// weight the center pixel most heavily, make this a gaussian later
+float weight(int i,int j) {
+      
         float div = (flow_point.s/2);
         float x = (i - div)/div;
         float y = (j - div)/div;
         
-        return 1.0-sqrt(x*x + y*y);
-        */
-        
-        return 1.0;
+        return 1.0-(sqrt(x*x + y*y)/sqrt(2.0));
         
         
-    }
+        //return 1.0;
+             
+}
 
 class flow_point {
     float x;
     float y;
     
+    /// size of the window to look at - the size needs to match the granularity of 
+    /// edges in the image being tracked- lots of small features should have small windows,
+    /// big features need big windows (actually small ones still work there I think)
     static final int s = 12;
     
     PImage pixel_block;
@@ -141,20 +144,28 @@ class flow_point {
         }
       
          /// this will screw with the optical flow, since in the next step these markers may not be covered up
-         fill(color(255,0,0,10));
+         fill(color(255,0,0,90));
         rect(x , y, s,s);
         
         
-       
+        
+        if(false) {
+         /// draw debugging info
         image(pixel_block,0, s, s, s);
         image(diff_x,s, s, s, s);
         image(diff_y,0, 2*s, s, s);
         image(diff_t,s, 0, s, s);
         image(old_pixel_block,0, 0, s, s);
-        
+        }
      
     }
     
+    void limit_bounds() {
+        if (x >= width - flow_point.s - 1 ) x = width -flow_point.s - 1;
+    if (x < 0) x = 0;
+    if (y >= height - flow_point.s - 1 ) y = height -flow_point.s -1;    
+    if (y < 0) y = 0;  
+    }
 };
 
 flow_point fp[];
@@ -163,35 +174,34 @@ flow_point fp[];
 
 void setup() {
   
-  frameRate(5);
+  frameRate(15);
   
-  size(600,600,P3D);
+  size(500,500,P3D);
   
   old_pixels = new color[width*height];
-  
   
   /// create high contrast texture
   //randomSeed(0);
   //noiseSeed(0);
   //loadPixels();
   
-    final float div = 2.0;
-    final float div2 = 35.0;
-     final float div3 = 65.0;
+    final float div = 42.0;
+    final float div2 = 25.0;
+     final float div3 = 115.0;
     
     a = new PImage();
-     a.width = 400;
-     a.height = 400;
+     a.width = width;
+     a.height = height;
      a.pixels = new color[a.width*a.height];
      
      for (int i = 0; i < a.width; i++) {
        for (int j = 0; j < a.height; j++) {
          
-         float val = (0.3*noise(i/div,j/div) + 
-                            0.5*noise(i/div2,j/div2) + 
-                            0.5*cos(PI*noise(i/div3,j/div3)) + 
-                            0.5*cos(PI*noise(i/10.0,j/10.0)) +
-                            0.3*cos(PI*noise(i/25.0,j/55.0)));
+         float val = (0.4*noise(i/div,j/div) + 
+                            0.4*noise(i/div2,j/div2) + 
+                            0.4*cos(PI*noise(i/div3,j/div3)) + 
+                            0.4*cos(PI*noise(i/150.0,j/100.0)) +
+                            0.4*cos(PI*noise(i/25.0,j/55.0)));
          
          val*=val;
          if (val > 1.0) val = 1.0;
@@ -208,10 +218,21 @@ void setup() {
   
 
   /// setup initial optical flow points
-  fp = new flow_point[1];
+  fp = new flow_point[16];
   
+  int len = (int)(sqrt(fp.length));
   for (int i = 0; i < fp.length; i++) {
-    fp[i] = new flow_point(width/2,height/2  );//random(width-flow_point.s-1),random(height-flow_point.s-1));
+    
+    int ind = i%len;
+    fp[i] = new flow_point( width/4 + width/2*(float)ind/len,
+                            height/4 + height/2*(float)floor(i/len)/(floor(fp.length/len)) );
+                            
+    fp[i].limit_bounds();
+                            
+                            //fp[i] = new flow_point(width/4 + random(width/2),
+    //                       height/4 + random(height/2));
+                           
+                           
   }
   
   colorMode(RGB); //,255,255,255,100);
@@ -221,52 +242,58 @@ void setup() {
   
 }
 
-////////////////////////////////////////////////////////////////////
-/// send a pixel block in and compute the partial derivative of it
-float[] i_x(color[][] pixel_block) {
+/////////////////////////////////////////////////////////////////////////////////////////
+/// send a pixel block in and compute the partial derivative of it with a sobel operator
+float[][] i_xy(color[][] pixel_block) {
 
-  float der_x[] = new float[0]; 
+  float der_xy[][] = new float[2][0]; 
   
-  for (int i = 0; i < pixel_block.length-1; i++) {
-  for (int j = 0; j < pixel_block[i].length; j++) {
-    
-    float diff = brightness(pixel_block[i][j]) -  brightness(pixel_block[i+1][j]);
-
-                              
-    der_x = append(der_x,  diff*weight(i,j));
-  }} 
-  
-  // add row of zeros to make der_x same size as source pixel blocks
+    // add row of zeros to make der_xy same size as source pixel blocks
   for (int j = 0; j < pixel_block.length; j++) {
-    der_x = append(der_x, 0);
+    der_xy[0] = append(der_xy[0], 0);
+    der_xy[1] = append(der_xy[1], 0);
+  }
+  
+  for (int i = 1; i < pixel_block.length-1; i++) {
+    der_xy[0] = append(der_xy[0], 0);
+    der_xy[1] = append(der_xy[1], 0);
+  for (int j = 1; j < pixel_block[i].length-1; j++) {
+    
+    ///
+    float sobel_x, sobel_y = 0;
+   
+    float b00 = brightness(pixel_block[i-1][j-1]);
+    float b01 = brightness(pixel_block[i-1][j]);
+    float b02 = brightness(pixel_block[i-1][j+1]);
+    float b10 = brightness(pixel_block[i][j-1]);
+    ///float b11 = brightness(pixel_block[i][j]); // don't need this for either direction
+    float b12 = brightness(pixel_block[i][j+1]);
+    float b20 = brightness(pixel_block[i+1][j-1]);
+    float b21 = brightness(pixel_block[i+1][j]);
+    float b22 = brightness(pixel_block[i+1][j+1]);    
+   
+   /// the weight of the filter is 8, so divide it out
+    sobel_x = (b00 + 2*b01 + b02 - b20 - 2*b21 - b22)/8.0;  
+    sobel_y = (b00 + 2*b10 + b20 - b02 - 2*b12 - b22)/8.0;                     
+                                                  
+    der_xy[0] = append(der_xy[0],  sobel_x*weight(i,j));
+    der_xy[1] = append(der_xy[1],  sobel_y*weight(i,j));
+  }
+    der_xy[0] = append(der_xy[0], 0);
+    der_xy[1] = append(der_xy[1], 0);
+  } 
+  
+  // add row of zeros to make der_xy same size as source pixel blocks
+  for (int j = 0; j < pixel_block.length; j++) {
+    der_xy[0] = append(der_xy[0], 0);
+    der_xy[1] = append(der_xy[1], 0);
   }
   
   
-  return der_x;
+  return der_xy;
 }
 
-/// send a pixel block in and compute the partial derivative of it
-float[] i_y(color[][] pixel_block) {
-  
-  float der_y[] = new float[0]; 
-  
 
-  for (int i = 0; i < pixel_block.length; i++) {
-  for (int j = 0; j < pixel_block[i].length-1; j++) {
-    
-    float diff = (float)brightness(pixel_block[i][j]) - (float)brightness(pixel_block[i][j+1]);
-        
-    der_y = append(der_y, diff*weight(i,j));
-    
-  }
-  
-  // add column of zeros to make der_x same size as source pixel blocks
-  der_y = append(der_y, 0);
-  //print("\n");
-} 
-  
-  return der_y;
-}
 
 /// send a pixel block in and compute the partial derivative of it
 float[] i_t(color[][] pixel_block,color[][] old_pixel_block) {
@@ -302,8 +329,9 @@ float[] optical_flow(flow_point tfp) {
     old_pix[j][k] = tfp.old_pixel_block.pixels[j*flow_point.s + k];  
   }}  
   
-  tfp.der_y = i_y(new_pix);
-  tfp.der_x = i_x(new_pix);
+  float der_xy[][] = i_xy(new_pix);
+  tfp.der_y = der_xy[0];
+  tfp.der_x = der_xy[1];
   tfp.der_t = i_t(new_pix, old_pix);
   
   /// the pixel_block should be square, ignore anything but largest square inside it
@@ -352,61 +380,16 @@ float[] optical_flow(flow_point tfp) {
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-
-float t;
-void draw() {
-  
-  background(0);
-  
-  //t-= 2.0;
-  t+= 0.01;
-
-  
-  float ofs[] = new float[8];
-  for (int i = 0; i< ofs.length; i++) {
-    ofs[i] = 300.0*(noise(t,i/10.0)-0.5);
-  }
-
-// temp
-//ofs[1] = 0;
-ofs[3] = ofs[1];
-ofs[5] = ofs[1];
-ofs[7] = ofs[1];
-
-//ofs[0] = t;
-ofs[2] = ofs[0];
-ofs[4] = ofs[0];
-ofs[6] = ofs[0];
-
-beginShape();
-texture(a);
-
-/*
-vertex(0, 0, 0+ofs[0], ofs[1]);
-vertex(width, 0, a.width+ofs[2], 0+ofs[3]);
-vertex(width, height, a.width + ofs[4], a.height+ofs[5]);
-vertex(0, height, 0+ofs[6], a.height+ofs[7]);
-*/
-vertex( 0+ofs[0], ofs[1], 0, 0);
-vertex(width+ofs[2], 0+ofs[3], a.width,0);
-vertex(width + ofs[4], height+ofs[5], a.width, a.height);
-vertex( 0+ofs[6], height+ofs[7], 0, a.height);
-endShape();
-
-  
-  
-  /// do optical flow, copy areas of screen in to little buffers to be processed
-  loadPixels();
-  
-
-  
-  for (int i = 0; i < fp.length; i++) {
+boolean has_initted = false;
+void process_flow_points()
+{
+   for (int i = 0; i < fp.length; i++) {
     //arraycopy( fp[i].pixel_block.pixels, fp[i].old_pixel_block.pixels );
     
     
     for (int j = 0; j < flow_point.s; j++) {
       for (int k = 0; k < flow_point.s; k++) {
-        
+         
         int pix_ind = (int)(fp[i].y + j)*width  + (int)(fp[i].x + k);
         fp[i].pixel_block.pixels[j*flow_point.s + k] = pixels[pix_ind];
         
@@ -414,30 +397,82 @@ endShape();
        
   }}
     
+    /// on the first frame, the old_pixels will be meaningless so don't do the
+    /// optical flow on it.
+    
+    if (has_initted == true) {
+        
     float[] vxy = optical_flow(fp[i]);
     
     /// so far this seems to be handling negative motions by scaling down the 
     /// vxy - 0.6* value that would be seen in opposite direction
-    //if (vxy
-    fp[i].x += vxy[1];
-    fp[i].y += vxy[0];
+    
+    fp[i].x += vxy[0];
+    fp[i].y += vxy[1];
+    }
+    
     
     /// this movement will invalidate what's in the old_pixel
     
-    print(vxy[0] + " " + vxy[1] + "\n");
+    //print(vxy[0] + " " + vxy[1] + "\n");
     
     
-    if (fp[i].x >= width - flow_point.s - 1 ) fp[i].x = width -flow_point.s - 1;
-    if (fp[i].x < 0) fp[i].x = 0;
-    if (fp[i].y >= height - flow_point.s - 1 ) fp[i].y = height -flow_point.s -1;    
-    if (fp[i].y < 0) fp[i].y = 0;  
+    fp[i].limit_bounds();
     
     
   }
   //print("\n");
     
     /// need to keep a buffer of the entire screen around
-    arraycopy(pixels, old_pixels );
+    arraycopy(pixels, old_pixels ); 
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+float t = 0.0;
+
+void draw() {
+  
+  background(0);
+  
+  //t += 4.0;
+  t += 0.008;
+  
+  float ofs[] = new float[8];
+  for (int i = 0; i< ofs.length; i++) {
+    ofs[i] = noise(t,i/10.0)-0.5;
+    
+    float f = 500.0;
+    float fade_end = 0.4;
+    if (t < fade_end) { ofs[i] *= f*t/fade_end; } 
+    else { ofs[i] *= f;}
+  }
+
+//ofs[1] = -t;
+//ofs[3] = ofs[1];
+//ofs[5] = ofs[1];
+//ofs[7] = ofs[1];
+
+//ofs[0] = 0;
+//ofs[2] = ofs[0];
+//ofs[4] = ofs[0];
+//ofs[6] = ofs[0];
+
+beginShape();
+texture(a);
+vertex( 0+ofs[0], ofs[1], 0, 0);
+vertex(width+ofs[2], 0+ofs[3], a.width,0);
+vertex(width + ofs[4], height+ofs[5], a.width, a.height);
+vertex( 0+ofs[6], height+ofs[7], 0, a.height);
+endShape();
+
+///////////////////////////////////
+  /// do optical flow, copy areas of screen in to little buffers to be processed
+  loadPixels();
+
+process_flow_points();
+has_initted = true;
     
     /// draw points to indicate flow point locations.
   for (int i = 0; i < fp.length; i++) {
