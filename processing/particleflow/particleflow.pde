@@ -1,8 +1,14 @@
 
 float t;
 
+final boolean use_texture = false;
+final int NUM_PS = 500;
+
 PImage a;
 
+ float div = 150.0;
+ 
+ 
 class particle {
   float x;
   float y;  
@@ -14,8 +20,9 @@ class particle {
   
   color c;
   
-  final float div = 400.0;
-  final float mv = 80.0;
+  
+ 
+  final float mv = 60.0;
   
   static final float max_counter = 150;
   
@@ -28,6 +35,8 @@ class particle {
   }
   
   void update() {
+    
+    
     
     counter++;
     if (counter > max_counter)  new_pos();
@@ -43,12 +52,10 @@ class particle {
   void new_pos() {
    
     
-      float c1 = 255;
-      //if (random(1) > 0.9)c1 = 0;
-      c = color(c1,c1,c1,10+random(90));
+ 
     
         counter = 0;
-          int sel = (int)(random(4)%2);    
+          int sel = (int)(random(4)%4);    
        
           if (sel == 0) {
              x = random(width);
@@ -66,6 +73,14 @@ class particle {
           
           old_x = x;
           old_y = y;
+          
+               float c1 = x/width*255;
+      float g = y/height*255;
+      float b = random(255);
+      //if (random(1) > 0.9)c1 = 0;
+      
+      c = color(c1,g,b,10+random(10));
+      if (use_texture)  c = color(c1,g,b,10+random(90));
          
   }
   
@@ -99,7 +114,7 @@ void setup() {
      a.pixels = new color[a.width*a.height];
      
   
-  ps = new particle[400];  
+  ps = new particle[NUM_PS];  
   
   for (int i = 0; i< ps.length; i++) {
      ps[i] = new particle();  
@@ -113,9 +128,10 @@ int counter;
 void draw() {
   
   
+  if (use_texture) {
   float ofs[] = new float[8];
   for (int i = 0; i< ofs.length; i++) {
-  ofs[i] = -1; //1.0*(noise(t*10+i*1000)-0.5);
+  ofs[i] = 0; //1.0*(noise(t*10+i*1000)-0.5);
 }
 
   beginShape();
@@ -127,36 +143,46 @@ vertex(0,     height, 0+ofs[6],       a.height+ofs[7]);
 endShape();
 
   
-  t += 0.001;
-  /*
+  } else {
+      
+  
   counter++;
-  if (counter % 20 == 0) { 
+  if (counter % 100 == 0) { 
     fill(0,0,0,1);
     rect(0,0, width, height);
-  }*/
-  
-  
+  }
+  }
+  t += 0.005;
   
   
    noStroke();
    
-  for (int i = 0; i< ps.length; i++) {
+  
+  for (int i = 0; i< NUM_PS; i++) {
      ps[i].update();
      ps[i].draw();
      ps[i].update();
       ps[i].draw();
-           ps[i].update();
+     ps[i].update();
      ps[i].draw();
      ps[i].update();
       ps[i].draw();
       
    ps[i].test_respawn();
    
+   
+   
+   
+   
   
 
  
   }
   
+  //div += 1.0*(noise(t)-0.5);
+  
+  if (use_texture) {
   loadPixels();
   arraycopy(pixels,a.pixels);
+  }
 }
