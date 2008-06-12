@@ -1,7 +1,8 @@
 
 float t;
 
-final boolean use_texture = false;
+ boolean use_texture = false;
+final boolean tree_like = true;
 final int NUM_PS = 500;
 
 PImage a;
@@ -20,12 +21,13 @@ class particle {
   
   color c;
   
-  
+  float x_seed;
  
   final float mv = 60.0;
   
   static final float max_counter = 150;
   
+  ///////////////////////////////////
   void draw() {
     stroke(c);
       fill(c);
@@ -39,7 +41,17 @@ class particle {
     
     
     counter++;
-    if (counter > max_counter)  new_pos();
+    if (counter > max_counter) {
+      /*if (tree_like) {
+        final float ext = width/2;
+        x+= random(-ext,ext);
+        y+= random(-ext,ext);
+        counter = 0;
+      } else */{
+        new_pos();
+      }
+        
+    }
     
     old_x = x;
     old_y = y;
@@ -55,7 +67,19 @@ class particle {
  
     
         counter = 0;
-          int sel = (int)(random(4)%4);    
+          
+          
+         if (tree_like) {
+           /*
+            x = random(width); //x_seed +random(width/20);
+             y = height; 
+             */
+             x = random(width);
+             y = random(height);
+           
+         } else {
+           int sel = (int)(random(4)%4);    
+         
        
           if (sel == 0) {
              x = random(width);
@@ -71,6 +95,8 @@ class particle {
             y = random(height);
           }
           
+         }
+          
           old_x = x;
           old_y = y;
           
@@ -85,6 +111,8 @@ class particle {
   }
   
   particle() {
+    
+    x_seed = width/4 + random(width/2);
      new_pos();
   }
   
@@ -147,12 +175,13 @@ endShape();
       
   
   counter++;
-  if (counter % 100 == 0) { 
+  if (counter % 50 == 0) { 
     fill(0,0,0,1);
     rect(0,0, width, height);
   }
   }
-  t += 0.005;
+  
+
   
   
    noStroke();
@@ -169,12 +198,6 @@ endShape();
       ps[i].draw();
       
    ps[i].test_respawn();
-   
-   
-   
-   
-   
-  
 
  
   }
@@ -185,4 +208,18 @@ endShape();
   loadPixels();
   arraycopy(pixels,a.pixels);
   }
+  
+  
+    if (counter > 500) {
+     counter = 0;
+     fill(0,0,0,230);
+     t+= 0.1;
+    //rect(0,0, width, height);
+    div += 100.0*(noise(t)-0.5);
+    if (div < 5) div += 100;
+    
+    use_texture = !use_texture;
+     
+  }
+  t += 0.001;
 }
