@@ -82,8 +82,8 @@ void draw() {
     {
       float div = SZ/10; //12.0;
       float f =   0.1*noise((i+movex*2)/div,(j+movey)/div,t) +
-                  0.3*noise((i+movex*4)/(2*div),(j+movey*4)/(2*div),t); 
-                  0.5*noise((i+movex)/(4*div),(j+movey)/(4*div),t); 
+                  0.2*noise((i+movex*6)/(2*div),(j+movey*6)/(2*div),t)+ 
+                  0.7*noise((i+movex)/(4*div),(j+movey)/(4*div),t); 
  
     float th = 0.4;
     
