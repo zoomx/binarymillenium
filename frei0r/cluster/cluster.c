@@ -32,6 +32,17 @@ struct cluster_center
 	int x;
 	int y;
 
+	int max_x;
+	int min_x;
+	int max_y;
+	int min_y;
+
+	/// old max min vals
+	int omax_x;
+	int omin_x;
+	int omax_y;
+	int omin_y;
+
 
 	unsigned char r;
 	unsigned char g;
@@ -158,6 +169,17 @@ f0r_instance_t f0r_construct(unsigned int width, unsigned int height)
 		cc->aggr_r = 0;
 		cc->aggr_g = 0;
 		cc->aggr_b = 0;
+
+	  cc->omax_x = inst->width;
+	  cc->omax_y = inst->height;
+	  cc->omin_x = 0;
+	  cc->omin_y = 0;
+
+	  cc->max_x = 0;
+	  cc->max_y = 0;
+	  cc->min_x = inst->width;
+	  cc->min_y = inst->height;
+
 	}		 
 
   return (f0r_instance_t)inst;
@@ -291,17 +313,27 @@ void f0r_update(f0r_instance_t instance, double time,
 	  for (k = 0; k < inst->num; k++) {
 		  struct cluster_center cc = inst->clusters[k];	
 
-		  float kdist = find_dist(src2[0], src2[1], src2[2], x,y, 
-				  cc.r, cc.g, cc.b, cc.x, cc.y,
-				  max_space_dist, inst->dist_weight); //, inst->color_weight);
+		  if ((x < cc.omax_x*1.3+5) && (x > cc.omin_x*0.7-5) &&
+				  (y < cc.omax_y*1.3+5) && (y > cc.omin_y*0.7-5)) {
 
-		  if (kdist < dist) {
-			  dist = kdist;
-			  dist_ind = k;
+			  float kdist = find_dist(src2[0], src2[1], src2[2], x,y, 
+					  cc.r, cc.g, cc.b, cc.x, cc.y,
+					  max_space_dist, inst->dist_weight); //, inst->color_weight);
+
+			  if (kdist < dist) {
+				  dist = kdist;
+				  dist_ind = k;
+			  }
 		  }
 	  }
 
-	  struct cluster_center* cc = &inst->clusters[dist_ind];	
+	  struct cluster_center* cc = &inst->clusters[dist_ind];
+
+	  if (x > cc->max_x) cc->max_x = x;
+	  if (x < cc->min_x) cc->min_x = x;
+	  if (y > cc->max_y) cc->max_y = y;
+	  if (y < cc->min_y) cc->min_y = y;
+
 	  cc->aggr_x += x;
 	  cc->aggr_y += y;
 	  cc->aggr_r += src2[0];
@@ -341,6 +373,15 @@ void f0r_update(f0r_instance_t instance, double time,
 	  cc->aggr_g = 0;
 	  cc->aggr_b = 0;
 
+	  cc->omax_x = cc->max_x;
+	  cc->omax_y = cc->max_y;
+	  cc->omin_x = cc->min_x;
+	  cc->omin_y = cc->min_y;
+
+	  cc->max_x = 0;
+	  cc->max_y = 0;
+	  cc->min_x = inst->width;
+	  cc->min_y = inst->height;
   	}
 	//printf("\n");
 
