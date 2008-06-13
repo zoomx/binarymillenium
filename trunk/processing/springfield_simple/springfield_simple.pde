@@ -1,12 +1,20 @@
 
-/// TBD make a texture and draw the colors onto that to get free
-/// interpolation when it is scaled up
+/*
+
+binarymillenium 2008
+
+gnu gpl
+*/
+ 
+final boolean wrap_edges = false;
+final boolean do_gassy = true;
 final int SZ = 90;
 
 /// difference between left and right makes it seem like the water is moving
 final float k = 0.02;
 
-final float max_vel = 0.15;
+final float max_vel = 0.3;
+final float gravity = 0.00001;
 
 float t;
 
@@ -21,16 +29,12 @@ float x_sc, y_sc;
 PImage a;
 
 void setup() {
+ 
  field = new float[SZ][SZ]; 
  field_vel = new float[SZ][SZ]; 
  f_mask = new float[SZ][SZ];
  
- for (int i =0; i < SZ; i++) {
- for (int j =0; j < SZ; j++) {
-  float f =   noise(i/20.0,j/20.0); 
-  
-  f_mask[i][j] = f > 0.4 ? 1.0 : 0.15;
- }}
+
   
  size(640,480,P3D);
  
@@ -49,7 +53,7 @@ void setup() {
 void draw() {
  noStroke();
   
-  
+       t += 0.002;
 
 
  
@@ -61,7 +65,7 @@ void draw() {
     if (i < 0) i =0;
     if (j < 0) j =0;  
     
-    field_vel[i][j] += 0.013;
+    field_vel[i][j] += 0.007;
     
    
   }
@@ -72,57 +76,79 @@ void draw() {
  
   for (int i = 0; i < SZ; i++) {
   for (int j = 0; j < SZ; j++) {
-
+    
+    {
+      float div = 10.0;
+      float f =   0.01*noise(i/div,j/div,t) + 0.9*noise(i/(4*div),j/(4*div),t); 
+ 
+    float th = 0.4;
+    f_mask[i][j] = f*f;//(f > th ? (0.5+0.5*f) : 0.1*f/th);
+    }
   
     field[i][j] += field_vel[i][j];
 
-    if (field[i][j] > 1.0) {
-        field_vel[i][j] = -field_vel[i][j]*0.4;
-        field[i][j] = 1.0;
+    field_vel[i][j] -= gravity;
+       
+    if (field[i][j] < f_mask[i][j]) {
+        field[i][j] = f_mask[i][j];
+       field_vel[i][j] = 0;//-field_vel[i][j]*0.05;
     }
-    if (field[i][j] < 0.0) {
-        field[i][j] = 0.0;
-        field_vel[i][j] = -field_vel[i][j]*0.4;
-    }
+        //if (field[i][j] > 1.0) {
+        //field_vel[i][j] = -field_vel[i][j]*0.4;
+     //   field[i][j] = 1.0;
+    //}
+
     
-    field_vel[i][j] *= 0.998;
-    field[i][j] *= 0.998;
+    //field_vel[i][j] *= 0.999;
+    //field[i][j] *= 0.999;
     
     if (field[i][j] > max_field) max_field = field[i][j];
     if (field[i][j] < min_field) min_field = field[i][j];
+  
     
-    float dx;
- 
-     float div = 12.0;
-     t += 0.002;
-     float kij   = k*f_mask[i][j]; //(k*0.1+2*k*noise(i/div,j/div,t));
-     float kijlr = k*f_mask[i][j];//(k*0.1+2*k*noise(i/div,j/div,t+1000));
+    float dx;    
+     float k1   = k;
+     float k2 = k;
+     
+    if (do_gassy) {
+      k1 *= 2.0*(field[i][j]-f_mask[i][j]);
+      k2 *= 2.0*(field[i][j]-f_mask[i][j]);
+    }
+    
     
     if (i < SZ-1) {
+      k1 += 2.0*(field[i][j]-f_mask[i][j]);
+      k2 += 2.0*(field[i+1][j]-f_mask[i+1][j]);
+      
       dx = field[i+1][j] - field[i][j];
-      field_vel[i][j]   += dx*kijlr;
-      field_vel[i+1][j] -= dx*kijlr;
-    } else {
+      field_vel[i][j]   += dx*k1;
+      field_vel[i+1][j] -= dx*k2;
+    } else if (wrap_edges ) {
       dx = field[0][j] - field[i][j];
-      field_vel[i][j] += dx*kijlr;
-      field_vel[0][j] -= dx*kijlr;
+      field_vel[i][j] += dx*k1;
+      field_vel[0][j] -= dx*k2;
     }
     if (j < SZ-1) {
+          k1 += 2.0*(field[i][j]-f_mask[i][j]);
+      k2 += 2.0*(field[i][j+1]-f_mask[i][j+1]);
+      
       dx = field[i][j+1] - field[i][j];
-      field_vel[i][j]  += dx*kij;
-      field_vel[i][j+1]-= dx*kij;
-    } else {
+      field_vel[i][j]  += dx*k1;
+      field_vel[i][j+1]-= dx*k2;
+    } else if (wrap_edges ) {
       dx = field[i][0] - field[i][j];
-      field_vel[i][j] += dx*kij;
-      field_vel[i][0] -= dx*kij;      
+      field_vel[i][j] += dx*k1;
+      field_vel[i][0] -= dx*k2;      
     }
+    
+    
     
     
     if ( field_vel[i][j] > max_vel) field_vel[i][j] = max_vel;
     if ( field_vel[i][j] <-max_vel) field_vel[i][j] =-max_vel;
   }} 
   
-  
+  ///////////////////////////////////////////////////////
   for (int i = 0; i < SZ; i++) {
   for (int j = 0; j < SZ; j++) {
     int c = (int)( (field[i][j]-min_field)/(max_field-min_field)*255);
@@ -133,7 +159,15 @@ void draw() {
        if (g > 255) g = 255;
     if (g < 0) g = 0;
     
-    a.pixels[j*SZ+i] = color(c,c,c);
+    
+    //if (f_mask[i][j] < 0.0) b = 0;
+    
+    if (do_gassy) {
+      int b = (int)( ((field[i][j]-f_mask[i][j]))*255); 
+      a.pixels[j*SZ+i] = color(c,c,b);
+    } else {
+      a.pixels[j*SZ+i] = color(c,c,c);
+    }
     
     //rect(i*x_sc,j*y_sc, x_sc,y_sc);
   }}
