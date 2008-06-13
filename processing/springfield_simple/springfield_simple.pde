@@ -8,7 +8,7 @@ gnu gpl
  
 final boolean wrap_edges = false;
 final boolean do_gassy = true;
-final int SZ = 90;
+final int SZ = 80;
 
 /// difference between left and right makes it seem like the water is moving
 final float k = 0.02;
@@ -46,7 +46,7 @@ void setup() {
  x_sc = width/SZ;
  y_sc = height/SZ;
  
- frameRate(30);
+ frameRate(19);
  
 }
 
@@ -57,9 +57,9 @@ float movey = 0;
 void draw() {
  noStroke();
   
-       t += 0.001;
-  movex += noise(t*4)*0.1;
- movex += (noise(10000+t*4)-0.5)*0.1;
+       t += 0.005;
+  movex += noise(t*6)*0.2;
+ movey += (noise(10000+t*6)-0.5)*0.5;
  
  
   if(mousePressed) {
@@ -80,12 +80,19 @@ void draw() {
   for (int j = 0; j < SZ; j++) {
     
     {
-      float div = 12.0;
-      float f =   0.07*noise((i+movex*2)/div,(j+movey)/div,t) +
-                  0.9*noise((i+movex)/(4*div),(j+movey)/(4*div),t); 
+      float div = SZ/10; //12.0;
+      float f =   0.1*noise((i+movex*2)/div,(j+movey)/div,t) +
+                  0.3*noise((i+movex*4)/(2*div),(j+movey*4)/(2*div),t); 
+                  0.5*noise((i+movex)/(4*div),(j+movey)/(4*div),t); 
  
     float th = 0.4;
-    f_mask[i][j] = f*f;//(f > th ? (0.5+0.5*f) : 0.1*f/th);
+    
+    f -= 0.08;
+    f *= 1.1;
+    
+    f *= f;
+    if (f < 0) f = 0;
+    f_mask[i][j] = f;//(f > th ? (0.5+0.5*f) : 0.1*f/th);
     }
   
     field[i][j] += field_vel[i][j];
@@ -94,7 +101,7 @@ void draw() {
        
     if (field[i][j] < f_mask[i][j]) {
         field[i][j] = f_mask[i][j];
-       field_vel[i][j] = 0;//-field_vel[i][j]*0.05;
+       field_vel[i][j] = -field_vel[i][j]*0.05;
     }
         //if (field[i][j] > 1.0) {
         //field_vel[i][j] = -field_vel[i][j]*0.4;
@@ -169,7 +176,8 @@ void draw() {
       int b = (int)( 2.0*((field[i][j]-f_mask[i][j]))*255);
      
       
-      a.pixels[j*SZ+i] = color(b+c,b+c,3*b);
+      a.pixels[j*SZ+i] = color(b+c,b+c,5*b);
+      //a.pixels[j*SZ+i] = color(5*b+c/4,5*b+c/4,5*b);
     } else {
       a.pixels[j*SZ+i] = color(c,c,c);
     }
