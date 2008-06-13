@@ -14,7 +14,7 @@ final int SZ = 90;
 final float k = 0.02;
 
 final float max_vel = 0.3;
-final float gravity = 0.00001;
+final float gravity = 0.000005;
 
 float t;
 
@@ -50,12 +50,16 @@ void setup() {
  
 }
 
+
+float movex = 0;
+float movey = 0;
+
 void draw() {
  noStroke();
   
-       t += 0.002;
-
-
+       t += 0.001;
+  movex += noise(t*4)*0.1;
+ movex += (noise(10000+t*4)-0.5)*0.1;
  
  
   if(mousePressed) {
@@ -65,9 +69,7 @@ void draw() {
     if (i < 0) i =0;
     if (j < 0) j =0;  
     
-    field_vel[i][j] += 0.007;
-    
-   
+    field_vel[i][j] += 0.027;
   }
   
   
@@ -78,8 +80,9 @@ void draw() {
   for (int j = 0; j < SZ; j++) {
     
     {
-      float div = 10.0;
-      float f =   0.01*noise(i/div,j/div,t) + 0.9*noise(i/(4*div),j/(4*div),t); 
+      float div = 12.0;
+      float f =   0.07*noise((i+movex*2)/div,(j+movey)/div,t) +
+                  0.9*noise((i+movex)/(4*div),(j+movey)/(4*div),t); 
  
     float th = 0.4;
     f_mask[i][j] = f*f;//(f > th ? (0.5+0.5*f) : 0.1*f/th);
@@ -163,8 +166,10 @@ void draw() {
     //if (f_mask[i][j] < 0.0) b = 0;
     
     if (do_gassy) {
-      int b = (int)( ((field[i][j]-f_mask[i][j]))*255); 
-      a.pixels[j*SZ+i] = color(c,c,b);
+      int b = (int)( 2.0*((field[i][j]-f_mask[i][j]))*255);
+     
+      
+      a.pixels[j*SZ+i] = color(b+c,b+c,3*b);
     } else {
       a.pixels[j*SZ+i] = color(c,c,c);
     }
