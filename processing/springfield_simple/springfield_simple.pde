@@ -1,12 +1,20 @@
 
 /// TBD make a texture and draw the colors onto that to get free
 /// interpolation when it is scaled up
-final int SZ = 70;
+final int SZ = 90;
+
+/// difference between left and right makes it seem like the water is moving
+final float k = 0.02;
+
+final float max_vel = 0.15;
+
+float t;
+
 float field[][];
 float field_vel[][];
 
-final float k = 0.08;
-final float max_vel = 0.15;
+float f_mask[][];
+
 
 float x_sc, y_sc;
 
@@ -15,6 +23,14 @@ PImage a;
 void setup() {
  field = new float[SZ][SZ]; 
  field_vel = new float[SZ][SZ]; 
+ f_mask = new float[SZ][SZ];
+ 
+ for (int i =0; i < SZ; i++) {
+ for (int j =0; j < SZ; j++) {
+  float f =   noise(i/20.0,j/20.0); 
+  
+  f_mask[i][j] = f > 0.4 ? 1.0 : 0.15;
+ }}
   
  size(640,480,P3D);
  
@@ -77,38 +93,45 @@ void draw() {
     
     float dx;
  
+     float div = 12.0;
+     t += 0.002;
+     float kij   = k*f_mask[i][j]; //(k*0.1+2*k*noise(i/div,j/div,t));
+     float kijlr = k*f_mask[i][j];//(k*0.1+2*k*noise(i/div,j/div,t+1000));
     
     if (i < SZ-1) {
       dx = field[i+1][j] - field[i][j];
-      field_vel[i][j] += dx*k;
-      field_vel[i+1][j] -= dx*k;
+      field_vel[i][j]   += dx*kijlr;
+      field_vel[i+1][j] -= dx*kijlr;
     } else {
       dx = field[0][j] - field[i][j];
-      field_vel[i][j] += dx*k;
-      field_vel[0][j] -= dx*k;
+      field_vel[i][j] += dx*kijlr;
+      field_vel[0][j] -= dx*kijlr;
     }
     if (j < SZ-1) {
       dx = field[i][j+1] - field[i][j];
-      field_vel[i][j] += dx*k;
-      field_vel[i][j+1] -= dx*k;
+      field_vel[i][j]  += dx*kij;
+      field_vel[i][j+1]-= dx*kij;
     } else {
       dx = field[i][0] - field[i][j];
-      field_vel[i][j] += dx*k;
-      field_vel[i][0] -= dx*k;      
+      field_vel[i][j] += dx*kij;
+      field_vel[i][0] -= dx*kij;      
     }
     
     
-
-    if ( field_vel[i][j] > max_vel)  field_vel[i][j] = max_vel;
-    if ( field_vel[i][j] < -max_vel)  field_vel[i][j] = -max_vel;
+    if ( field_vel[i][j] > max_vel) field_vel[i][j] = max_vel;
+    if ( field_vel[i][j] <-max_vel) field_vel[i][j] =-max_vel;
   }} 
   
   
-    for (int i = 0; i < SZ; i++) {
+  for (int i = 0; i < SZ; i++) {
   for (int j = 0; j < SZ; j++) {
     int c = (int)( (field[i][j]-min_field)/(max_field-min_field)*255);
     if (c > 255) c = 255;
     if (c < 0) c = 0;
+    
+    int g = (int)(f_mask[i][j]*255);
+       if (g > 255) g = 255;
+    if (g < 0) g = 0;
     
     a.pixels[j*SZ+i] = color(c,c,c);
     
@@ -117,11 +140,11 @@ void draw() {
   
   
   beginShape();
-texture(a);
-vertex(0, 0, 0, 0);
-vertex(width, 0, a.width, 0);
-vertex(width, height, a.width, a.height);
-vertex(0, height, 0, a.height);
-endShape();
+  texture(a);
+  vertex(0, 0, 0, 0);
+  vertex(width, 0, a.width, 0);
+  vertex(width, height, a.width, a.height);
+  vertex(0, height, 0, a.height);
+  endShape();
   
 }
