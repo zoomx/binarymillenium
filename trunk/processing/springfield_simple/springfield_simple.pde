@@ -1,9 +1,12 @@
 
 /// TBD make a texture and draw the colors onto that to get free
 /// interpolation when it is scaled up
-final int SZ = 80;
+final int SZ = 70;
 float field[][];
 float field_vel[][];
+
+final float k = 0.08;
+final float max_vel = 0.15;
 
 float x_sc, y_sc;
 
@@ -31,36 +34,25 @@ void draw() {
  noStroke();
   
   
-  for (int i = 0; i < SZ; i++) {
-  for (int j = 0; j < SZ; j++) {
-    int c = (int)(field[i][j]*255);
-    if (c > 255) c = 255;
-    if (c < 0) c = 0;
-    
-    a.pixels[j*SZ+i] = color(c,c,c);
-    
-    //rect(i*x_sc,j*y_sc, x_sc,y_sc);
-  }}
-  
-  
-  beginShape();
-texture(a);
-vertex(0, 0, 0, 0);
-vertex(width, 0, a.width, 0);
-vertex(width, height, a.width, a.height);
-vertex(0, height, 0, a.height);
-endShape();
+
 
  
  
   if(mousePressed) {
     int i = (int) (mouseX/x_sc)%SZ;
-    int j = (int) (mouseY/y_sc)%SZ;  
+    int j = (int) (mouseY/y_sc)%SZ;
+  
+    if (i < 0) i =0;
+    if (j < 0) j =0;  
     
     field_vel[i][j] += 0.013;
     
    
   }
+  
+  
+  float min_field = 1000;
+  float max_field = 0;
  
   for (int i = 0; i < SZ; i++) {
   for (int j = 0; j < SZ; j++) {
@@ -77,10 +69,14 @@ endShape();
         field_vel[i][j] = -field_vel[i][j]*0.4;
     }
     
-    field_vel[i][j] *= 0.9999;
+    field_vel[i][j] *= 0.998;
+    field[i][j] *= 0.998;
+    
+    if (field[i][j] > max_field) max_field = field[i][j];
+    if (field[i][j] < min_field) min_field = field[i][j];
     
     float dx;
-    final float k = 0.01;
+ 
     
     if (i < SZ-1) {
       dx = field[i+1][j] - field[i][j];
@@ -102,9 +98,30 @@ endShape();
     }
     
     
-    final float max_vel = 0.05;
+
     if ( field_vel[i][j] > max_vel)  field_vel[i][j] = max_vel;
     if ( field_vel[i][j] < -max_vel)  field_vel[i][j] = -max_vel;
   }} 
+  
+  
+    for (int i = 0; i < SZ; i++) {
+  for (int j = 0; j < SZ; j++) {
+    int c = (int)( (field[i][j]-min_field)/(max_field-min_field)*255);
+    if (c > 255) c = 255;
+    if (c < 0) c = 0;
+    
+    a.pixels[j*SZ+i] = color(c,c,c);
+    
+    //rect(i*x_sc,j*y_sc, x_sc,y_sc);
+  }}
+  
+  
+  beginShape();
+texture(a);
+vertex(0, 0, 0, 0);
+vertex(width, 0, a.width, 0);
+vertex(width, height, a.width, a.height);
+vertex(0, height, 0, a.height);
+endShape();
   
 }
