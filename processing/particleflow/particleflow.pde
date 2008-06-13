@@ -3,11 +3,14 @@ float t;
 
  boolean use_texture = false;
 final boolean tree_like = true;
+boolean use_lateral =false;
+boolean all_lateral = false;
 final int NUM_PS = 500;
 
 PImage a;
+PImage b;
 
- float div = 150.0;
+ float div = 50.0;
  
  
 class particle {
@@ -18,6 +21,8 @@ class particle {
   float old_y;
   
   int counter;
+  
+  boolean lateral;
   
   color c;
   
@@ -56,16 +61,20 @@ class particle {
     old_x = x;
     old_y = y;
 
-  
-    x += mv*(noise(x/div,y/div,t) - 0.5);
-    y += mv*(noise(width + x/div,y/div,t) - 0.5);   
+     float a = mv*(noise(x/div,y/div,t) - 0.5);
+     float b = mv*(noise(width + x/div,y/div,t) - 0.5);   
+    x += lateral ? a : -b;
+    y += lateral ? b : a;
   }
   
   void new_pos() {
    
-    
- 
-    
+        //if (random(1) > 0.5) lateral = true;
+        if (use_lateral) lateral = !lateral;
+       else {
+       if (all_lateral) lateral = true;
+        else lateral = false;
+       }
         counter = 0;
           
           
@@ -105,7 +114,7 @@ class particle {
       float b = random(255);
       //if (random(1) > 0.9)c1 = 0;
       
-      c = color(c1,g,b,10+random(10));
+      c = color(c1,g,lateral? b : 255-b,15+random(45));
       if (use_texture)  c = color(c1,g,b,10+random(90));
          
   }
@@ -114,6 +123,8 @@ class particle {
     
     x_seed = width/4 + random(width/2);
      new_pos();
+     
+ 
   }
   
   void test_respawn() {
@@ -134,14 +145,18 @@ void setup() {
   
   
   frameRate(30);
-  size(800,600,P3D);
+  size(640,480,P3D);
   
      a = new PImage();
      a.width = width;
      a.height = height;
      a.pixels = new color[a.width*a.height];
      
-  
+     b = new PImage();
+     b.width = width/2;
+     b.height = height/2;
+     b.pixels = new color[a.width*a.height];
+     
   ps = new particle[NUM_PS];  
   
   for (int i = 0; i< ps.length; i++) {
@@ -174,7 +189,7 @@ endShape();
   } else {
       
   
-  counter++;
+ 
   if (counter % 50 == 0) { 
     fill(0,0,0,1);
     rect(0,0, width, height);
@@ -210,16 +225,33 @@ endShape();
   }
   
   
-    if (counter > 500) {
+   counter++;
+    if ((counter > 600) || (mousePressed)) {
      counter = 0;
-     fill(0,0,0,230);
+     fill(0,0,0,5);
      t+= 0.1;
-    //rect(0,0, width, height);
-    div += 100.0*(noise(t)-0.5);
-    if (div < 5) div += 100;
+    rect(0,0, width, height);
+    div += 10.0*(noise(t)-0.5);
+    if (div < 5) div += 50;
     
-    use_texture = !use_texture;
+   // use_texture = !use_texture;
      
   }
-  t += 0.001;
+  
+  if(keyPressed) { 
+    if(key == 'f') {
+      fill(0,0,0,100);
+      rect(0,0, width, height);
+    }
+    if(key == 'j') {
+      div += 2.0*(noise(t)-0.5);
+      t+= 0.1;
+      if (div < 5) div += 50;
+    }
+    if(key == 'l') {
+      all_lateral = !all_lateral;
+    }
+  }
+  
+  t += 0.002;
 }
