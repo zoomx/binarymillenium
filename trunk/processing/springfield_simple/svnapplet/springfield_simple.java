@@ -1,4 +1,4 @@
-/**
+import processing.core.*; import java.applet.*; import java.awt.*; import java.awt.image.*; import java.awt.event.*; import java.io.*; import java.net.*; import java.text.*; import java.util.*; import java.util.zip.*; public class springfield_simple extends PApplet {/**
  
 binarymillenium 2008
 <br><br>
@@ -20,14 +20,14 @@ boolean do_gassy = false;
 final int SZ = 80;
 
 /// difference between left and right makes it seem like the water is moving
-final float k = 0.02;
+final float k = 0.02f;
 
-final float max_vel = 0.3;
-final float gravity = 0.000005;
+final float max_vel = 0.3f;
+final float gravity = 0.000005f;
 
 float div = SZ/10; //12.0;
 
-float f_mask_mod = 1.0;
+float f_mask_mod = 1.0f;
 
 float t;
 
@@ -43,7 +43,7 @@ PImage a;
 
    
 
-void setup() {
+public void setup() {
  
  field     = new float[SZ][SZ]; 
  field_vel = new float[SZ][SZ]; 
@@ -56,7 +56,7 @@ void setup() {
    a = new PImage();
      a.width = SZ;
      a.height = SZ;
-     a.pixels = new color[a.width*a.height];
+     a.pixels = new int[a.width*a.height];
  
  x_sc = width/SZ;
  y_sc = height/SZ;
@@ -68,14 +68,14 @@ void setup() {
 
 float movex = 0;
 float movey = 0;
-float movevel = 0.2;
+float movevel = 0.2f;
 
-void draw() {
+public void draw() {
  noStroke();
   
-       t += 0.005;
+       t += 0.005f;
   movex += noise(t*6)*movevel;
- movey += (noise(10000+t*6)-0.5)*movevel*2;
+ movey += (noise(10000+t*6)-0.5f)*movevel*2;
  
  
   if(mousePressed) {
@@ -85,7 +85,7 @@ void draw() {
     if (i < 0) i =0;
     if (j < 0) j =0;  
     
-    field_vel[i][j] += 0.057;
+    field_vel[i][j] += 0.057f;
   }
   
   
@@ -97,14 +97,14 @@ void draw() {
     
     {
       
-      float f =   0.1*noise((i+movex*2)/div,(j+movey)/div,t) +
-                  0.2*noise((i+movex*6)/(2*div),(j+movey*6)/(2*div),t)+ 
-                  0.7*noise((i+movex)/(4*div),(j+movey)/(4*div),t); 
+      float f =   0.1f*noise((i+movex*2)/div,(j+movey)/div,t) +
+                  0.2f*noise((i+movex*6)/(2*div),(j+movey*6)/(2*div),t)+ 
+                  0.7f*noise((i+movex)/(4*div),(j+movey)/(4*div),t); 
  
-    float th = 0.4;
+    float th = 0.4f;
     
-    f -= 0.08;
-    f *= 1.1;
+    f -= 0.08f;
+    f *= 1.1f;
     
     f *= f;
     f *= f_mask_mod;
@@ -118,7 +118,7 @@ void draw() {
        
     if (field[i][j] < f_mask[i][j]) {
         field[i][j] = f_mask[i][j];
-       field_vel[i][j] = -field_vel[i][j]*0.05;
+       field_vel[i][j] = -field_vel[i][j]*0.05f;
     }
         //if (field[i][j] > 1.0) {
         //field_vel[i][j] = -field_vel[i][j]*0.4;
@@ -138,14 +138,14 @@ void draw() {
      float k2 = k;
      
     if (do_gassy) {
-      k1 *= 2.0*(field[i][j]-f_mask[i][j]);
-      k2 *= 2.0*(field[i][j]-f_mask[i][j]);
+      k1 *= 2.0f*(field[i][j]-f_mask[i][j]);
+      k2 *= 2.0f*(field[i][j]-f_mask[i][j]);
     }
     
     
     if (i < SZ-1) {
-      k1 += 2.0*(field[i][j]-f_mask[i][j]);
-      k2 += 2.0*(field[i+1][j]-f_mask[i+1][j]);
+      k1 += 2.0f*(field[i][j]-f_mask[i][j]);
+      k2 += 2.0f*(field[i+1][j]-f_mask[i+1][j]);
       
       dx = field[i+1][j] - field[i][j];
       field_vel[i][j]   += dx*k1;
@@ -156,8 +156,8 @@ void draw() {
       field_vel[0][j] -= dx*k2;
     }
     if (j < SZ-1) {
-          k1 += 2.0*(field[i][j]-f_mask[i][j]);
-      k2 += 2.0*(field[i][j+1]-f_mask[i][j+1]);
+          k1 += 2.0f*(field[i][j]-f_mask[i][j]);
+      k2 += 2.0f*(field[i][j+1]-f_mask[i][j+1]);
       
       dx = field[i][j+1] - field[i][j];
       field_vel[i][j]  += dx*k1;
@@ -190,7 +190,7 @@ void draw() {
     //if (f_mask[i][j] < 0.0) b = 0;
     
     if (do_gassy) {
-      int b = (int)( 2.0*((field[i][j]-f_mask[i][j]))*255);
+      int b = (int)( 2.0f*((field[i][j]-f_mask[i][j]))*255);
      
       
       a.pixels[j*SZ+i] = color(b+c,b+c,5*b);
@@ -206,7 +206,7 @@ void draw() {
     
   if(keyPressed) { 
     if(key == 't') {
-      t += 0.1;     
+      t += 0.1f;     
     }
     
     if(key == 'g') {
@@ -214,22 +214,22 @@ void draw() {
     }
      
     if(key == 'e') {
-      div *= 1.5;
+      div *= 1.5f;
     }
     if(key == 'd') {
-      div /= 1.5;
+      div /= 1.5f;
     }
     
     if (k == 'i') {
       movevel *= 2;
     } 
     if (k == 'j') {
-      movevel /= 1.5;
+      movevel /= 1.5f;
     }
     
     if (key == 'r') {
        // reset
-       t = 0.0; 
+       t = 0.0f; 
        div = SZ/10;
        
        field     = new float[SZ][SZ]; 
@@ -237,7 +237,7 @@ void draw() {
        f_mask    = new float[SZ][SZ];
     }
     if (key == 'm') {
-      f_mask_mod = (f_mask_mod < 0.5) ? 1.0 : 0.0;
+      f_mask_mod = (f_mask_mod < 0.5f) ? 1.0f : 0.0f;
     }
     
   }
@@ -253,3 +253,5 @@ void draw() {
   endShape();
   
 }
+
+  static public void main(String args[]) {     PApplet.main(new String[] { "springfield_simple" });  }}
