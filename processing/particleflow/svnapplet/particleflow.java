@@ -1,4 +1,4 @@
-/**
+import processing.core.*; import java.applet.*; import java.awt.*; import java.awt.image.*; import java.awt.event.*; import java.io.*; import java.net.*; import java.text.*; import java.util.*; import java.util.zip.*; public class particleflow extends PApplet {/**
   binarymillenium
   <br><br>
   2008
@@ -24,7 +24,7 @@ final int NUM_PS = 500;
 PImage a;
 PImage b;
 
- float div = 50.0;
+ float div = 50.0f;
  
  
 class particle {
@@ -38,16 +38,16 @@ class particle {
   
   boolean lateral;
   
-  color c;
+  int c;
   
   float x_seed;
  
-  final float mv = 60.0;
+  final float mv = 60.0f;
   
   static final float max_counter = 150;
   
   ///////////////////////////////////
-  void draw() {
+  public void draw() {
     stroke(c);
       fill(c);
       
@@ -55,7 +55,7 @@ class particle {
    //rect(x,y,2,2);  
   }
   
-  void update() {
+  public void update() {
     
     
     
@@ -75,13 +75,13 @@ class particle {
     old_x = x;
     old_y = y;
 
-     float a = mv*(noise(x/div,y/div,t) - 0.5);
-     float b = mv*(noise(width + x/div,y/div,t) - 0.5);   
+     float a = mv*(noise(x/div,y/div,t) - 0.5f);
+     float b = mv*(noise(width + x/div,y/div,t) - 0.5f);   
     x += lateral ? a : -b;
     y += lateral ? b : a;
   }
   
-  void new_pos() {
+  public void new_pos() {
    
         //if (random(1) > 0.5) lateral = true;
         if (use_lateral) lateral = !lateral;
@@ -141,10 +141,10 @@ class particle {
  
   }
   
-  void test_respawn() {
-    final float f = 0.1;
-    if ((x > width*(1.0+f))  || (x < -width*f) || 
-        (y > height*(1.0+f)) || (y < -height*f) ) {
+  public void test_respawn() {
+    final float f = 0.1f;
+    if ((x > width*(1.0f+f))  || (x < -width*f) || 
+        (y > height*(1.0f+f)) || (y < -height*f) ) {
           
           new_pos();
 
@@ -155,7 +155,7 @@ class particle {
 
 particle ps[];
 
-void setup() {
+public void setup() {
   
   
   frameRate(30);
@@ -164,12 +164,12 @@ void setup() {
      a = new PImage();
      a.width = width;
      a.height = height;
-     a.pixels = new color[a.width*a.height];
+     a.pixels = new int[a.width*a.height];
      
      b = new PImage();
      b.width = width/2;
      b.height = height/2;
-     b.pixels = new color[a.width*a.height];
+     b.pixels = new int[a.width*a.height];
      
   ps = new particle[NUM_PS];  
   
@@ -182,7 +182,7 @@ void setup() {
 }
 
 int counter;
-void draw() {
+public void draw() {
   
   
   if (use_texture) {
@@ -245,9 +245,9 @@ endShape();
     if ((counter > 200) || (mousePressed)) {
      counter = 0;
      fill(0,0,0,200);
-     t+= 0.1;
+     t+= 0.1f;
     rect(0,0, width, height);
-    div += 10.0*(noise(t)-0.5);
+    div += 10.0f*(noise(t)-0.5f);
     if (div < 5) div += 50;
     
    // use_texture = !use_texture;
@@ -260,8 +260,8 @@ endShape();
       rect(0,0, width, height);
     }
     if(key == 'j') {
-      div += 2.0*(noise(t)-0.5);
-      t+= 0.1;
+      div += 2.0f*(noise(t)-0.5f);
+      t+= 0.1f;
       if (div < 5) div += 50;
     }
     if(key == 'l') {
@@ -276,5 +276,7 @@ endShape();
       
   }
   
-  t += 0.002;
+  t += 0.002f;
 }
+
+  static public void main(String args[]) {     PApplet.main(new String[] { "particleflow" });  }}
