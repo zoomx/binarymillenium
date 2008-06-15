@@ -1,10 +1,13 @@
-final int SZ = 85;
+final int SZ = 95;
 
-float max_vel = 10.0;
+float max_vel = 12.0;
 float max_pres = 200.0;
 
-       final float kp = 0.001; //000035;
-       final float kv = 0.5;
+       final float kp = 0.0009; //000035;
+       /// smaller kvv means kp is more velocity dependent
+       float kvv = 0.2;
+           
+       final float kv = 0.9;
        final float kavgdp = 0.005;
        final float kdp = 0.09;
        
@@ -90,13 +93,13 @@ float[][][] update_f(float[][][] fw, float[][][] fnew) {
      if (p > new_max_p) new_max_p = p;
      if (p < new_min_p) new_min_p = p;
     
-     float r = (int) (255*(xv-min_x)/(max_x-min_x));
-     float g = (int) (255*(yv-min_y)/(max_y-min_y));
+     float r = (int) (255*xv/max_vel);  //(xv-min_x)/(max_x-min_x));
+     float g = (int) (255*yv/max_vel);   //(yv-min_y)/(max_y-min_y));
      //float b = (int) (255*(p-min_p)/(max_p-min_p));
      float b = (int) (255*(p/max_pres));
      
       boolean mkij = (mk[i][j] < 0.5);
-      a.pixels[j*SZ + i] = mkij ? color(b,b,b) : color(0,200,0) ;  
+      a.pixels[j*SZ + i] = mkij ? color(r,g,b) : color(0,200,0) ;  
   
       if ((i > 0) && (j > 0) && (i < SZ-1) && (j < SZ-1)) {
        /// update pressure by adding the sum of all the velocity vectors into a point
@@ -143,27 +146,16 @@ float[][][] update_f(float[][][] fw, float[][][] fnew) {
        float pul = fw[i-1][j-1][2] ;
        float pdr = fw[i+1][j+1][2] ;
        
-       if (!mkl)  pl = p; ///2 + pl/2;
-       if (!mkr)  pr = p;///2 + pr/2;
-       if (!mku)  pu = p; ///2 + pu/2;
+       if (!mkl)  pl = p; 
+       if (!mkr)  pr = p;
+       if (!mku)  pu = p; 
        if (!mkd)  pd = p;
        
-       if (!mklu)  plu = p; ///2 + pl/2;
-       if (!mkrd)  prd = p;///2 + pr/2;
-       if (!mkul)  pul = p; ///2 + pu/2;
+       if (!mklu)  plu = p;
+       if (!mkrd)  prd = p;
+       if (!mkul)  pul = p; 
        if (!mkdr)  pdr = p;
-       /*
-       if (!(mkij && mkl))  pl = p; ///2 + pl/2;
-       if (!(mkij && mkr))  pr = p;///2 + pr/2;
-       if (!(mkij && mku))  pu = p; ///2 + pu/2;
-       if (!(mkij && mkd))  pd = p;
-       
-       if (!(mkij && mkl))  pl = p; ///2 + pl/2;
-       if (!(mkij && mkr))  pr = p;///2 + pr/2;
-       if (!(mkij && mku))  pu = p; ///2 + pu/2;
-       if (!(mkij && mkd))  pd = p;
-       */
-       
+      
     
     /*
        float sobel_x = ((xvlu + 2*xvl + xvld) - (xvru + 2*xvr + xvrd))/4;
@@ -179,18 +171,18 @@ float[][][] update_f(float[][][] fw, float[][][] fnew) {
        if (mkij) {
          fnew[i][j][2] = p + avg_dp + dp;
                              
-         if (fnew[i][j][2] < 0) fnew[i][j][2]  = 0;  
-         if (fnew[i][j][2] > max_pres) fnew[i][j][2]  = 100.0;    
+         if (fnew[i][j][2] < 0) fnew[i][j][2]  = 0.01;  
+         if (fnew[i][j][2] > max_pres) fnew[i][j][2]  =max_pres;    
        } else {  
-         fnew[i][j][2] = 0;
+         fnew[i][j][2] = 0.01;
        }
   
        
 
       // float pxdiff = xvl*(pl-p)*kp + xvr*(p-pr)*kp;  
       // float pydiff = yvu*(pu-p)*kp + yvd*(p-pd)*kp; 
-      float kvv = 0.5;
-       float pxdiff = kvv*(pl-pr) + (1.0-kvv)*(pl*(xvl+1)/(xvl+xvr)-pr*(xvr+1)/(xvl+xvr+1));  
+  
+       float pxdiff = kvv*(pl-pr) + (1.0-kvv)*(pl*(xvl+1)/(xvl+xvr+1)-pr*(xvr+1)/(xvl+xvr+1));  
        float pydiff = kvv*(pu-pd) + (1.0-kvv)*(pu*(yvu+1)/(yvu+yvd+1)-pd*(yvd+1)/(yvu+yvd+1)); 
    
        
@@ -199,8 +191,8 @@ float[][][] update_f(float[][][] fw, float[][][] fnew) {
   
        float ptot  = pl + pr + pu + pd + 0.1;
        
-       float new_xv = pl/ptot*xvl + pl/ptot*xvu + pr/ptot*xvr + pl/ptot*xvd;
-       float new_yv = pu/ptot*yvu + pd/ptot*yvd + pu/ptot*yvl + pd/ptot*yvr;
+       float new_xv = (pl*xvl + pu*xvu + pr*xvr + pd*xvd)/ptot;
+       float new_yv = (pu*yvu + pd*yvd + pl*yvl + pd*yvr)/ptot;
   
        fnew[i][j][0] = mkij ? xv*(1.0-kv) + new_xv*kv + pxdiff*kp : 0.0;
        fnew[i][j][1] = mkij ? yv*(1.0-kv) + new_yv*kv + pydiff*kp : 0.0; 
@@ -210,8 +202,8 @@ float[][][] update_f(float[][][] fw, float[][][] fnew) {
     
        /// zero out velocity if there is no pressure
        if (fnew[i][j][2] <= 0.01) {
-         fnew[i][j][0] = 0.01;
-         fnew[i][j][1] = 0.01;
+         fnew[i][j][0] = random(-0.01,0.01);
+         fnew[i][j][1] = random(-0.01,0.01);
        }
        
        if ((fnew[i][j][0] < 0) && !mkl) fnew[i][j][0] = 0.0;
