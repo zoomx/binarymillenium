@@ -1,5 +1,6 @@
-final int SZ = 20;
+final int SZ = 85;
 
+float max_vel = 5.0;
 /// xy vector flow field, plus pressure
 float f1[][][];
 float f2[][][];
@@ -23,6 +24,23 @@ void setup() {
   reset();
 }
 
+float fadeout(int i, int j)
+{
+   float retain = 1.0;
+   
+   final int md = SZ/6;
+   if (i < md) retain *= (float)i/md;
+   if (j < md) retain *= (float)j/md;
+   if ((SZ-i) < md) retain *= (float)(SZ-i)/md;
+   if ((SZ-j) < md) retain *= (float)(SZ-j)/md;
+   
+   retain*= retain;
+   //retain*= retain;
+   
+   return retain;
+  
+}
+
 void reset() {
      f1 = new float[SZ][SZ][3];
      f2 = new float[SZ][SZ][3];
@@ -37,7 +55,7 @@ void reset() {
    // be changed
    for (int i = 0; i < SZ; i++) {
    for (int j = 0; j < SZ; j++) {
-      f1[i][j][0] = -4.0;
+      f1[i][j][0] = max_vel/3;
       f1[i][j][1] = 0.0;
       
       f1[i][j][2] = 50.0; 
@@ -73,59 +91,91 @@ float[][][] update_f(float[][][] fw, float[][][] fnew) {
      float b = (int) (255*(p-min_p)/(max_p-min_p));
      
       boolean mkij = (mk[i][j] < 0.5);
-      a.pixels[j*SZ + i] = mkij ? color(b,b,b) : color(0,200,0) ;  
+      a.pixels[j*SZ + i] = mkij ? color(r,g,b) : color(0,20,0) ;  
   
+      if ((i > 0) && (j > 0) && (i < SZ-1) && (j < SZ-1)) {
        /// update pressure by adding the sum of all the velocity vectors into a point
        
-       float xvl = (i > 0)   ? fw[i-1][j][0] : fw[i+1][j][1];
-       float xvr = (i < SZ-1)? fw[i+1][j][0] : xvl;
-       float yvu = (j > 0)   ? fw[i][j-1][1] : fw[i][j+1][1];
-       float yvd = (j < SZ-1)? fw[i][j+1][1] : yvu;
+       float xvl = fw[i-1][j][0];
+       float xvr = fw[i+1][j][0];
        
-       boolean mkl = (i > 0)   ? (mk[i-1][j] < 0.5) : true;
-       boolean mkr = (i < SZ-1)? (mk[i+1][j] < 0.5) : true;
-       boolean mku = (j > 0)   ? (mk[i][j-1] < 0.5) : true;
-       boolean mkd = (j < SZ-1)? (mk[i][j+1] < 0.5) : true;
+       float xvlu = fw[i-1][j-1][0];
+       float xvru = fw[i+1][j-1][0];
+       float xvld = fw[i-1][j+1][0];
+       float xvrd = fw[i+1][j+1][0];
        
-       float pl  = (mkij && mkl) && (i > 0)   ? fw[i-1][j][2] : p;
-       float pr  = (mkij && mkr) && (i <SZ-1) ? fw[i+1][j][2] : p;
-       float pu  = (mkij && mku) && (j > 0)   ? fw[i][j-1][2] : p;
-       float pd  = (mkij && mkd) && (j <SZ-1) ? fw[i][j+1][2] : p;
+
+       float yvu = fw[i][j-1][1];
+       float yvd = fw[i][j+1][1];
        
-        if ((i > 0) && (j > 0) && (i < SZ-1) && (j < SZ-1)) {
+       float yvul = fw[i-1][j-1][1];
+       float yvdl = fw[i-1][j+1][1];
+       float yvur = fw[i+1][j-1][1];
+       float yvdr = fw[i+1][j+1][1];
+ 
+       
+       boolean mkl = (mk[i-1][j] < 0.5);
+       boolean mkr = (mk[i+1][j] < 0.5);
+       boolean mku = (mk[i][j-1] < 0.5);
+       boolean mkd = (mk[i][j+1] < 0.5);
+       
+       float pl = fw[i-1][j][2] ;
+       float pr = fw[i+1][j][2] ;
+       float pu = fw[i][j-1][2] ;
+       float pd = fw[i][j+1][2] ;
+       
+       if (!(mkij && mkl))  pl = p; ///2 + pl/2;
+       if (!(mkij && mkr))  pr = p;///2 + pr/2;
+       if (!(mkij && mku))  pu = p; ///2 + pu/2;
+       if (!(mkij && mkd))  pd = p;//2 + pd/2;
+       
+    
+       float sobel_x = ((xvlu + 2*xvl + xvld) - (xvru + 2*xvr + xvrd))/4;
+       float sobel_y = ((yvur + 2*yvu + yvul) - (yvur + 2*yvd + yvul))/4;
+       
+       float sobel = fadeout(i,j)*(sobel_x+sobel_y);
+   
        if (mkij) {
-         fnew[i][j][2] = /*fnew[i][j][2]/2 +*/ (p + yvu - yvd + xvl - xvr);// /2;
+         fnew[i][j][2] = p + sobel*0.6;
+                             
          if (fnew[i][j][2] < 0) fnew[i][j][2]  = 0;  
          if (fnew[i][j][2] > 100.0) fnew[i][j][2]  = 100.0;    
        } else {  
          fnew[i][j][2] = 0;
        }
-        } else {
-          fnew[i][j][2] = p;
-        }
+  
        
-       final float kp = 0.0005;
+       final float kp = 0.0025;
        final float kv = 0.005;
        float pxdiff = (pl-p)*kp + (p-pr)*kp;  
-       float pydiff = (pu-p)*kp + (p-pd)*kp;  
-       float xvdiff = (xvl-xv)*kv + (xv-xvr)*kv;
-       float yvdiff = (yvu-yv)*kv + (yv-yvd)*kv;
+       float pydiff = (pu-p)*kp + (p-pd)*kp; 
+      
+        //pxdiff = pxdiff/2 + pxdiff*sin(atan2(yv,xv)); 
+        //pydiff = pydiff/2 + pydiff*cos(atan2(yv,xv));
        
-       /// keep boundary the same velocity
-       if ((i > 0) && (j > 0) && (i < SZ-1) && (j < SZ-1)) {
-         fnew[i][j][0] = mkij ? xv  + pxdiff  + xvdiff  : 0.0;
-         fnew[i][j][1] = mkij ? yv  + pydiff  + yvdiff : 0.0; 
-       } else {
-         fnew[i][j][0] = xv;
-         fnew[i][j][1] = yv;
-       }
+       //if ((pxdiff > 0) && (xv > 0)) pxdiff += pxdiff*xv/2.0;
+       //if ((pydiff > 0) && (yv > 0)) pydiff += pydiff*yv/2.0;
+       
+       float avg_x = ((xvlu + 2*xvl + xvld) + 3*xv + (xvru + 2*xvr + xvrd))/11;
+       float avg_y = ((yvur + 2*yvu + yvul) + 3*yv + (yvur + 2*yvd + yvul))/11;
+  
+       fnew[i][j][0] = mkij ? xv*(1.0-kv) + avg_x * kv + pxdiff  : 0.0;
+       fnew[i][j][1] = mkij ? yv*(1.0-kv) + avg_y * kv + pydiff : 0.0; 
+    
        
        float vel_mag = sqrt(fnew[i][j][0]*fnew[i][j][0] + fnew[i][j][1]*fnew[i][j][1]);
-       if (vel_mag > 5.0) {
-         fnew[i][j][0] *= 5.0/vel_mag;
-         fnew[i][j][1] *= 5.0/vel_mag;
+       if (vel_mag > max_vel) {
+         fnew[i][j][0] *= max_vel/vel_mag;
+         fnew[i][j][1] *= max_vel/vel_mag;
        }
      
+  } else {
+        
+       /// keep boundary the same velocity and pressure
+    fnew[i][j][2] = p;
+    fnew[i][j][0] = xv;
+    fnew[i][j][1] = yv;
+  }
      
   }
   } 
@@ -178,6 +228,7 @@ void draw() {
   vertex(0, height, ox, a.height+oy);
   endShape(); 
   
+  if (false) {
  int ox2 = (width/SZ)/2;
  int oy2 = (height/SZ)/2;
   for (int i = 0; i < SZ; i+=1) {
@@ -189,6 +240,7 @@ void draw() {
     stroke(color(95,0,0));
     line(x, y ,x + f1[i][j][0]*3.0,y+f1[i][j][1]*3.0);
   }}
+  }
   
   if (keyPressed) {
      if (key == 'r') {
