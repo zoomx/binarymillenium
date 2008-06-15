@@ -1,12 +1,12 @@
-final int SZ = 25;
+final int SZ = 85;
 
-float max_vel = 20.0;
+float max_vel = 10.0;
 float max_pres = 200.0;
 
-       final float kp = 0.0; //000035;
-       final float kv = 0.0;
-       final float kavgdp = 0.05;
-       final float kdp = 0.5;
+       final float kp = 0.001; //000035;
+       final float kv = 0.5;
+       final float kavgdp = 0.005;
+       final float kdp = 0.09;
        
 /// xy vector flow field, plus pressure
 float f1[][][];
@@ -189,28 +189,36 @@ float[][][] update_f(float[][][] fw, float[][][] fnew) {
 
       // float pxdiff = xvl*(pl-p)*kp + xvr*(p-pr)*kp;  
       // float pydiff = yvu*(pu-p)*kp + yvd*(p-pd)*kp; 
-       float pxdiff = (pl-pr);  
-       float pydiff = (pu-pd); 
-
+      float kvv = 0.5;
+       float pxdiff = kvv*(pl-pr) + (1.0-kvv)*(pl*(xvl+1)/(xvl+xvr)-pr*(xvr+1)/(xvl+xvr+1));  
+       float pydiff = kvv*(pu-pd) + (1.0-kvv)*(pu*(yvu+1)/(yvu+yvd+1)-pd*(yvd+1)/(yvu+yvd+1)); 
+   
+       
       // float avg_x = ((xvlu + 2*xvl + xvld) + 3*xv + (xvru + 2*xvr + xvrd))/11;
        //float avg_y = ((yvur + 2*yvu + yvul) + 3*yv + (yvur + 2*yvd + yvul))/11;
   
-       float ptot  = pl + pr + pu + pd;
+       float ptot  = pl + pr + pu + pd + 0.1;
        
        float new_xv = pl/ptot*xvl + pl/ptot*xvu + pr/ptot*xvr + pl/ptot*xvd;
        float new_yv = pu/ptot*yvu + pd/ptot*yvd + pu/ptot*yvl + pd/ptot*yvr;
   
-       fnew[i][j][0] = mkij ? xv /*xv*(1.0-kv) + new_xv*kv + pxdiff*kp*/ : 0.0;
-       fnew[i][j][1] = mkij ? yv /*yv*(1.0-kv) + new_yv*kv + pydiff*kp*/ : 0.0; 
+       fnew[i][j][0] = mkij ? xv*(1.0-kv) + new_xv*kv + pxdiff*kp : 0.0;
+       fnew[i][j][1] = mkij ? yv*(1.0-kv) + new_yv*kv + pydiff*kp : 0.0; 
     
        //fnew[i][j][0] = mkij ? xv + pxdiff : 0.0;
        //fnew[i][j][1] = mkij ? yv + pydiff : 0.0;
     
        /// zero out velocity if there is no pressure
-       /*if (fnew[i][j][2] <= 0.0) {
-         fnew[i][j][0] = 0;
-         fnew[i][j][1] = 0;
+       if (fnew[i][j][2] <= 0.01) {
+         fnew[i][j][0] = 0.01;
+         fnew[i][j][1] = 0.01;
        }
+       
+       if ((fnew[i][j][0] < 0) && !mkl) fnew[i][j][0] = 0.0;
+       if ((fnew[i][j][0] > 0) && !mkr) fnew[i][j][0] = 0.0;
+       if ((fnew[i][j][1] < 0) && !mku) fnew[i][j][1] = 0.0;
+       if ((fnew[i][j][1] > 0) && !mkd) fnew[i][j][1] = 0.0;
+       
        
        
        float vel_mag = sqrt(fnew[i][j][0]*fnew[i][j][0] + fnew[i][j][1]*fnew[i][j][1]);
@@ -218,7 +226,7 @@ float[][][] update_f(float[][][] fw, float[][][] fnew) {
          fnew[i][j][0] *= max_vel/vel_mag;
          fnew[i][j][1] *= max_vel/vel_mag;
        }
-       */
+       
      
   } else {
         
@@ -279,7 +287,7 @@ void draw() {
   vertex(0, height, ox, a.height+oy);
   endShape(); 
   
-  if (true) {
+  if (false) {
  int ox2 = (width/SZ)/2;
  int oy2 = (height/SZ)/2;
   for (int i = 0; i < SZ; i+=1) {
@@ -288,10 +296,10 @@ void draw() {
     int y = j*height/SZ + oy2;
     stroke(color(255,0,0));
     //line(x, y ,x + f1[i][j][2]*f1[i][j][0]*0.04,y+f1[i][j][2]*f1[i][j][1]*0.04);
-    line(x, y ,x + f1[i][j][0]*3,y+f1[i][j][1]*3);
+    line(x, y ,x + f1[i][j][0]*6,y+f1[i][j][1]*6);
     stroke(color(95,0,0));
     //line(x, y ,x + f1[i][j][2]*f1[i][j][0]*0.02,y+f1[i][j][2]*f1[i][j][1]*0.02);
-    line(x, y ,x + f1[i][j][0]*1.2,y+f1[i][j][1]*1.2);
+    line(x, y ,x + f1[i][j][0]*3.2,y+f1[i][j][1]*3.2);
   }}
   }
   
