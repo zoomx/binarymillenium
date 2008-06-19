@@ -21,6 +21,8 @@
 class sun {
    float xyz[];
   float radius;
+  
+
  
   sun(float x,float y, float z, float radius) {
       xyz = new float[3];
@@ -37,15 +39,20 @@ class sun {
 }
 
 class sky {
+  
+    float g = 0.44;
+  float turbidity = 1.027;//1.5;
+  
+  float gain = 1.0;
 
   PImage a;
 
   static final int SZ = 50;
   
-  final float maxLong = PI/4;
+  final float maxLong = PI;
   final float minLong =-maxLong;
-  final float maxLat = PI/3;
-  final float minLat = 0;
+  final float maxLat = 2*PI;
+  final float minLat = PI;
 
   float colors[][][];
   float coords[][][];
@@ -331,8 +338,7 @@ sky()
         sunIntensity[1] = 12.0*sif;
         sunIntensity[2] = 10.0*sif;
 
-        float g = 0.44;
-        float turbidity = 1.0;//1.5;
+      
 
 
         if (false) {
@@ -471,8 +477,8 @@ sky()
           coords[i][j][2] = skyPoint[2];
                  
 
-          for (int k = 0; k <1; k++) {
-            if (colors[i][j][k] > maxI) maxI = colors[i][j][k]*0.99;
+          for (int k = 0; k <2; k++) {
+            if (colors[i][j][k] > maxI) maxI = colors[i][j][k]/gain;
           }
 
         }
@@ -522,6 +528,34 @@ void newSun(int x, int y)
                            radius*cos(latitude),
                            sunRadius);
   
+  sun ssuns[] = new sun[suns.length+1];
+  
+  for (int i = 0;i <suns.length; i++ ) {
+     ssuns[i] = suns[i]; 
+  }
+  ssuns[suns.length] = nsun;
+ 
+  
+  suns = ssuns;
+ 
+  compute();
+}
+
+void replaceSun(int x, int y) {
+  {
+ 
+  float longitude = (float)x/width*(maxLong-minLong) + minLong;
+  float latitude  = (float)y/height*(maxLat-minLat)  + minLat;
+  float sunRadius = radius/60.0; 
+  
+  
+  print(longitude +  " " + latitude + "\n");
+  
+   sun nsun = new sun(radius*sin(latitude)*cos(longitude),
+                           radius*sin(latitude)*sin(longitude),
+                           radius*cos(latitude),
+                           sunRadius);
+  
   sun ssuns[] = new sun[1]; //suns.length+1];
   
   //for (int i = 0;i <suns.length; i++ ) {
@@ -535,5 +569,8 @@ void newSun(int x, int y)
  //ssuns = append(ssuns, nsun);
   compute();
 }
+}
 
 }
+
+
