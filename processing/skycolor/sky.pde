@@ -40,22 +40,30 @@ class sun {
 
 class sky {
   
-    float g = 0.44;
+    float g = 0.97; //0.44;
   float turbidity = 1.027;//1.5;
   
   float gain = 1.0;
 
+  /// rayleight gain
+  float fr = 3e-6;
+  /// mie gain
+  float fm = 1.0;
+    
+
   PImage a;
 
-  static final int SZ = 50;
+  static final int SZ = 10;
   
-  final float maxLong = PI;
+  final float maxLong = PI/2;
   final float minLong =-maxLong;
-  final float maxLat = 2*PI;
-  final float minLat = PI;
+  final float maxLat = PI/2;
+  final float minLat = maxLat*0.89;
 
   float colors[][][];
   float coords[][][];
+  
+   float viewpos[];
   
   sun suns[];
 
@@ -191,8 +199,7 @@ class sky {
 
     /// rayleigh is usually the overal sky color, not too dependent on sun position
     /// mie causes brightness near the sun
-    float fr = 3e-6;
-    float fm = 1.0;
+ 
     float br[] = betaR();
     br[0] *= fr;
     br[1] *= fr;
@@ -216,15 +223,9 @@ class sky {
     /// inscattering
     float lin[] = new float[3] ;
     for (int i = 0; i < 3; i++) {
-      lin[i] = (brt[i]+bmt[i])/(br[i]+bm[i]) 
-        * sunIntensity[i] 
-          * (1.0 - exp(-(br[i]*sr + bm[i]*sm)));
+      lin[i] = (brt[i]+bmt[i])/(br[i]+bm[i]) * sunIntensity[i] * (1.0 - exp(-(br[i]*sr + bm[i]*sm)));
     }
 
-    //std::cout << "alt " << alt << ",sr " <<  sr << ", sm " << sm << " " << std::endl;
-    //std::cout << "br " << (br*sr).length() << " bm " << (bm*sm).length()  << std::endl;
-    //			<< ",sumt " << (brt+bmt).length() << ", sum " << (br+bm).length()
-    //			<< ", div " << (brt+bmt).length()/(br+bm).length()  << std::endl;
     return lin;
   }
 
@@ -232,14 +233,14 @@ class sky {
 sky()
 {
 
-  final int numSuns = 0;
+  final int numSuns = 1;
 
   suns = new sun[numSuns];
 
   for (int sunInd= 0; sunInd< suns.length; sunInd++) {
     float longitude = random(2.0*PI);
     float latitude  = random(PI/5.0);
-    float sunRadius = radius/60.0;//   (rand()%100/1e2) *radius/40;
+    float sunRadius = radius/600.0;//   (rand()%100/1e2) *radius/40;
 
     suns[sunInd] = new sun(radius*sin(latitude)*cos(longitude),
                            radius*sin(latitude)*sin(longitude),
@@ -254,36 +255,132 @@ sky()
   //colors = new float[SZ][SZ][3];
   coords = new float[SZ][SZ][3];
   
+  viewpos= new float[3];
+  viewpos[0] = radius*0.0;
+  viewpos[1] = radius*0.0;
+  viewpos[2] = earthRadius;
+  
+  make_coords();
   compute(); 
 }
 
 
 
+void make_coords() {
+  
+     float iSize = (maxLong-minLong)/SZ;
+    float jSize = (maxLat-minLat)/SZ;
+    
+      for (int i = 0; i < SZ; i++) {
+      for (int j = 0; j < SZ; j++) {  
+        
+                float latitude = 0;
+        float longitude = 0;
+
+        longitude = (float)(i*iSize)+minLong;
+        latitude  = (float)(j*jSize)+minLat;
+        
+        
+                float h;
+
+
+          h = radius;
+
+          float x = h*cos(latitude)*cos(longitude);
+          float y = h*cos(latitude)*sin(longitude);
+          float z = h*sin(latitude);   /// zero latitude is straight out to horizon
+      
+        coords[i][j][0] = x;
+        coords[i][j][1] = y;
+        coords[i][j][2] = z;
+       
+        
+      }}
+}
+
+
+
+void draw() {
+    beginShape();
+  texture(a);
+  vertex(0, 0, 0, 0);
+  vertex(width, 0, a.width, 0);
+  vertex(width, height, a.width, a.height);
+  vertex(0, height, 0, a.height);
+  endShape();
+}
+
+
+void newSun(int x, int y)
+{
+ 
+  float longitude = (float)x/width*(maxLong-minLong) + minLong;
+  float latitude  = (float)y/height*(maxLat-minLat)  + minLat;
+  float sunRadius = radius/120.0; 
+  
+  
+  print(longitude +  " " + latitude + "\n");
+  
+   sun nsun = new sun(radius*sin(latitude)*cos(longitude),
+                           radius*sin(latitude)*sin(longitude),
+                           radius*cos(latitude),
+                           sunRadius);
+  
+  sun ssuns[] = new sun[suns.length+1];
+  
+  for (int i = 0;i <suns.length; i++ ) {
+     ssuns[i] = suns[i]; 
+  }
+  ssuns[suns.length] = nsun;
+ 
+  
+  suns = ssuns;
+ 
+  compute();
+}
+
+void replaceSun(int x, int y) {
+  {
+ 
+  float longitude = (float)x/width*(maxLong-minLong) + minLong;
+  float latitude  = (float)y/height*(maxLat-minLat)  + minLat;
+  float sunRadius = radius/120.0; 
+  
+  
+  print(longitude +  " " + latitude + "\n");
+  
+   sun nsun = new sun(radius*cos(latitude)*cos(longitude),
+                           radius*cos(latitude)*sin(longitude),
+                           radius*sin(latitude),
+                           sunRadius);
+  
+  sun ssuns[] = new sun[1]; //suns.length+1];
+  
+  //for (int i = 0;i <suns.length; i++ ) {
+  //   ssuns[i] = suns[i]; 
+  //}
+ // ssuns[suns.length] = nsun;
+  ssuns[0] = nsun;
+  
+  suns = ssuns;
+ 
+ //ssuns = append(ssuns, nsun);
+  compute();
+}
+}
 
 
   void compute() {
     
     float maxI = 0;
     
-      float viewpos[] = new float[3];
-  viewpos[0] = radius*0.0;
-  viewpos[1] = radius*0.0;
-  viewpos[2] = earthRadius;
-    
     colors = new float[SZ][SZ][3];
-
-    float iSize = (maxLong-minLong)/SZ;
-    float jSize = (maxLat-minLat)/SZ;
-    
+ 
     for (int i = 0; i < SZ; i++) {
       for (int j = 0; j < SZ; j++) {    
         
-        float latitude = 0;
-        float longitude = 0;
 
-        longitude = (float)(i*iSize)+minLong;
-        latitude  = (float)(j*jSize)+minLat;
-
+/*
         if (false) {
           /// add jitter to lat long to make them less regular
           if ((i != 0) && (i != (SZ-1)))
@@ -300,29 +397,9 @@ sky()
             colors[i][j][2] = longitude/iSize; 
             colors[i][j][3] = 1.0;
           }
-        }
-
-        float h;
-
-        /// make a sphere
-        if (true) {
-
-          h = radius;
-
-          float longitudeTemp = h*sin(latitude)*cos(longitude);
-          float latitudeTemp = h*sin(latitude)*sin(longitude);
-          float hTemp = h*cos(latitude);
-
-          h = hTemp;
-          longitude = longitudeTemp;
-          latitude = latitudeTemp;
-        }
-
-        float skyPoint[] = new float[3];
-        skyPoint[0] = longitude;
-        skyPoint[1] = latitude;
-        skyPoint[2] = h;
-
+        }*/
+        
+        float skyPoint[] = coords[i][j];
         
         float skydir[] = new float[3];
         skydir[0] = skyPoint[0]-viewpos[0];
@@ -330,6 +407,12 @@ sky()
         skydir[2] = skyPoint[2]-viewpos[2];
         
         float opticalDepth = dist(0,0,0,skydir[0],skydir[1],skydir[2]);
+        
+        
+        //print(opticalDepth + ", " + skydir[0] + " " + skydir[1] + " " + skydir[2] + ", " + skyPoint[2] + "\n");
+        
+        for (int k = 0 ; k < 3; k++)  colors[i][j][k] = opticalDepth; /// TEMP
+        
         float alt = dist(0,0,0,viewpos[0],viewpos[1],viewpos[2])-earthRadius;
 
         float sunIntensity[] = new float[3];
@@ -338,14 +421,13 @@ sky()
         sunIntensity[1] = 12.0*sif;
         sunIntensity[2] = 10.0*sif;
 
-      
-
-
+       /*
         if (false) {
           colors[i][j][0] += 0.8*opticalDepth;  
           colors[i][j][1] += 0.8*opticalDepth; 
           colors[i][j][2] += 2.5*opticalDepth; 
         }
+        */
 
         for (int sunInd= 0; sunInd < suns.length; sunInd++) {
 
@@ -369,11 +451,9 @@ sky()
                           
           float angle = acos(dotprod);	
           //float angleFraction = 2.0*( (1.0-fabs(angle/M_PI))-0.5);
-          //float g = 0.8;
 
           float angleFraction = hg(g, angle);
 
-          //std::cout << angle*180.0/M_PI << " " << angleFraction << std::endl;
 
           float sky[] = skyColor(sunIntensity, alt, opticalDepth, angle, turbidity, g);
           colors[i][j][0] += sky[0];
@@ -381,6 +461,7 @@ sky()
           colors[i][j][2] += sky[2];
 
 
+          /*
           if (false) 
             /// brightening towards sun
           {
@@ -420,11 +501,7 @@ sky()
           if (skydist < suns[sunInd].radius) {
             colors[i][j][0] += 100.0;  
             colors[i][j][1] = 0.0;  
-          } 
-          
-
-
-          else if (false) {
+          } else if (false) {
             float sunRadius = suns[sunInd].xyz[3];
             float factor = (skydist-sunRadius)/sunRadius;
             float blendf = 3.0;
@@ -471,11 +548,11 @@ sky()
               - colors[i][j][2]*(1.0-bf)*dim;  
 
           }
+*/
 
-          coords[i][j][0] = skyPoint[0];
-          coords[i][j][1] = skyPoint[1];
-          coords[i][j][2] = skyPoint[2];
-                 
+  
+
+                
 
           for (int k = 0; k <2; k++) {
             if (colors[i][j][k] > maxI) maxI = colors[i][j][k]/gain;
@@ -494,82 +571,13 @@ sky()
           int rc = (int) (colors[i][j][0]/maxI*255);
           int gc = (int) (colors[i][j][1]/maxI*255);
           int bc = (int) (colors[i][j][2]/maxI*255);
-          a.pixels[(j)*SZ+i] = color(rc,gc,bc);
+          a.pixels[(SZ-j-1)*SZ+i] = color(rc,gc,bc);
           
     }}
     
     
   }
 
-
-void draw() {
-    beginShape();
-  texture(a);
-  vertex(0, 0, 0, 0);
-  vertex(width, 0, a.width, 0);
-  vertex(width, height, a.width, a.height);
-  vertex(0, height, 0, a.height);
-  endShape();
-}
-
-
-void newSun(int x, int y)
-{
- 
-  float longitude = (float)x/width*(maxLong-minLong) + minLong;
-  float latitude  = (float)y/height*(maxLat-minLat)  + minLat;
-  float sunRadius = radius/60.0; 
-  
-  
-  print(longitude +  " " + latitude + "\n");
-  
-   sun nsun = new sun(radius*sin(latitude)*cos(longitude),
-                           radius*sin(latitude)*sin(longitude),
-                           radius*cos(latitude),
-                           sunRadius);
-  
-  sun ssuns[] = new sun[suns.length+1];
-  
-  for (int i = 0;i <suns.length; i++ ) {
-     ssuns[i] = suns[i]; 
-  }
-  ssuns[suns.length] = nsun;
- 
-  
-  suns = ssuns;
- 
-  compute();
-}
-
-void replaceSun(int x, int y) {
-  {
- 
-  float longitude = (float)x/width*(maxLong-minLong) + minLong;
-  float latitude  = (float)y/height*(maxLat-minLat)  + minLat;
-  float sunRadius = radius/60.0; 
-  
-  
-  print(longitude +  " " + latitude + "\n");
-  
-   sun nsun = new sun(radius*sin(latitude)*cos(longitude),
-                           radius*sin(latitude)*sin(longitude),
-                           radius*cos(latitude),
-                           sunRadius);
-  
-  sun ssuns[] = new sun[1]; //suns.length+1];
-  
-  //for (int i = 0;i <suns.length; i++ ) {
-  //   ssuns[i] = suns[i]; 
-  //}
- // ssuns[suns.length] = nsun;
-  ssuns[0] = nsun;
-  
-  suns = ssuns;
- 
- //ssuns = append(ssuns, nsun);
-  compute();
-}
-}
 
 }
 
