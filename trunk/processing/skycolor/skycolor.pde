@@ -14,9 +14,9 @@ void draw() {
     toggle = false;
        
     if (mouseButton == LEFT) {
-       the_sky.newSun(mouseX, mouseY);  
+       the_sky.newSun(mouseX, height-mouseY);  
     } else if (mouseButton == RIGHT) {     
-       the_sky.replaceSun(mouseX, mouseY); 
+       the_sky.replaceSun(mouseX,height- mouseY); 
     }
      print(the_sky.suns.length + "\n");//the_sky.suns[the_sky.suns.length-1].xyz[0] + "\n");
     
