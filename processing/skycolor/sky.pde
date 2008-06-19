@@ -42,10 +42,10 @@ class sky {
 
   static final int SZ = 50;
   
-  final float maxLong = PI/2;
-  final float minLong =-PI/2;
-  final float maxLat = PI/2;
-  final float minLat =-PI/10;
+  final float maxLong = PI/4;
+  final float minLong =-maxLong;
+  final float maxLat = PI/3;
+  final float minLat = 0;
 
   float colors[][][];
   float coords[][][];
@@ -299,8 +299,6 @@ sky()
 
         /// make a sphere
         if (true) {
-          //longitude = longitude/(gridxsize*(iSize-1)) * 2.0*M_PI;
-          //latitude  = latitude/(gridysize*(jSize-1)) * M_PI/3.0;
 
           h = radius;
 
@@ -334,7 +332,7 @@ sky()
         sunIntensity[2] = 10.0*sif;
 
         float g = 0.44;
-        float turbidity = 1.5;
+        float turbidity = 1.0;//1.5;
 
 
         if (false) {
@@ -410,12 +408,14 @@ sky()
           }
 
           /// highlight sun
+          if (false) {
           float skydist = dist(sunPoint[0],sunPoint[1],sunPoint[2],skyPoint[0],skyPoint[1],skyPoint[2]);
 
           if (skydist < suns[sunInd].radius) {
             colors[i][j][0] += 100.0;  
             colors[i][j][1] = 0.0;  
           } 
+          
 
 
           else if (false) {
@@ -446,7 +446,7 @@ sky()
                 + colors[i][j][2]/blendf;
               else colors[i][j][2] += intensity/blendf;
             }
-
+          }
           }
 
           if (false) 
@@ -471,8 +471,8 @@ sky()
           coords[i][j][2] = skyPoint[2];
                  
 
-          for (int k = 0; k <3; k++) {
-            if (colors[i][j][k] > maxI) maxI = colors[i][j][k]/10.0;
+          for (int k = 0; k <1; k++) {
+            if (colors[i][j][k] > maxI) maxI = colors[i][j][k]*0.99;
           }
 
         }
@@ -488,7 +488,7 @@ sky()
           int rc = (int) (colors[i][j][0]/maxI*255);
           int gc = (int) (colors[i][j][1]/maxI*255);
           int bc = (int) (colors[i][j][2]/maxI*255);
-          a.pixels[j*SZ+i] = color(rc,gc,bc);
+          a.pixels[(j)*SZ+i] = color(rc,gc,bc);
           
     }}
     
