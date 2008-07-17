@@ -1,4 +1,8 @@
-
+/**
+*
+(c) binarymillenium 2008
+Licensed under the GNU GPL latest version
+*/
 
 import processing.opengl.*;
 
@@ -17,6 +21,27 @@ float[][][] sp = new float[SZX*2][SZY][6];
 
 boolean doublePoints = false;
 
+float[] crossProduct(float[] a, float b[]) {
+    float r[] = new float[3];
+    r[0] = 1;
+    
+  if (a.length != 3) return r;
+  if (b.length != 3) return r;
+  
+  
+  r[0] = a[1]*b[2] - a[2]*b[1];
+  r[1] = a[2]*b[0] - a[0]*b[2];
+  r[2] = a[0]*b[1] - a[1]*b[0];
+  
+  float l = dist(0,0,0,r[0], r[1],r[2]);
+  
+  r[0] /= l;
+  r[1] /= l;
+  r[2] /= l;
+  
+  return r;
+  
+}
 
 class Spring {
   
@@ -312,9 +337,18 @@ void draw() {
       fill(f[i][j][3]);
     //front face
    // beginShape(TRIANGLES);
+    float n1[] = getNormal(i,j);
+    float n2[] = getNormal(i,j+1);
+    float n3[] = getNormal(i+1,j);
+    float n4[] = getNormal(i+1,j+1);
+   
+    normal( n1[0], n1[1], n1[2]);
     vertex( sp[i][j][0],     sp[i][j][1],    sp[i][j][2]); 
+    normal( n2[0], n2[1], n2[2]);
     vertex( sp[i][j+1][0],   sp[i][j+1][1],  sp[i][j+1][2]);
+    normal( n3[0], n3[1], n3[2]);
     vertex( sp[i+1][j][0],   sp[i+1][j][1],  sp[i+1][j][2]);
+    normal( n4[0], n4[1], n4[2]);
     vertex( sp[i+1][j+1][0], sp[i+1][j+1][1],sp[i+1][j+1][2]);
     //endShape();
     }
@@ -332,4 +366,37 @@ void draw() {
   // saveFrame("renderedFrames/"+frameCounter+".tga");
   
   popMatrix();
+}
+
+float[] getNormal(int i, int j) {
+  
+  float r[] = new float[3];
+  r[0] = 1.0;
+  
+  float cp[][] = new float[0][3];
+
+  if ((j < 0) || (i < 0) || (j > SZY-1) || (i > SZX-1)) return r;
+  
+  if (i > 0)     cp = (float[][])append(cp, crossProduct(sp[i][j], sp[i-1][j]) );
+  if (i < SZX-1) cp = (float[][])append(cp, crossProduct(sp[i][j], sp[i+1][j]) );
+  if (j > 0)     cp = (float[][])append(cp, crossProduct(sp[i][j], sp[i][j-1]) );
+  if (j < SZY-1) cp = (float[][])append(cp, crossProduct(sp[i][j], sp[i][j+1]) );
+    
+    print(i + " " + j + "\n");
+    /// sum all normal vectors
+  for (int ind = 0; ind < cp.length; ind++) {
+    r[0] += cp[ind][0];    
+    r[1] += cp[ind][1];
+    r[2] += cp[ind][2];
+  }
+  
+  /// normalize
+  float l = dist(0,0,0,r[0], r[1],r[2]);
+  
+  r[0] /= l;
+  r[1] /= l;
+  r[2] /= l;
+  
+  return r;
+  
 }
