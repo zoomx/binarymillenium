@@ -5,8 +5,8 @@ import processing.opengl.*;
 
 int counter =1;
 
-final int SZX = 98;
-final int SZY = 98;
+final int SZX = 68;
+final int SZY = 68;
 
 ///
 
@@ -28,13 +28,19 @@ class Spring {
   int i2;
   int j2;
   
-  Spring(int i1, int j1, int i2, int j2, float len){
+  float kd;
+  float kv;
+  
+  Spring(int i1, int j1, int i2, int j2, float len, float kd, float kv ){
     this.i1 = i1;
     this.j1 = j1;
     this.i2 = i2;
     this.j2 = j2;
     
     this.len = len;
+    
+    this.kd = kd;
+    this.kv = kv;
     
   }
   
@@ -49,9 +55,6 @@ class Spring {
       float lx = (curlen != 0) ? dx/curlen*len : 0;
       float ly = (curlen != 0) ? dy/curlen*len : 0;
       float lz = (curlen != 0) ? dz/curlen*len : 0;
-      
-      float kd = 0.0001;
-      float kv = 0.00001;
 
       // update velocity with p and d
       float ax = (dx - lx)*kd; 
@@ -188,8 +191,8 @@ if (counter == 1) {
       f[i][j][1] = (float)j/(float)SZY * (maxy-miny) + miny - (maxy-miny)/2;
       f[i][j][2] = 0;
        
-      sp[i][j][0] = f[i][j][0];
-      sp[i][j][1] = f[i][j][1];
+      sp[i][j][0] = 0;//f[i][j][0];
+      sp[i][j][1] = 0; //f[i][j][1];
       sp[i][j][2] = f[i][j][2];
      
       sp[i+SZX][j][0] = f[i][j][0];
@@ -254,6 +257,7 @@ if (counter == 1) {
     }
   }
 }
+  
 
    for (int i = 0; i < SZX-1; i++) {
     for (int j = 0; j < SZY-1; j++) {
@@ -264,13 +268,14 @@ if (counter == 1) {
         float l3 = dist(f[i][j][0], f[i][j][1], f[i][j][2], f[i][j+1][0],   f[i][j+1][1],   f[i][j+1][2]);
         
         
-        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j+1, l1 ));
-        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j,   l2 ));
-        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i,   j+1, l3 ));
+        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j+1, l1, 1e-3, 1e-4 ));
+        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j,   l2, 1e-3, 1e-4 ));
+        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i,   j+1, l3, 1e-3, 1e-4 ));
         
-        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+SZX,   j, 0 ));
+        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+SZX,   j, 0 , 1e-5, 5e-6));
       }}
 
+  print ("update finished " + counter + "\n");
 }
   
 
