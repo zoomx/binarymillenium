@@ -21,6 +21,26 @@ float[][][] sp = new float[SZX*2][SZY][6];
 
 boolean doublePoints = false;
 
+
+float[] minus(float a[], float b[]) {
+  float r[] = new float[3];
+  
+  r[0] = a[0] - b[0];
+  r[1] = a[1] - b[1];
+  r[2] = a[2] - b[2];
+  
+  return r;
+}
+
+float[] crossProduct(int i, int j, int i1, int j1, int i2, int j2) {
+ 
+ float a[] = minus(sp[i1][j1], sp[i][j]);
+ float b[] = minus(sp[i2][j2], sp[i][j]);
+ 
+ return crossProduct(a,b);
+  
+}
+
 float[] crossProduct(float[] a, float b[]) {
     float r[] = new float[3];
     r[0] = 1;
@@ -28,16 +48,15 @@ float[] crossProduct(float[] a, float b[]) {
   if (a.length != 3) return r;
   if (b.length != 3) return r;
   
+  a = normalize(a);
+  b = normalize(b);
+  
   
   r[0] = a[1]*b[2] - a[2]*b[1];
   r[1] = a[2]*b[0] - a[0]*b[2];
   r[2] = a[0]*b[1] - a[1]*b[0];
   
-  float l = dist(0,0,0,r[0], r[1],r[2]);
-  
-  r[0] /= l;
-  r[1] /= l;
-  r[2] /= l;
+  r = normalize(r);
   
   return r;
   
@@ -88,7 +107,6 @@ class Spring {
       
       //print(ax + " " + ay + ", " + dz + " " + lz +"\n");
       
-      
       sp[i1][j1][3] -= (ax - sp[i1][j1][3]*kv);
       sp[i1][j1][4] -= (ay - sp[i1][j1][4]*kv);
       sp[i1][j1][5] -= (az - sp[i1][j1][5]*kv);
@@ -96,8 +114,7 @@ class Spring {
       sp[i2][j2][3] += (ax - sp[i2][j2][3]*kv);
       sp[i2][j2][4] += (ay - sp[i2][j2][4]*kv);
       sp[i2][j2][5] += (az - sp[i2][j2][5]*kv);
-     
-      
+         
   }
   
   void updatePos() {
@@ -227,6 +244,8 @@ if (counter == 1) {
   }
   
   
+  print ("assign z-depth points " + counter + "\n");
+  
   /// go through again to assign data to bins
   for (int i = 0; i < raw.length; i++) {
     /// get rid of the /2 *2 to get rid of the doubling up effect
@@ -283,6 +302,7 @@ if (counter == 1) {
   }
 }
   
+  print ("starting spring creation " + counter + "\n");
 
    for (int i = 0; i < SZX-1; i++) {
     for (int j = 0; j < SZY-1; j++) {
@@ -293,11 +313,11 @@ if (counter == 1) {
         float l3 = dist(f[i][j][0], f[i][j][1], f[i][j][2], f[i][j+1][0],   f[i][j+1][1],   f[i][j+1][2]);
         
         
-        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j+1, l1, 1e-3, 1e-4 ));
-        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j,   l2, 1e-3, 1e-4 ));
-        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i,   j+1, l3, 1e-3, 1e-4 ));
+        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j+1, l1, 5e-3, 5e-4 ));
+        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j,   l2, 5e-3, 5e-4 ));
+        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i,   j+1, l3, 5e-3, 5e-4 ));
         
-        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+SZX,   j, 0 , 1e-5, 5e-6));
+        allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+SZX,   j, 0 , 1e-4, 5e-5));
       }}
 
   print ("update finished " + counter + "\n");
@@ -368,6 +388,8 @@ void draw() {
   popMatrix();
 }
 
+
+
 float[] getNormal(int i, int j) {
   
   float r[] = new float[3];
@@ -375,14 +397,24 @@ float[] getNormal(int i, int j) {
   
   float cp[][] = new float[0][3];
 
-  if ((j < 0) || (i < 0) || (j > SZY-1) || (i > SZX-1)) return r;
+  if ((j <= 0) || (i <= 0) || (j >= SZY-1) || (i >= SZX-1)) return r;
   
-  if (i > 0)     cp = (float[][])append(cp, crossProduct(sp[i][j], sp[i-1][j]) );
-  if (i < SZX-1) cp = (float[][])append(cp, crossProduct(sp[i][j], sp[i+1][j]) );
-  if (j > 0)     cp = (float[][])append(cp, crossProduct(sp[i][j], sp[i][j-1]) );
-  if (j < SZY-1) cp = (float[][])append(cp, crossProduct(sp[i][j], sp[i][j+1]) );
+
+/*
+    vertex( sp[i][j][0],     sp[i][j][1],    sp[i][j][2]); 
+    vertex( sp[i][j+1][0],   sp[i][j+1][1],  sp[i][j+1][2]);
+    vertex( sp[i+1][j][0],   sp[i+1][j][1],  sp[i+1][j][2]);
+    vertex( sp[i+1][j+1][0], sp[i+1][j+1][1],sp[i+1][j+1][2]);
+*/
+  
+   cp = (float[][])append(cp, crossProduct(i,j, i-1,j-1, i,j-1) );
+   cp = (float[][])append(cp, crossProduct(i,j, i-1,j, i-1,j-1) );
+   cp = (float[][])append(cp, crossProduct(i,j, i,j+1, i-1,j) );
+   cp = (float[][])append(cp, crossProduct(i,j, i+1,j+1, i,j+1) );
+   cp = (float[][])append(cp, crossProduct(i,j, i+1,j, i+1,j+1) );
+   cp = (float[][])append(cp, crossProduct(i,j, i,j-1, i+1,j) );
     
-    print(i + " " + j + "\n");
+    //print(i + " " + j + "\n");
     /// sum all normal vectors
   for (int ind = 0; ind < cp.length; ind++) {
     r[0] += cp[ind][0];    
@@ -391,12 +423,22 @@ float[] getNormal(int i, int j) {
   }
   
   /// normalize
-  float l = dist(0,0,0,r[0], r[1],r[2]);
+  
+  r = normalize(r);
+
+  return r;
+  
+}
+
+float [] normalize(float r[]) {
+
+  float l = dist(0,0,0,r[0],r[1],r[2]);
+  
+  if (l == 0) return r;
   
   r[0] /= l;
   r[1] /= l;
   r[2] /= l;
   
   return r;
-  
-}
+ }
