@@ -6,7 +6,10 @@ Licensed under the GNU GPL latest version
 
 import processing.opengl.*;
 
-PImage tx;
+boolean useSprings = false;
+boolean drawScreen = false;
+
+PImage tx, tx2,tx3,tx4;
 
 int counter =1;
 
@@ -106,7 +109,6 @@ class Spring {
       float ay = (dy - ly)*kd; 
       float az = (dz - lz)*kd; 
       
-      //print(ax + " " + ay + ", " + dz + " " + lz +"\n");
       
       sp[i1][j1][3] -= (ax - sp[i1][j1][3]*kv);
       sp[i1][j1][4] -= (ay - sp[i1][j1][4]*kv);
@@ -170,13 +172,31 @@ void setup(){
   tx.height = SZY;
   tx.pixels = new color[tx.width*tx.height];
   
+  /// this texture will be written out with the height and intensity data
+  tx2 = new PImage();
+  tx2.width = SZX;
+  tx2.height = SZY;
+  tx2.pixels = new color[tx.width*tx.height];
+  
+    /// this texture will be written out with the height and intensity data
+  tx3 = new PImage();
+  tx3.width = SZX;
+  tx3.height = SZY;
+  tx3.pixels = new color[tx.width*tx.height];
+  
+    /// this texture will be written out with the height and intensity data
+  tx4 = new PImage();
+  tx4.width = SZX;
+  tx4.height = SZY;
+  tx4.pixels = new color[tx.width*tx.height];
+  
   update(counter);
   
 }
 
 void update(int counter) {
   
-  print(counter + " \n");
+  print(counter + " " + mx + " " + my+ " \n");
   
   
   String[] raw = loadStrings(counter+".csv");
@@ -184,11 +204,11 @@ void update(int counter) {
   float p1[][] = new float[raw.length][4];
   
   
-  float minx = -70;
-  float maxx = 230;
+  float minx = -30; //-70;
+  float maxx = 205; //230;
   
-  float miny = -110;
-  float maxy = 300;
+  float miny = -50;//-110;
+  float maxy = 300; //300;
 
   float minz = -1100;
   float maxz = 360;
@@ -216,7 +236,7 @@ void update(int counter) {
     if (intensity > maxi) maxi = intensity;  
     
 
-
+/*
 if (counter == 1) {
     
     if (x < minx) minx = x;
@@ -225,7 +245,7 @@ if (counter == 1) {
     if (x > maxx) maxx = x;
     if (y > maxy) maxy = y;
     if (z > maxz) maxz = z;
-}
+}*/
 
     
   }
@@ -274,18 +294,39 @@ if (counter == 1) {
     
     if ((x_ind >= 0) && (x_ind < SZX) && (y_ind >= 0) && (y_ind < SZY)) {
       
-      if ((p1[i][2]+150 > 0) && (p1[i][2]+150 < 140) && ((i>0) && (abs(p1[i][2]- p1[i-1][2]) < 4)) ) {
-      if ((p1[i][2]+150 > 0) ) {
-        sp[x_ind+SZX][y_ind][2] = p1[i][2]+150;
-      }
+      float  z = p1[i][2]+150;
+      if (z < 0) z = 0;
+      if (z > 140) z = 140;
       
+      if ((i>0) && (abs(p1[i][2]- p1[i-1][2]) < 4)) {
+        sp[x_ind+SZX][y_ind][2] = z;
+  
       //sp[x_ind][y_ind][2] = p1[i][2]+150;
-      }
+      } 
 
-      tx.pixels[y_ind*SZX + x_ind] = color(p1[i][3]);      
+      float intensity = p1[i][3]/2;
+      
+      int pix_ind = y_ind*SZX + x_ind;
+      tx.pixels[pix_ind] =  color(  brightness(tx.pixels[pix_ind])/2 + intensity/2 );      
+       
+      int c = int(z/140.0*255.0*255.0);
+      
+      /// saves all the data with 16-bit precision, but doesn't look like much
+      tx2.pixels[pix_ind] = color(c/255,c%255,intensity);
+      tx3.pixels[pix_ind] = color(intensity,intensity, intensity,(c>0) ? 255 : 0);
+      tx4.pixels[pix_ind] = color(c/255,c/255,c/255, (c>0) ? 255 : 0);
+      
     }     
   }
   
+  tx.updatePixels();
+  tx2.updatePixels();
+  tx3.updatePixels();
+  tx4.updatePixels();
+  
+   tx2.save("/home/lucasw/own/prog/google/trunk/processing/hoc/all/prepross_all_" + (counter+10000) + ".png");
+   tx3.save("/home/lucasw/own/prog/google/trunk/processing/hoc/int/prepross_intensity_" + (counter+10000) + ".png");
+   tx4.save("/home/lucasw/own/prog/google/trunk/processing/hoc/hgt/prepross_height_" + (counter+10000) + ".png");
   
   
   /*
@@ -319,6 +360,7 @@ if (counter == 1) {
 
   //print ("starting spring creation " + counter + "\n");
 
+if (useSprings) {
    int ind = 0;
    for (int i = 0; i < SZX-1; i++) {
     for (int j = 0; j < SZY-1; j++) {
@@ -332,8 +374,8 @@ if (counter == 1) {
                         sp[SZX+i][j+1][0],   sp[SZX+i][j+1][1],   sp[SZX+i][j+1][2]);
         
         if (counter == 1) {
-          float kd = 5e-1;
-          float kv = 5e-2;
+          float kd = 1e-1;
+          float kv = 1e-2;
         allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j+1, l1, kd, kv ));
         allSprings = (Spring[]) append(allSprings, new Spring(i, j, i+1, j,   l2, kd, kv ));
         allSprings = (Spring[]) append(allSprings, new Spring(i, j, i,   j+1, l3, kd, kv ));
@@ -349,26 +391,52 @@ if (counter == 1) {
         }
       }}
     
-   
+}
   
   //print ("update finished " + counter + "\n");
 }
   
 
   
+float oldmx = 0;
+float oldmy = 0;
 
+/// straight on
+//float my = 316;
+//float mx = 286;
+
+float my = 240;
+float mx = 151;
 
 void draw() {
 
   background(0);
   
+  
+ if (drawScreen) {
   pushMatrix();
+  
+  if (mousePressed) {
+ 
+    
+    mx += (mouseX -oldmx)/3;
+    my += (mouseY- oldmy)/3;  
+    
+  } 
+  
+  oldmx = mouseX;
+  oldmy = mouseY;
+  
  
   translate(width/2, height/2); 
-  translate(80,60,450-mouseY/1.0);
+  translate(80,40,450-my/1.0);
 
   float div = 100;
-  rotateY(-(width/div)/2 + mouseX/div);
+  
+  /// autorotate
+  mx += div*(PI/2.0)/2000.0; 
+  
+  rotateY(-(width/div)/2 + mx/div);
  
   pointLight(255, 255, 255, 20, 10, 250);
  //lights();
@@ -376,7 +444,7 @@ void draw() {
      noStroke();
     //stroke(255);
     
-    tx.updatePixels();
+   
     
  textureMode(NORMALIZED);
  
@@ -433,21 +501,24 @@ endShape();
     }
      endShape(); 
   }
-  
+ 
+    
+  popMatrix();
+ }
   
   counter = counter+1;
   update(counter);
   
   
   
-  updateSprings();
-  
-  updatePos();
+  if (useSprings) {
+    updateSprings();
+    updatePos();
+  }
     
     
-  saveFrame("frames/hoc_######.jpg");
-  
-  popMatrix();
+ // saveFrame("frames/hoc_######.jpg");
+
 }
 
 
@@ -480,8 +551,6 @@ float[] getNormal(int i, int j) {
    cp = (float[][])append(cp, crossProduct(i,j, i+1,j, i+1,j+1) );
    cp = (float[][])append(cp, crossProduct(i,j, i,j-1, i+1,j) );
    
-    
-    //print(i + " " + j + "\n");
     /// sum all normal vectors
   for (int ind = 0; ind < cp.length; ind++) {
     r[0] += cp[ind][0];    
