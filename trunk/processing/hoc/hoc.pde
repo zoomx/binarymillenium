@@ -8,6 +8,7 @@ import processing.opengl.*;
 
 boolean useSprings = false;
 boolean drawScreen = false;
+boolean clearOld = true;
 
 PImage tx, tx2,tx3,tx4;
 
@@ -258,6 +259,12 @@ if (counter == 1) {
   /// maxi is 255
   //print(mini + " " + maxi + "\n");
   
+  if (clearOld) {
+     tx.pixels  = new color[tx.width*tx.height];
+     tx2.pixels = new color[tx.width*tx.height];
+     tx3.pixels = new color[tx.width*tx.height];
+     tx4.pixels = new color[tx.width*tx.height];
+  }
  
   
   if (counter == 1) {
@@ -271,6 +278,10 @@ if (counter == 1) {
       sp[i][j][0] = sp[i+SZX][j][0];
       sp[i][j][1] = random(1.0);//sp[i+SZX][j][1];
       sp[i][j][2] = 0;
+      
+     
+      
+     
     }
   }
   }
