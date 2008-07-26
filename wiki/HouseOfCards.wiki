@@ -3,12 +3,26 @@
 
 = Introduction =
 
-Add your content here.
+
 
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+The data preprocessed into pngs are in the downloads area:
+
+http://code.google.com/p/binarymillenium/downloads/list
+
+This processing file was used to create them:
+
+http://binarymillenium.googlecode.com/svn/trunk/processing/hoc/hoc.pde
+
+I'll have an example pde file later that loads and displays them in 3D.
+
+These animated gifs show 1/3 of the frames (since the standard animated gif is 10 fps) in the preprocessed datasets:
+
+http://binarymillenium.googlecode.com/svn/trunk/processing/hoc/data_processed/hoc_hgt.gif
+http://binarymillenium.googlecode.com/svn/trunk/processing/hoc/data_processed/hoc_intensity.gif
+
+It can be seen that I'm forgetting to clear the previous frame before overwriting it with the new frame, but the results are mostly to the benefit of filling occasional holes in the data with the values from previous frames.
+
+Storing the z-buffer/height as a single byte reduces the number of possible depths to 256, but this is mostly acceptable looking.  In the current preprocessing pde there is another set of pngs created that store 16-bits of depth data, but this is much more difficult to visually verify in standard image viewer software.
