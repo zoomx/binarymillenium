@@ -41,3 +41,8 @@ It can be seen that I'm forgetting to clear the previous frame before overwritin
 Storing the z-buffer/height as a single byte reduces the number of possible depths to 256, but this is mostly acceptable looking.  In the current preprocessing pde there is another set of pngs created that store 16-bits of depth data, but this is much more difficult to visually verify in standard image viewer software.
 
 X-values need to multiplied by 235 (assuming the x-a, y-values by 350, and z-values by 140 to get scaling similar to the original data.  There aren't really x or y values in the png, I'm assuming a 0-1.0 initial scaling: the right-most point would be at position 235.0 and the left-most at 0.0.
+
+---
+
+Created with the ImageMagick montage command:
+montage *png montage.jpg
