@@ -13,6 +13,7 @@ PImage a;
 
 color old_pixels[];
 
+boolean useRandom = false;
     
 // weight the center pixel most heavily, make this a gaussian later
 float weight(int i,int j) {
@@ -171,25 +172,13 @@ class flow_point {
 flow_point fp[];
 /////////////////////////////////////////////////////////////////////////
 
-
-void setup() {
+PImage makeRandom() {
   
-  frameRate(15);
-  
-  size(500,500,P3D);
-  
-  old_pixels = new color[width*height];
-  
-  /// create high contrast texture
-  //randomSeed(0);
-  //noiseSeed(0);
-  //loadPixels();
-  
-    final float div = 42.0;
+     final float div = 42.0;
     final float div2 = 25.0;
      final float div3 = 115.0;
-    
-    a = new PImage();
+     
+     PImage a = new PImage();
      a.width = width;
      a.height = height;
      a.pixels = new color[a.width*a.height];
@@ -215,8 +204,31 @@ void setup() {
          a.pixels[i*a.height +j] = color(c,c,c);//,(int)(255*trans));
          
      }}
-  
+     
+     return a;
+     
+}
 
+int index;
+
+void setup() {
+  
+  frameRate(15);
+  
+  size(500,500,P3D);
+  
+  old_pixels = new color[width*height];
+  
+  /// create high contrast texture
+  //randomSeed(0);
+  //noiseSeed(0);
+  //loadPixels();
+  
+ 
+    
+  if (useRandom) {
+   a = makeRandom();
+  } 
   /// setup initial optical flow points
   fp = new flow_point[16];
   
@@ -436,8 +448,11 @@ void draw() {
   
   background(0);
   
+  if (useRandom) {
   //t += 4.0;
   t += 0.008;
+  
+  
   
   float ofs[] = new float[8];
   for (int i = 0; i< ofs.length; i++) {
@@ -466,7 +481,22 @@ vertex(width+ofs[2], 0+ofs[3], a.width,0);
 vertex(width + ofs[4], height+ofs[5], a.width, a.height);
 vertex( 0+ofs[6], height+ofs[7], 0, a.height);
 endShape();
+  }  else {
+   
+   String base = "/home/lucasw/own/prog/google/trunk/processing/velodyne/temp/frames/";
+    a = loadImage(base + "hgt/flat_prepross_height_" + (index+10000) + ".png");
+   index++;
+   if (index >= 307) index = 0;
+   
+     beginShape();
+texture(a);
+vertex( 0, 0, 0, 0);
+vertex(width, 0, a.width,0);
+vertex(width , height, a.width, a.height);
+vertex( 0, height, 0, a.height);
+endShape();
 
+  }
 ///////////////////////////////////
   /// do optical flow, copy areas of screen in to little buffers to be processed
   loadPixels();
