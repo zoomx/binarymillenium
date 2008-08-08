@@ -37,7 +37,7 @@ CloudConverter converter;
 void setup(){
  
 
-  String base = "/home/lucasw/own/prog/google/trunk/processing/velodyne/frames/";
+  String base = "C:/Users/lucasw/own/prog/velodyne/frames/";
   converter = new CloudConverter(base);
 
   while(true) {
