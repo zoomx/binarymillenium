@@ -2,7 +2,7 @@
 /// (c) 2008 binarymillenium
 /// GNU GPL
 
-
+ 
 import processing.opengl.*;
 
 ///
@@ -163,6 +163,75 @@ class CloudConverter {
     minz =  -1200;
     maxz =  500;//2000;
   }
+  
+ PImage  fillGaps(PImage tx) {
+    PImage rx;
+    try{ 
+    rx = (PImage) tx.clone();
+    } catch (Exception e ) {
+        return tx;
+    }
+    
+    int unfillednum =1;
+    for (int k = 0; (k < 8) &&(unfillednum > 0); k++) {
+      unfillednum =0;
+      
+    /// ignore edges for now
+   for (int i = 1; i <tx.width-1; i++) {
+    for (int j = 1; j <tx.height-1; j++) {
+      
+       int p = i*tx.width + j;
+       boolean a  = alpha(tx.pixels[p]) > 0;
+       
+       if (!a) {
+         
+         
+       int pl = i*tx.width + j-1;
+       int pr = i*tx.width + j+1;
+       int pu = (i-1)*tx.width + j;
+       int pd = (i+1)*tx.width + j;
+       
+       float vl = brightness(tx.pixels[pl]);
+       float vr = brightness(tx.pixels[pr]);
+       float vu = brightness(tx.pixels[pu]);
+       float vd = brightness(tx.pixels[pd]);
+          
+       boolean al = alpha(tx.pixels[pl]) > 0;
+       boolean ar = alpha(tx.pixels[pr]) > 0;
+       boolean au = alpha(tx.pixels[pu]) > 0;
+       boolean ad = alpha(tx.pixels[pd]) > 0;
+       
+       float sum = 0;
+       int sumnum = 0;
+       if (al) { sum += vl; sumnum++; }
+       if (ar) { sum += vr; sumnum++; }
+       if (au) { sum += vu; sumnum++; }
+       if (ad) { sum += vd; sumnum++; }
+
+        if (sumnum > 0) {
+            float val = sum/(float)sumnum;
+            
+           rx.pixels[p] = color(val, 255);      
+        } else {
+         unfillednum++; 
+        }
+        
+       } 
+    }
+   } 
+   
+   println(unfillednum + " unfilled");
+      try{ 
+    tx = (PImage) rx.clone();
+    } catch (Exception e ) {
+        return rx;
+    }
+    
+   
+    }
+   return rx;
+    
+  }
 
   void processStrings(String[] raw, boolean findMinMax) {
 
@@ -170,8 +239,6 @@ class CloudConverter {
 
     /// preprocess to find out the extent of the data
     for (int i = 0; i < raw.length; i++) {
-
-
 
       String[] ln = split(raw[i],',');
 
@@ -184,9 +251,6 @@ class CloudConverter {
       p1[i][1] = y;
       p1[i][2] = z;
       p1[i][3] = intensity;    
-
-
-
 
       if (findMinMax) {
 
@@ -204,8 +268,7 @@ class CloudConverter {
           minz = z;
           maxz = z;
 
-        } 
-        else {
+        } else {
 
           if (intensity < mini) mini = intensity;
           if (intensity > maxi) maxi = intensity;  
@@ -277,31 +340,37 @@ class CloudConverter {
         float intensity = p1[i][3]/2;
 
         int pix_ind = y_ind*SZX + x_ind;
-        tx[0].pixels[pix_ind] =  color(  brightness(tx[0].pixels[pix_ind])/2 + intensity/2 );      
+        //tx[0].pixels[pix_ind] =  color(  brightness(tx[0].pixels[pix_ind])/2 + intensity/2 );      
 
         /// need to clamp the c between zero and 255, though the color command may do that for me...
-        if (z > maxz) z = maxz;
-        if (z <= minz) z = minz+1;
+        int alphachannel = 255;
+        if (z > maxz) {
+           z = maxz;
+           
+        } else if (z < minz) { 
+          z = minz;
+          alphachannel = 0;
+        } 
         int c = int((z - minz)/(maxz-minz)*255.0*255.0);
         
         /// always use the highest height value
         if (c > red(tx[1].pixels[pix_ind])) {
 
         /// saves all the data with 16-bit precision, but doesn't look like much
-        tx[1].pixels[pix_ind] = color(c/255,c%255,intensity);
-        tx[2].pixels[pix_ind] = color(intensity,intensity, intensity,(c>0) ? 255 : 0);
-        tx[3].pixels[pix_ind] = color(c/255,c/255,c/255, (c>0) ? 255 : 0);
+        //tx[1].pixels[pix_ind] = color(c/255,c%255,intensity);
+        tx[2].pixels[pix_ind] = color(intensity,intensity, intensity, alphachannel);
+        tx[3].pixels[pix_ind] = color(c/255,c/255,c/255, alphachannel);
         }
 
       }     
     }
 
-    for (int i =0; i < tx.length; i++ ){
+    for (int i =2; i < tx.length; i++ ){
       tx[i].updatePixels();
     }
 
-
-
+    tx[3] = fillGaps(tx[3]);
+    
 
     //tx[1].save("/home/lucasw/own/prog/google/trunk/processing/hoc/all/prepross_all_" + (counter+10000) + ".png");
     tx[2].save(base + "int/prepross_intensity_" + (index+10000) + ".png");
