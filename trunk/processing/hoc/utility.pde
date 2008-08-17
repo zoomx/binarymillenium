@@ -52,6 +52,19 @@ float[] crossProduct(float[] a, float b[]) {
 
 }
 
+float [] normalize(float r[]) {
+
+  float l = dist(0,0,0,r[0],r[1],r[2]);
+
+  if (l == 0) return r;
+
+  r[0] /= l;
+  r[1] /= l;
+  r[2] /= l;
+
+  return r;
+}
+
 //////////////////////////////////////////////////////
 
 class Spring {
@@ -221,11 +234,13 @@ if (counter == 1) {
     tx[i].updatePixels();
   }
 
+  //tx[2] = fillGaps(tx[2]);
+  tx[3] = fillGaps(tx[3]);
 
-  String base = "/home/lucasw/own/prog/google/trunk/processing/hoc/";
+  String base = "/home/lucasw/own/prog/google/trunk/processing/hoc/frames/";
   //tx[1].save("/home/lucasw/own/prog/google/trunk/processing/hoc/all/prepross_all_" + (counter+10000) + ".png");
-  tx[2].save(base + "int/prepross_intensity_" + (counter+10000) + ".png");
-  tx[3].save(base + "hoc/hgt/prepross_height_" + (counter+10000) + ".png");
+  tx[2].save(base + "int/prepross_intensity_"  + (counter+10000) + ".png");
+  tx[3].save(base + "hgt/prepross_height_" + (counter+10000) + ".png");
 
 
   /*
@@ -302,3 +317,132 @@ void updatePos() {
 
 }
 
+
+ PImage  fillGaps(PImage tx) {
+    PImage rx;
+    try{ 
+    rx = (PImage) tx.clone();
+    } catch (Exception e ) {
+        return tx;
+    }
+    
+    int unfillednum =1;
+    
+    int numPasses = 8;
+    
+    for (int k = 0; (k < numPasses) &&(unfillednum > 0); k++) {
+      unfillednum =0;
+      
+    /// ignore edges for now
+   for (int i = 1; i <tx.width-1; i++) {
+    for (int j = 1; j <tx.height-1; j++) {
+      
+       int w = tx.height; //tx.width;
+       
+       int p = i*w + j;
+       boolean a  = alpha(tx.pixels[p]) > 0;
+       
+       if (!a) {
+         
+         
+       int pl = i*w + j-1;
+       int pr = i*w + j+1;
+       int pu = (i-1)*w + j;
+       int pd = (i+1)*w + j;
+       
+       float vl = brightness(tx.pixels[pl]);
+       float vr = brightness(tx.pixels[pr]);
+       float vu = brightness(tx.pixels[pu]);
+       float vd = brightness(tx.pixels[pd]);
+          
+       boolean al = alpha(tx.pixels[pl]) > 0;
+       boolean ar = alpha(tx.pixels[pr]) > 0;
+       boolean au = alpha(tx.pixels[pu]) > 0;
+       boolean ad = alpha(tx.pixels[pd]) > 0;
+       
+       float sum = 0;
+       int sumnum = 0;
+       if (al) { sum += vl; sumnum++; } 
+       if (ar) { sum += vr; sumnum++;  } 
+       if (au) { sum += vu; sumnum++; }
+       if (ad) { sum += vd; sumnum++; }
+       
+
+
+        if (sumnum > 0) {
+            float val = sum/(float)sumnum;
+            
+            
+            
+            /// blend left or right to nearest neighbor
+            /*if (ar && !al) {
+              int d = nearestLeft(tx, p);
+              
+              if (d != 0) {
+               val =  d/(d+1.0)*val + 1.0/(d+ 1.0)*brightness(tx.pixels[p + d]);
+              }
+            } else*/ /* if (!ar && al) {
+              int d = nearestRight(tx, p);
+              
+              if (d != 0) {
+               val =  d/(d+1.0)*val + 1.0/(d+ 1.0)*brightness(tx.pixels[p + d]);
+              }
+            }
+            
+            */ /*
+            if (au && !ad) {
+              int d = nearestUp(tx, p);
+              
+              if (d != 0) {
+               val =  d/(d+1.0)*val + 1.0/(d+ 1.0)*brightness(tx.pixels[p -d*tx.width ]);
+              }
+            }
+            */
+            
+            
+            
+           rx.pixels[p] = color(val, 255);      
+        } else {
+         unfillednum++; 
+        }
+        
+       } 
+    }
+   } 
+   
+   println(unfillednum + " unfilled");
+      try{ 
+    tx = (PImage) rx.clone();
+    } catch (Exception e ) {
+        return rx;
+    }
+    
+   
+    }
+   return rx;
+    
+  }
+
+int nearestLeft(PImage tx, int index) {
+  for (int i = 0; i < index%tx.width ; i++) {
+     
+    if  (alpha(tx.pixels[index-i]) > 0) return -i;
+  } 
+  return 0;
+}
+
+int nearestRight(PImage tx, int index) {
+  for (int i = 0; i < tx.width-index%tx.width ; i++) {
+     
+    if  (alpha(tx.pixels[index+i]) > 0) return i;
+  } 
+  return 0;
+}
+
+int nearestUp(PImage tx, int index) {
+  for (int i = 0; index-i*tx.width > 0 ; i++ ) {
+     
+    if  (alpha(tx.pixels[index-i*tx.width]) > 0) return i;
+  } 
+  return 0;
+}
