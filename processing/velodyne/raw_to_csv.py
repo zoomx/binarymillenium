@@ -2,8 +2,9 @@ import math
 import array
 import csv
 import sys
+import operator
 
-def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off):
+def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off,vertKeys,image):
 
 	sphereical = True
 
@@ -50,7 +51,18 @@ def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off):
 				#output.append(z)
 				
 				else:
-					outfile.write(str(theta) + ', ' + str(phi) + ', ' + str(r) + '\n');
+					phi_ind = 0
+
+					for sinds in map(operator.itemgetter(1),vertKeys):
+						if (sinds == sensor_index): break 
+						phi_ind = phi_ind + 1
+					
+					theta_ind = int(theta/360*1280)
+					if (theta_ind >= 1280): theta_ind = theta_ind-1280
+					
+					#print(str(phi_ind) +  ', ' + str(theta_ind) + ', ' + str(r) + '\n')
+					image[phi_ind][theta_ind] = r
+					#outfile.write(str(theta) + ', ' + str(phi) + ', ' + str(r) + '\n');
 					
 		# TBD something strange is happening here, the binary file ends
 		# up about 6.5 times bigger than it ought to be (16 bytes per position)
@@ -89,25 +101,48 @@ vertOffCor = array.array('f')
 horizOffCor = array.array('f')
 
 db = csv.reader(dbfile)
+
+vertKeys = []
+
+ind = 0
 for row in db:
 	rotCor.append( float(eval(row[1])) )
-	vertCor.append( float(eval(row[2])) )
+	newVert = float(eval(row[2]))
+	#print(str(newVert) + '\n')
+	vertCor.append( newVert )
 	distCor.append( float(eval(row[3])) )
 	vertOffCor.append( float(eval(row[4])) )
 	horizOffCor.append( float(eval(row[5])) )
 	#print(rotCor[len(rotCor)-1])
+	
+	vertKeys = vertKeys + [(newVert, ind)]
+	ind = ind+1
 
-i = 0
-j = 0
+vertKeys = sorted(vertKeys, key=operator.itemgetter(0))
+print(str(vertKeys) + '\n\n')
+
+
+#findout = open(outname + '_indices.csv','wb')
+
+#i = 0
+filecounter = 0
 old_rot = 0;
+
+image = []
+for ind in range(64):
+	image.append([])
+	for jind in range(1280):
+		image[ind].append(0)
+	
+
 while (len(bin) == 1206):
 	# each call here produces 12*32 new points, i will increment to about 79,000 before this is done
 	#if (i%100 == 0): print(i)
 	
 	# this will have 2604 1206 byte packets per second, so split files int 1 second files
 	
-	if (j >= startind): 
-		new_rot = processBin1206(bin,fout, rotCor,vertCor,distCor,vertOffCor,horizOffCor)
+	if (filecounter >= startind): 
+		new_rot = processBin1206(bin,fout, rotCor,vertCor,distCor,vertOffCor,horizOffCor,vertKeys,image)
 		
 	bin = array.array('B')
 	bin.fromfile(f, 1206)
@@ -117,9 +152,13 @@ while (len(bin) == 1206):
 	# start a new file every rotation
 	if (new_rot < old_rot):
 		#i = 0
-		j = j +1
-		if (j >= startind): 
-			fout = open(outname + str(j) +'.csv','wb')
-			print(str(j) + ', ' + str(new_rot) + '\n');
-
+		filecounter = filecounter +1
+		if (filecounter >= startind): 
+			fout = open(outname + str(filecounter) +'.csv','wb')
+			print(str(filecounter) + ', ' + str(new_rot) + '\n');
+		
+			for jind in range(1280):
+				for ind in range(64):
+					fout.write(str(image[ind][jind]) + ', ')
+				fout.write('\n')
 	old_rot = new_rot
