@@ -7,6 +7,141 @@ import processing.opengl.*;
 
 ///
 
+class CloudConverter {
+
+  String base;
+
+  int index = 0;
+
+  CloudConverter(String base) {
+    this.base = base;
+    
+  }
+  
+ PImage  fillGaps(PImage tx) {
+    PImage rx;
+    try{ 
+    rx = (PImage) tx.clone();
+    } catch (Exception e ) {
+        return tx;
+    }
+    
+    int unfillednum =1;
+    for (int k = 0; (k < 8) &&(unfillednum > 0); k++) {
+      unfillednum =0;
+      
+    /// ignore edges for now
+   for (int i = 1; i <tx.width-1; i++) {
+    for (int j = 1; j <tx.height-1; j++) {
+      
+       int p = i*tx.width + j;
+       boolean a  = alpha(tx.pixels[p]) > 0;
+       
+       if (!a) {
+         
+         
+       int pl = i*tx.width + j-1;
+       int pr = i*tx.width + j+1;
+       int pu = (i-1)*tx.width + j;
+       int pd = (i+1)*tx.width + j;
+       
+       float vl = brightness(tx.pixels[pl]);
+       float vr = brightness(tx.pixels[pr]);
+       float vu = brightness(tx.pixels[pu]);
+       float vd = brightness(tx.pixels[pd]);
+          
+       boolean al = alpha(tx.pixels[pl]) > 0;
+       boolean ar = alpha(tx.pixels[pr]) > 0;
+       boolean au = alpha(tx.pixels[pu]) > 0;
+       boolean ad = alpha(tx.pixels[pd]) > 0;
+       
+       float sum = 0;
+       int sumnum = 0;
+       if (al) { sum += vl; sumnum++; }
+       if (ar) { sum += vr; sumnum++; }
+       if (au) { sum += vu; sumnum++; }
+       if (ad) { sum += vd; sumnum++; }
+
+        if (sumnum > 0) {
+            float val = sum/(float)sumnum;
+            
+           rx.pixels[p] = color(val, 255);      
+        } else {
+         unfillednum++; 
+        }
+        
+       } 
+    }
+   } 
+   
+   println(unfillednum + " unfilled");
+      try{ 
+    tx = (PImage) rx.clone();
+    } catch (Exception e ) {
+        return rx;
+    }
+    
+   
+    }
+   return rx;
+    
+  }
+
+  void processStrings(String[] raw) {
+
+   PImage tx = new PImage();
+    
+    println("index: " + index);
+    
+    tx.width = 1280;
+    tx.height = 64;
+    tx.pixels = new color[tx.width*tx.height];
+
+    /// preprocess to find out the extent of the data
+    for (int i = 0; i < raw.length; i++) {
+
+      String[] ln = split(raw[i],',');
+      for (int j = 0; j < ln.length; j++) {
+     
+        float z = float(ln[j]);
+        
+        
+        //print( j + ", " + z + "\n");
+      
+        if ((j < tx.height) && (i < tx.width) ) {
+          int pixind = tx.width*(63-j);
+           if (i >= 1280/2) pixind = pixind + i-1280/2;
+           else pixind = pixind + 1280/2+i;
+           
+          //print( j + ", " + z + "\n");
+          if (z > 1.0) {  
+            int val = int(z/20000.0*255.0);
+            if (val > 255) val = 255;
+            tx.pixels[pixind] = color(255 - val);
+          } else {
+           tx.pixels[pixind] = color(0);
+          } 
+        }
+
+    }
+    }
+
+    tx.updatePixels();
+    
+    //tx = fillGaps(tx);
+    
+     println("index: " + index);
+     
+     String fullname = base + "hgt/prepross_intensity_" + (index+10000) + ".png";
+    tx.save(fullname);
+    index++;
+  
+    
+  }
+
+}
+
+
 /// the spring points, also stores the target points (which aren't updated)
 float[][][] sp; // = new float[SZX*2][SZY][6];
 
@@ -130,287 +265,6 @@ class Spring {
 
 ////
 
-class CloudConverter {
-
-  float minx = -30; //-70;
-  float maxx = 205; //230;
-
-  float miny = -50;//-110;
-  float maxy = 300; //300;
-
-  float minz = -1100;
-  float maxz = 360;
-
-  float mini = 100;
-  float maxi = 0;
-
-  float p1[][];
-  String base;
-
-  int index = 0;
-
-  CloudConverter(String base) {
-    this.base = base;
-    p1 = new float[0][0];
-    
-    float extent = 20000;
-    minx = -extent;
-    maxx =  extent;
-    
-    miny = -extent;
-    maxy =  extent;
-    
-    minz =  -1200;
-    maxz =  500;//2000;
-  }
-  
- PImage  fillGaps(PImage tx) {
-    PImage rx;
-    try{ 
-    rx = (PImage) tx.clone();
-    } catch (Exception e ) {
-        return tx;
-    }
-    
-    int unfillednum =1;
-    for (int k = 0; (k < 8) &&(unfillednum > 0); k++) {
-      unfillednum =0;
-      
-    /// ignore edges for now
-   for (int i = 1; i <tx.width-1; i++) {
-    for (int j = 1; j <tx.height-1; j++) {
-      
-       int p = i*tx.width + j;
-       boolean a  = alpha(tx.pixels[p]) > 0;
-       
-       if (!a) {
-         
-         
-       int pl = i*tx.width + j-1;
-       int pr = i*tx.width + j+1;
-       int pu = (i-1)*tx.width + j;
-       int pd = (i+1)*tx.width + j;
-       
-       float vl = brightness(tx.pixels[pl]);
-       float vr = brightness(tx.pixels[pr]);
-       float vu = brightness(tx.pixels[pu]);
-       float vd = brightness(tx.pixels[pd]);
-          
-       boolean al = alpha(tx.pixels[pl]) > 0;
-       boolean ar = alpha(tx.pixels[pr]) > 0;
-       boolean au = alpha(tx.pixels[pu]) > 0;
-       boolean ad = alpha(tx.pixels[pd]) > 0;
-       
-       float sum = 0;
-       int sumnum = 0;
-       if (al) { sum += vl; sumnum++; }
-       if (ar) { sum += vr; sumnum++; }
-       if (au) { sum += vu; sumnum++; }
-       if (ad) { sum += vd; sumnum++; }
-
-        if (sumnum > 0) {
-            float val = sum/(float)sumnum;
-            
-           rx.pixels[p] = color(val, 255);      
-        } else {
-         unfillednum++; 
-        }
-        
-       } 
-    }
-   } 
-   
-   println(unfillednum + " unfilled");
-      try{ 
-    tx = (PImage) rx.clone();
-    } catch (Exception e ) {
-        return rx;
-    }
-    
-   
-    }
-   return rx;
-    
-  }
-
-  void processStrings(String[] raw, boolean findMinMax) {
-
-    p1 = new float[raw.length][4]; 
-
-    /// preprocess to find out the extent of the data
-    for (int i = 0; i < raw.length; i++) {
-
-      String[] ln = split(raw[i],',');
-
-      float x = float(ln[1]);
-      float y = float(ln[2]);
-      float z = float(ln[3]);
-      int intensity = int(ln[0]);
-
-      p1[i][0] = x;
-      p1[i][1] = y;
-      p1[i][2] = z;
-      p1[i][3] = intensity;    
-
-      if (findMinMax) {
-
-        if (i ==0) {
-
-          mini = intensity;
-          maxi = intensity;
-          
-          minx = x;
-          maxx = x;
-
-          miny = y;
-          maxy = y;
-
-          minz = z;
-          maxz = z;
-
-        } else {
-
-          if (intensity < mini) mini = intensity;
-          if (intensity > maxi) maxi = intensity;  
-
-          if (x < minx) minx = x;
-          if (y < miny) miny = y;
-          if (z < minz) minz = z;
-          if (x > maxx) maxx = x;
-          if (y > maxy) maxy = y;
-          if (z > maxz) maxz = z;
-        }
-      }
-
-    }
-
-    if (findMinMax) {
-      print(counter + ": " + minx + ", " + maxx + ", " + miny + " " + maxy + ", " + minz +
-                " " + maxz + ", " + mini + " " + maxi + "\n");
-    }
-
-
-  }
-
-  /// input a array of strings that are in point cloud form and convert to textures  
-  PImage[] toGrid(int SZX, int SZY , boolean doublePoints)
-  {
-    PImage tx[] = new PImage[4];
-
-    for (int i = 0; i < tx.length; i++) {   
-      tx[i] = new PImage();
-      tx[i].width = SZX;
-      tx[i].height = SZY;
-      tx[i].pixels = new color[tx[i].width*tx[i].height]; 
-    }
-
-    /// go through again to assign data to bins
-    for (int i = 0; i < p1.length; i++) {
-      /// get rid of the /2 *2 to get rid of the doubling up effect
-      int x_ind = 0; 
-      int y_ind = 0;
-
-      if (doublePoints) {
-        y_ind = int((p1[i][1]-miny)/(maxy-miny)*(SZY/2))*2;
-        x_ind = int((p1[i][0]-minx)/(maxx-minx)*(SZX/2))*2;
-
-      } 
-      else {
-        y_ind = int((p1[i][1]-miny)/(maxy-miny)*(SZY));
-        x_ind = int((p1[i][0]-minx)/(maxx-minx)*(SZX));
-      }
-
-      float  z = p1[i][2]; //+150;
-      //print(x_ind + ", " + y_ind + ", " + z + "   ");
-      
-      if ((x_ind >= 0) && (x_ind < SZX) && (y_ind >= 0) && (y_ind < SZY)) {
-
-
-        
-        //if (z < 0) z = 0;
-        //if (z > 140) z = 140;
-
-        /// TBD don't use sp now
-        /*
-      if ((i>0) && (abs(p1[i][2]- p1[i-1][2]) < 4)) {
-         sp[x_ind+SZX][y_ind][2] = z;
-         } 
-         */
- 
-        float intensity = p1[i][3]/2;
-
-        int pix_ind = y_ind*SZX + x_ind;
-        //tx[0].pixels[pix_ind] =  color(  brightness(tx[0].pixels[pix_ind])/2 + intensity/2 );      
-
-        /// need to clamp the c between zero and 255, though the color command may do that for me...
-        int alphachannel = 255;
-        if (z > maxz) {
-           z = maxz;
-           
-        } else if (z < minz) { 
-          z = minz;
-          alphachannel = 0;
-        } 
-        int c = int((z - minz)/(maxz-minz)*255.0*255.0);
-        
-        /// always use the highest height value
-        if (c > red(tx[1].pixels[pix_ind])) {
-
-        /// saves all the data with 16-bit precision, but doesn't look like much
-        //tx[1].pixels[pix_ind] = color(c/255,c%255,intensity);
-        tx[2].pixels[pix_ind] = color(intensity,intensity, intensity, alphachannel);
-        tx[3].pixels[pix_ind] = color(c/255,c/255,c/255, alphachannel);
-        }
-
-      }     
-    }
-
-    for (int i =2; i < tx.length; i++ ){
-      tx[i].updatePixels();
-    }
-
-    tx[3] = fillGaps(tx[3]);
-    
-
-    //tx[1].save("/home/lucasw/own/prog/google/trunk/processing/hoc/all/prepross_all_" + (counter+10000) + ".png");
-    tx[2].save(base + "int/prepross_intensity_" + (index+10000) + ".png");
-    tx[3].save(base + "hgt/prepross_height_" + (index+10000) + ".png");
-    index++;
-
-    println("index: " + index);
-    /*
-  if (doublePoints) {
-     
-     for (int i = 1; i < SZX-1; i+=2) {
-     for (int j = 1; j < SZY-1; j+=2) {  
-     f[i][j][2] = (f[i-1][j-1][2] + f[i+1][j-1][2] + f[i+1][j-1][2] + f[i+1][j+1][2])/4.0;
-     f[i][j][3] = (f[i-1][j-1][3] + f[i+1][j-1][3] + f[i+1][j-1][3] + f[i+1][j+1][3])/4.0;
-     }
-     }
-     
-     /// this doubling up isn't quite working right, should try something else
-     for (int i = 2; i < SZX-1; i+=2) {
-     for (int j = 1; j < SZY-1; j+=2) {  
-     f[i][j][2] = (f[i][j-1][2] + f[i][j+1][2])/2.0;
-     f[i][j][3] =  (f[i][j-1][3] + f[i][j+1][3])/2.0;
-     }
-     }
-     
-     for (int i = 1; i < SZX-1; i+=2) {
-     for (int j = 2; j < SZY-1; j+=2) {  
-     f[i][j][2] = (f[i-1][j][2] + f[i+1][j][2])/2.0;
-     f[i][j][3] = (f[i-1][j][3] + f[i+1][j][3])/2.0;
-     }
-     }
-     
-     }*/
-
-    return tx;
-
-  }
-
-
-}
 
 ///////////////////////////////
 //// more app specific
