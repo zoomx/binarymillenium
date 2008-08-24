@@ -1,8 +1,16 @@
+# binarymillenium
+# August 2008
+# licensed under the GNU GPL latest version
+
 import math
 import array
 import csv
 import sys
 import operator
+
+# might need python2.4 rather than 2.5 for this to work
+import pcapy
+
 
 def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off,vertKeys,image):
 
@@ -77,14 +85,15 @@ def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off,vertKeys,image):
 
 print(len(sys.argv))
 
-fraw = open(sys.argv[1]) #'unit46monterey.raw')
+pcapfile = sys.argv[1]
+#pcapfile = 'unit 46 sample capture velodyne area.pcap'
 
-startind = int(sys.argv[2]) # 1
+vel = pcapy.open_offline(pcapfile)
 
-outname = (sys.argv[3]) #'unit46monterey.raw')
+startind = int(sys.argv[2]) # 0
 
-bin = array.array('B')
-bin.fromfile(fraw, 1206)
+outname = (sys.argv[3])
+
 
 #fout = open('output0.bin','wb')
 filecounter = 0
@@ -134,8 +143,18 @@ for ind in range(64):
 	
 count = 0
 
-while (len(bin) == 1206):
-	# each call here produces 12*32 new points, i will increment to about 79,000 before this is done
+
+data = vel.next()
+
+while (data):
+
+	mybytes = array.array('B',data[1])
+	# the first 42 bytes are ethernet headers
+	bin = mybytes[42:]
+
+
+	# each call here produces 12*32 new points, i will 
+	# increment to about 79,000 before this is done
 	#if (i%100 == 0): print(i)
 	
 	# this will have 2604 1206 byte packets per second, so split files int 1 second files
@@ -145,8 +164,6 @@ while (len(bin) == 1206):
 	else:
 		new_rot = 0
 
-	bin = array.array('B')
-	bin.fromfile(fraw, 1206)
 	count = count+1;
 
 	# start a new file every rotation
@@ -154,7 +171,7 @@ while (len(bin) == 1206):
 		#i = 0
 		filecounter = filecounter +1
 		fout = open(outname + str(filecounter) +'.csv','wb')
-		print(str(filecounter) + ', ' + str(count*1206) + ', ' + str(new_rot) + '\n')
+		print(str(filecounter) + ', ' + str(count*1248) + ', ' + str(new_rot) + '\n')
 	
 		if (filecounter >= startind):
 		
@@ -164,3 +181,5 @@ while (len(bin) == 1206):
 				fout.write('\n')
 	
 	old_rot = new_rot
+	
+	data = vel.next()
