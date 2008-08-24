@@ -153,15 +153,15 @@ class CloudConverter {
     this.base = base;
     p1 = new float[0][0];
     
-    float extent = 20000;
-    minx = -extent;
-    maxx =  extent;
+    float extent = 28000;
+    minx = -extent*width/height;
+    maxx =  extent*width/height;
     
     miny = -extent;
     maxy =  extent;
     
-    minz =  -1200;
-    maxz =  500;//2000;
+    minz =  -2000;
+    maxz =  2000;//2000;
   }
   
  PImage  fillGaps(PImage tx) {
@@ -235,6 +235,9 @@ class CloudConverter {
 
   void processStrings(String[] raw, boolean findMinMax) {
 
+    println(raw.length);
+    
+    
     p1 = new float[raw.length][4]; 
 
     /// preprocess to find out the extent of the data
@@ -369,7 +372,7 @@ class CloudConverter {
       tx[i].updatePixels();
     }
 
-    tx[3] = fillGaps(tx[3]);
+    //tx[3] = fillGaps(tx[3]);
     
 
     //tx[1].save("/home/lucasw/own/prog/google/trunk/processing/hoc/all/prepross_all_" + (counter+10000) + ".png");
