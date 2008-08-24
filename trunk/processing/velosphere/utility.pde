@@ -18,7 +18,7 @@ class CloudConverter {
     
   }
   
- PImage  fillGaps(PImage tx) {
+ PImage  fillGaps(PImage tx, int numiterations) {
     PImage rx;
     try{ 
     rx = (PImage) tx.clone();
@@ -27,23 +27,22 @@ class CloudConverter {
     }
     
     int unfillednum =1;
-    for (int k = 0; (k < 8) &&(unfillednum > 0); k++) {
+    for (int k = 0; (k < numiterations) &&(unfillednum > 0); k++) {
       unfillednum =0;
       
     /// ignore edges for now
    for (int i = 1; i <tx.width-1; i++) {
     for (int j = 1; j <tx.height-1; j++) {
       
-       int p = i*tx.width + j;
+       int p = i*tx.height + j;
        boolean a  = alpha(tx.pixels[p]) > 0;
        
        if (!a) {
          
-         
-       int pl = i*tx.width + j-1;
-       int pr = i*tx.width + j+1;
-       int pu = (i-1)*tx.width + j;
-       int pd = (i+1)*tx.width + j;
+       int pl = i*tx.height + j-1;
+       int pr = i*tx.height + j+1;
+       int pu = (i-1)*tx.height + j;
+       int pd = (i+1)*tx.height + j;
        
        float vl = brightness(tx.pixels[pl]);
        float vr = brightness(tx.pixels[pr]);
@@ -109,17 +108,19 @@ class CloudConverter {
         //print( j + ", " + z + "\n");
       
         if ((j < tx.height) && (i < tx.width) ) {
-          int pixind = tx.width*(63-j);
-           if (i >= 1280/2) pixind = pixind + i-1280/2;
-           else pixind = pixind + 1280/2+i;
+          int pixind = tx.width*(63-j) + i;
+           if (i >= 1280/2) pixind = pixind -1280/2;
+           else pixind = pixind + 1280/2;
+           
            
           //print( j + ", " + z + "\n");
           if (z > 1.0) {  
-            int val = int(z/20000.0*255.0);
+            int val = int( (log(z)-log(100))/(log(20000.0)-log(100))*255.0);
             if (val > 255) val = 255;
-            tx.pixels[pixind] = color(255 - val);
+            if (val < 0) val = 0;
+            tx.pixels[pixind] = color(255 - val,255);
           } else {
-           tx.pixels[pixind] = color(0);
+           tx.pixels[pixind] = color(0,0);
           } 
         }
 
@@ -128,11 +129,11 @@ class CloudConverter {
 
     tx.updatePixels();
     
-    //tx = fillGaps(tx);
+    tx = fillGaps(tx,1);
     
      println("index: " + index);
      
-     String fullname = base + "hgt/prepross_intensity_" + (index+10000) + ".png";
+     String fullname = base + "hgt_" + outbase + (index+10000) + ".png";
     tx.save(fullname);
     index++;
   
