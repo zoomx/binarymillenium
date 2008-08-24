@@ -34,15 +34,22 @@ class CloudConverter {
    for (int i = 1; i <tx.width-1; i++) {
     for (int j = 1; j <tx.height-1; j++) {
       
-       int p = i*tx.height + j;
+       //int p = i*tx.height + j;
+       int p = j*tx.width + i;
        boolean a  = alpha(tx.pixels[p]) > 0;
        
        if (!a) {
          
+         /*
        int pl = i*tx.height + j-1;
        int pr = i*tx.height + j+1;
        int pu = (i-1)*tx.height + j;
        int pd = (i+1)*tx.height + j;
+       */
+       int pl = j*tx.width + i-1;
+       int pr = j*tx.width + i+1;
+       int pu = (j-1)*tx.width + i;
+       int pd = (j+1)*tx.width + i;
        
        float vl = brightness(tx.pixels[pl]);
        float vr = brightness(tx.pixels[pr]);
@@ -68,7 +75,7 @@ class CloudConverter {
         } else {
          unfillednum++; 
         }
-        
+//rx.pixels[p] = color(255,0,0,255);
        } 
     }
    } 
@@ -114,22 +121,26 @@ class CloudConverter {
            
            
           //print( j + ", " + z + "\n");
-          if (z > 1.0) {  
-            int val = int( (log(z)-log(100))/(log(20000.0)-log(100))*255.0);
+          if (z > 100.0) {  
+            int val;
+           //  val = int( (log(z)-log(100))/(log(20000.0)-log(100))*255.0);
+             val = int( (z/20000.0)*255.0);
             if (val > 255) val = 255;
             if (val < 0) val = 0;
             tx.pixels[pixind] = color(255 - val,255);
           } else {
-           tx.pixels[pixind] = color(0,0);
+           tx.pixels[pixind] = color(0,0,0,0);
           } 
         }
 
     }
     }
 
-    tx.updatePixels();
+//tx.updatePixels();
+   tx = fillGaps(tx,2);
+   tx.updatePixels();
     
-    tx = fillGaps(tx,1);
+    
     
      println("index: " + index);
      

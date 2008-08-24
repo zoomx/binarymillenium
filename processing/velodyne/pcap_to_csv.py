@@ -61,22 +61,22 @@ def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off,vertKeys,image):
 				else:
 					phi_ind = 0
 
-					for sinds in map(operator.itemgetter(1),vertKeys):
-						if (sinds == sensor_index): break 
-						phi_ind = phi_ind + 1
+					if (r > 100):
+						for sinds in map(operator.itemgetter(1),vertKeys):
+							if (sinds == sensor_index): break 
+							phi_ind = phi_ind + 1
 					
-					theta_ind = int(theta/360*1280)
-					if (theta_ind >= 1280): theta_ind = theta_ind-1280
+						theta_ind = int(theta/360.0*1280.0)
+						if (theta_ind >= 1280): theta_ind = theta_ind-1280
 				
-                    # recenter the forward direction with 180 phase shift
-					#theta_ind = theta_ind - 1280/2
-					if (theta_ind < 0): 
-						theta_ind = theta_ind + 1280
+        	            # recenter the forward direction with 180 phase shift
+						#theta_ind = theta_ind - 1280/2
+						if (theta_ind < 0): 
+							theta_ind = theta_ind + 1280
 
-					#print(str(phi_ind) +  ', ' + str(theta_ind) + ', ' + str(r) + '\n')
-					if (r > 60):
+						#print(str(phi_ind) +  ', ' + str(theta_ind) + ', ' + str(r) + '\n')
 						image[phi_ind][theta_ind] = r
-					#outfile.write(str(theta) + ', ' + str(phi) + ', ' + str(r) + '\n');
+						#outfile.write(str(theta) + ', ' + str(phi) + ', ' + str(r) + '\n');
 					
 		# TBD something strange is happening here, the binary file ends
 		# up about 6.5 times bigger than it ought to be (16 bytes per position)
@@ -141,19 +141,20 @@ print(str(vertKeys) + '\n\n')
 #i = 0
 old_rot = 0;
 
+
+count = 0
+
+
+data = vel.next()
+
 image = []
 for ind in range(64):
 	image.append([])
 	for jind in range(1280):
 		image[ind].append(0)
 	
-count = 0
-
-
-data = vel.next()
 
 while (data):
-
 	mybytes = array.array('B',data[1])
 	# the first 42 bytes are ethernet headers
 	bin = mybytes[42:]
@@ -185,7 +186,16 @@ while (data):
 					fout.write(str(image[ind][jind]) + ', ')
 				fout.write('\n')
 		filecounter = filecounter +1
+
+
+		image = []
+		for ind in range(64):
+			image.append([])
+			for jind in range(1280):
+				image[ind].append(0)
 	
+
+
 	old_rot = new_rot
 	
 	data = vel.next()
