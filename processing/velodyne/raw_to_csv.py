@@ -126,15 +126,18 @@ print(str(vertKeys) + '\n\n')
 #i = 0
 old_rot = 0;
 
-image = []
-for ind in range(64):
-	image.append([])
-	for jind in range(1280):
-		image[ind].append(0)
-	
 count = 0
 
 while (len(bin) == 1206):
+
+	# clear image every time
+	image = []
+	for ind in range(64):
+		image.append([])
+		for jind in range(1280):
+			image[ind].append(0)
+
+
 	# each call here produces 12*32 new points, i will increment to about 79,000 before this is done
 	#if (i%100 == 0): print(i)
 	

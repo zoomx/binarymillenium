@@ -15,7 +15,8 @@ CloudConverter converter;
 
 void setup() {
  
-  String base = "/home/lucasw/gprocessing/velosphere/frames/";
+  //String base = "/home/lucasw/gprocessing/velosphere/frames/";
+  String base = "C:/Users/lucasw/own/prog/googlecode/trunk/processing/velosphere/frames/";
   converter = new CloudConverter(base);
 
 }
@@ -27,12 +28,14 @@ void draw() {
   else exit();
 }
 
+String outbase = "full_monterey_";
+
 void update() {
   
   counter++;
 
       
-    reader = createReader("../velodyne/misc/spheretest/unit_46_velodyne_3_" + counter + ".csv");
+    reader = createReader("../velodyne/data/spheretest/unit_46_velodyne_" + outbase + counter + ".csv");
     if (reader == null) {
       run = false;    
     }
@@ -43,7 +46,7 @@ void update() {
 
 }
 
-int counter = 0;
+int counter = 1;
 
 void loadPoints() {
 

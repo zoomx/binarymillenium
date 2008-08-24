@@ -67,9 +67,15 @@ def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off,vertKeys,image):
 					
 					theta_ind = int(theta/360*1280)
 					if (theta_ind >= 1280): theta_ind = theta_ind-1280
-					
+				
+                    # recenter the forward direction with 180 phase shift
+					#theta_ind = theta_ind - 1280/2
+					if (theta_ind < 0): 
+						theta_ind = theta_ind + 1280
+
 					#print(str(phi_ind) +  ', ' + str(theta_ind) + ', ' + str(r) + '\n')
-					image[phi_ind][theta_ind] = r
+					if (r > 60):
+						image[phi_ind][theta_ind] = r
 					#outfile.write(str(theta) + ', ' + str(phi) + ', ' + str(r) + '\n');
 					
 		# TBD something strange is happening here, the binary file ends
@@ -169,7 +175,6 @@ while (data):
 	# start a new file every rotation
 	if (new_rot < old_rot):
 		#i = 0
-		filecounter = filecounter +1
 		fout = open(outname + str(filecounter) +'.csv','wb')
 		print(str(filecounter) + ', ' + str(count*1248) + ', ' + str(new_rot) + '\n')
 	
@@ -179,6 +184,7 @@ while (data):
 				for ind in range(64):
 					fout.write(str(image[ind][jind]) + ', ')
 				fout.write('\n')
+		filecounter = filecounter +1
 	
 	old_rot = new_rot
 	
