@@ -11,10 +11,10 @@ import operator
 # might need python2.4 rather than 2.5 for this to work
 import pcapy
 
+sphereical = False
 
 def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off,vertKeys,image):
 
-	sphereical = True
 
 	#output = array.array('f')
 	
@@ -179,21 +179,21 @@ while (data):
 		fout = open(outname + str(filecounter) +'.csv','wb')
 		print(str(filecounter) + ', ' + str(count*1248) + ', ' + str(new_rot) + '\n')
 	
-		if (filecounter >= startind):
-		
-			for jind in range(1280):
-				for ind in range(64):
-					fout.write(str(image[ind][jind]) + ', ')
-				fout.write('\n')
-		filecounter = filecounter +1
+		if (sphereical):
+			if (filecounter >= startind):
+			
+				for jind in range(1280):
+					for ind in range(64):
+						fout.write(str(image[ind][jind]) + ', ')
+					fout.write('\n')
 
-
-		image = []
-		for ind in range(64):
-			image.append([])
-			for jind in range(1280):
-				image[ind].append(0)
+			image = []
+			for ind in range(64):
+				image.append([])
+				for jind in range(1280):
+					image[ind].append(0)
 	
+		filecounter = filecounter +1
 
 
 	old_rot = new_rot
