@@ -38,8 +38,8 @@ bin.fromfile(fraw, offset) # 15)
 fbin = array.array('f')
 fbin.fromfile(fraw, 3)
 
-bin = array.array('B')
-bin.fromfile(fraw, 2)
+bin = array.array('H')
+bin.fromfile(fraw, 1)
 
 count = 0;
 while(True): 
@@ -53,12 +53,28 @@ while(True):
 	if checkfloats(fbin):
 		for j in range(3):
 			sys.stdout.write(str(fbin[j]) + ',\t')
-
-		for j in range(2):
-			v1 = (  (bin[ j] )       & 0xf ) 
-			v2 = ( ((bin[ j] ) >> 4) & 0xf )
-			sys.stdout.write(str(v1) + ',\t')
-			sys.stdout.write(str(v2) + ',\t')
+	
+		bin.byteswap()
+		blue = 0
+		green = 0
+		red = 0
+		for k in range(5):
+			#blue = blue + ( (bin[0] >> (8+k)) & 0x1)*2**(4-k)
+			blue = blue + ( (bin[0] >> (8+k)) & 0x1)*2**(k)
+			#red= red + ((bin[0] >> (3+k)) & 0x1)*2**(4-k)
+			red= red + ((bin[0] >> (3+k)) & 0x1)*2**(k)
+   
+   		for k in range(3):
+   			#green = green + ((bin[0] >> k)   & 0x1)* 2**(2-k)
+   			green = green + ((bin[0] >> k)   & 0x1)* 2**(2+k)
+   		for k in range(2):
+   			#green = green + ((bin[0] >> 14+k)& 0x1)* 2**(3+1-k)
+   			green = green + ((bin[0] >> 14+k)& 0x1)* 2**(k)
+			#for k in range(8):
+			#	sys.stdout.write( str((bin[j] >> k) & 0x1)  )
+			#sys.stdout.write( ' ' )
+		
+		sys.stdout.write( str(red) + ',\t' + str(green) + ',\t' + str(blue) )	
 	#	sys.stdout.write("%#x \t" % v1)
 	#	sys.stdout.write("%#x \t" % v2)
 		sys.stdout.write('\n')
@@ -70,8 +86,8 @@ while(True):
 	except: 
 		break
 
-	bin = array.array('B')
-	bin.fromfile(fraw, 2)
+	bin = array.array('H')
+	bin.fromfile(fraw, 1)
 
 	count = count+1
 	

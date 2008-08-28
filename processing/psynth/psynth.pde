@@ -34,7 +34,7 @@
 import processing.opengl.*;
 //import java.util.*
  
-int len = 1000000;
+int len = 200000;
  
 VBPointCloud cloud;
 
@@ -69,8 +69,9 @@ void setup(){
 
 void update() {
    
-   //reader = createReader("flower1.csv");
-   reader = createReader("some.csv");
+  //reader = createReader("mesaverde.csv");
+   reader = createReader("sphinx.csv");
+   //reader = createReader("flower.csv");
      
    rv = new PC(len);
 
@@ -122,10 +123,11 @@ void loadPoints(int len) {
     rv.points[i * 3 + 1] = new Float(thisLine[1]).floatValue();
     rv.points[i * 3 + 2] = new Float(thisLine[2]).floatValue();
 
-    rv.colors[i*4]   = new Float(thisLine[4]).floatValue() / 16.0;
-    rv.colors[i*4+1] = (new Float(thisLine[6]).floatValue() ) /16.0;
-    rv.colors[i*4+2] = (new Float(thisLine[5]).floatValue() ) /16.0;
-    rv.colors[i*4+3] = 55.0;
+// 3 5 4 looks almost right
+    rv.colors[i*4]   =  new Float(thisLine[3]).floatValue() / 32.0;
+    rv.colors[i*4+1] = (new Float(thisLine[4]).floatValue() ) /32.0;
+    rv.colors[i*4+2] = (new Float(thisLine[5]).floatValue() ) /32.0;
+    rv.colors[i*4+3] = 0.4;
      
      numpoints = i;
   try {
