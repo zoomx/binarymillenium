@@ -58,12 +58,17 @@ BufferedReader reader;
 
 void setup(){
   //frameRate(SZ);
-  size(640,480, OPENGL);
-  //size(1280,720, OPENGL);
+  //size(640,480, OPENGL);
+  size(1280,720, OPENGL);
   cloud = new VBPointCloud(this);
  
+  //frustum(-width/2, width/2, -height/2, height/2, 0.1, 200.0);
+
+
 // println("Loaded: " + raw.length + " points");
  update();
+ 
+ frameRate(15);
  
 }
 
@@ -77,16 +82,14 @@ void update() {
 
    loadPoints(len);
   
-     cloud.loadFloats(rv.points,rv.colors);
-
-   
+   cloud.loadFloats(rv.points,rv.colors); 
 }
 
 void draw(){
 
-  background(0);
-  //fill(color(0,0,50,150));
-  //rect(0,0,width,height);
+  background(color(0,0,0,10));
+ // fill(color(1,1,1,20));
+ //rect(0,0,width,height);
   
   center();
   rotations();
@@ -125,9 +128,9 @@ void loadPoints(int len) {
 
 // 3 5 4 looks almost right
     rv.colors[i*4]   =  new Float(thisLine[3]).floatValue() / 32.0;
-    rv.colors[i*4+1] = (new Float(thisLine[4]).floatValue() ) /32.0;
-    rv.colors[i*4+2] = (new Float(thisLine[5]).floatValue() ) /32.0;
-    rv.colors[i*4+3] = 0.4;
+    rv.colors[i*4+1] = new Float(thisLine[4]).floatValue() / 32.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
+    rv.colors[i*4+2] = new Float(thisLine[5]).floatValue() / 32.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
+    rv.colors[i*4+3] = 0.7;
      
      numpoints = i;
   try {

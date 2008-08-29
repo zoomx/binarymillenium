@@ -55,26 +55,12 @@ while(True):
 			sys.stdout.write(str(fbin[j]) + ',\t')
 	
 		bin.byteswap()
-		blue = 0
-		green = 0
-		red = 0
-		for k in range(5):
-			#blue = blue + ( (bin[0] >> (8+k)) & 0x1)*2**(4-k)
-			blue = blue + ( (bin[0] >> (8+k)) & 0x1)*2**(k)
-			#red= red + ((bin[0] >> (3+k)) & 0x1)*2**(4-k)
-			red= red + ((bin[0] >> (3+k)) & 0x1)*2**(k)
-   
-   		for k in range(3):
-   			#green = green + ((bin[0] >> k)   & 0x1)* 2**(2-k)
-   			green = green + ((bin[0] >> k)   & 0x1)* 2**(2+k)
-   		for k in range(2):
-   			#green = green + ((bin[0] >> 14+k)& 0x1)* 2**(3+1-k)
-   			green = green + ((bin[0] >> 14+k)& 0x1)* 2**(k)
-			#for k in range(8):
-			#	sys.stdout.write( str((bin[j] >> k) & 0x1)  )
-			#sys.stdout.write( ' ' )
+		red = 	(bin[0] >> 11) & 0x1f
+		green = (bin[0] >> 6)  & 0x1f
+		blue =  (bin[0] >> 0)  & 0x1f
 		
 		sys.stdout.write( str(red) + ',\t' + str(green) + ',\t' + str(blue) )	
+
 	#	sys.stdout.write("%#x \t" % v1)
 	#	sys.stdout.write("%#x \t" % v2)
 		sys.stdout.write('\n')
