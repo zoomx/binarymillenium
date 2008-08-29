@@ -23,8 +23,7 @@ float z_off;
 float rX = -60.2;
 float rZ = -96.86;
 float vX,vZ;
-float zoomScale = 1.0;
-float zoomScaleTarget = 45.6;
+
 
 void rotations(){
   rX+=vX;
@@ -47,10 +46,7 @@ void rotations(){
   rotateZ( radians(- rZ) );  
 }
 
-void zooms(){
-  zoomScale = lerp(zoomScale,zoomScaleTarget,.02); 
-  scale(zoomScale);
-}
+
 
 
 float pl = 0;
@@ -71,14 +67,10 @@ void center(){
 
 void keyPressed(){
   if(keyCode == UP){
-    //if(zoomScaleTarget < 50){
-      zoomScaleTarget +=3.2;
-    //}
+ 
   }
   if(keyCode == DOWN){
-    if(zoomScaleTarget > 1){
-      zoomScaleTarget -=4.2;
-    }
+  
   } 
   
   if(key == 'a'){
