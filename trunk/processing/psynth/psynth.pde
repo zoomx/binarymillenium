@@ -58,8 +58,8 @@ BufferedReader reader;
 
 void setup(){
   //frameRate(SZ);
-  //size(640,480, OPENGL);
-  size(1280,720, OPENGL);
+  size(640,480, OPENGL);
+  //size(1280,720, OPENGL);
   cloud = new VBPointCloud(this);
  
   //frustum(-width/2, width/2, -height/2, height/2, 0.1, 200.0);
@@ -75,9 +75,10 @@ void setup(){
 void update() {
    
   //reader = createReader("mesaverde.csv");
-   reader = createReader("sphinx.csv");
-   //reader = createReader("flower.csv");
-     
+  // reader = createReader("sphinx.csv");
+  // reader = createReader("flower.csv");
+   reader = createReader("boxer.csv");
+   
    rv = new PC(len);
 
    loadPoints(len);
@@ -93,7 +94,7 @@ void draw(){
   
   center();
   rotations();
-  zooms();
+ 
 
   stroke(225,250,175,90);
   cloud.draw();
@@ -122,13 +123,13 @@ void loadPoints(int len) {
     
     String[] thisLine = split(newline, ",");
     
-    rv.points[i * 3]     = new Float(thisLine[0]).floatValue();
-    rv.points[i * 3 + 1] = new Float(thisLine[1]).floatValue();
-    rv.points[i * 3 + 2] = new Float(thisLine[2]).floatValue();
+    rv.points[i * 3]     = new Float(thisLine[0]).floatValue()*100;
+    rv.points[i * 3 + 1] = new Float(thisLine[1]).floatValue()*100;
+    rv.points[i * 3 + 2] = new Float(thisLine[2]).floatValue()*100;
 
 // 3 5 4 looks almost right
-    rv.colors[i*4]   =  new Float(thisLine[3]).floatValue() / 32.0;
-    rv.colors[i*4+1] = new Float(thisLine[4]).floatValue() / 32.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
+    rv.colors[i*4]   = new Float(thisLine[3]).floatValue() / 32.0;
+    rv.colors[i*4+1] = new Float(thisLine[4]).floatValue() / 64.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
     rv.colors[i*4+2] = new Float(thisLine[5]).floatValue() / 32.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
     rv.colors[i*4+3] = 0.7;
      

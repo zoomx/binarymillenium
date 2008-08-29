@@ -7,5 +7,5 @@
 for i in `seq 0 23`
 do 
 	#echo "python ./bin_to_csv.py some/points_0_$i.bin" 
-	python ./bin_to_csv.py "boxer/points_0_$i.bin"  
+	 ./bin_to_csv.py "boxer/points_0_$i.bin"  
 done

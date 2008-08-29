@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import math
 import array
 import csv
@@ -53,15 +55,15 @@ while(True):
 	if checkfloats(fbin):
 		for j in range(3):
 			sys.stdout.write(str(fbin[j]) + ',\t')
-	
+
 		bin.byteswap()
 		red = 	(bin[0] >> 11) & 0x1f
-		green = (bin[0] >> 6)  & 0x1f
+		green = (bin[0] >> 5)  & 0x3f
 		blue =  (bin[0] >> 0)  & 0x1f
 		
 		sys.stdout.write( str(red) + ',\t' + str(green) + ',\t' + str(blue) )	
+		#sys.stdout.write( ',\t' + str((bin[0] >> 5) & 0x1))
 
-	#	sys.stdout.write("%#x \t" % v1)
 	#	sys.stdout.write("%#x \t" % v2)
 		sys.stdout.write('\n')
 
