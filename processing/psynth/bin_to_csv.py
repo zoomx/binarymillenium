@@ -9,7 +9,7 @@ import os
 
 def checkfloats(fbin):
 	for i in range(3):
-		if not((abs(fbin[i]) > 1e-10) and (abs(fbin[i]) < 1e10)): return False
+		if not((abs(fbin[i]) > 1e-10) and (abs(fbin[i]) < 1e6)): return False
 	
 	return True;
 
@@ -22,6 +22,9 @@ numargs = len(sys.argv)
 rng = 1
 if (numargs > 2):
 	rng = int(sys.argv[2])
+
+minmax = [0, 0, 0,  0, 0,0]
+firstpass = True
 
 for i in range(rng):
 
@@ -66,6 +69,14 @@ for i in range(rng):
 		if checkfloats(fbin):
 			for j in range(3):
 				sys.stdout.write(str(fbin[j]) + ',\t')
+				if firstpass:
+					minmax[j] = fbin[j]
+					minmax[3+j] = fbin[j]
+				firstpass = False
+
+				if (fbin[j] < minmax[j]): minmax[j] = fbin[j]
+				if (fbin[j] > minmax[3 + j]): minmax[3 + j] = fbin[j]
+
 
 			bin.byteswap()
 			red = 	(bin[0] >> 11) & 0x1f
@@ -89,4 +100,7 @@ for i in range(rng):
 		bin.fromfile(fraw, 1)
 
 		count = count+1
+
+for j in range(3):
+	sys.stderr.write(str(minmax[j]) + ', ' + str(minmax[3 + j]) + '\n') 
 
