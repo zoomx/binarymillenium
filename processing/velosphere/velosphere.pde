@@ -16,26 +16,29 @@ CloudConverter converter;
 void setup() {
  
   //String base = "/home/lucasw/gprocessing/velosphere/frames/";
-  String base = "C:/Users/lucasw/own/prog/googlecode/trunk/processing/velosphere/frames/";
+  String base = "C:/cygwin/home/lucasw/google/processing2/velosphere/frames/";
   converter = new CloudConverter(base);
 
+spectrum_setup();
+
+update();
 }
 
-boolean run =true;
+boolean run = true;
 
 void draw() {
   if(run) update();
   else exit();
 }
 
-String outbase = "full_monterey_";
+String outbase = "unit_46_Monterey_subset_";
 
 void update() {
   
   counter++;
 
       
-    reader = createReader("../velodyne/data/spheretest/unit_46_velodyne_" + outbase + counter + ".csv");
+    reader = createReader("../velodyne/data/" + outbase + counter + ".csv");
     if (reader == null) {
       run = false;    
     }
