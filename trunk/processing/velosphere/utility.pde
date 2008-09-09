@@ -51,27 +51,63 @@ class CloudConverter {
        int pu = (j-1)*tx.width + i;
        int pd = (j+1)*tx.width + i;
        
-       float vl = brightness(tx.pixels[pl]);
-       float vr = brightness(tx.pixels[pr]);
-       float vu = brightness(tx.pixels[pu]);
-       float vd = brightness(tx.pixels[pd]);
+       float rvl = red(tx.pixels[pl]);
+       float rvr = red(tx.pixels[pr]);
+       float rvu = red(tx.pixels[pu]);
+       float rvd = red(tx.pixels[pd]);
+       
+       float gvl = green(tx.pixels[pl]);
+       float gvr = green(tx.pixels[pr]);
+       float gvu = green(tx.pixels[pu]);
+       float gvd = green(tx.pixels[pd]);
+       
+       float bvl = blue(tx.pixels[pl]);
+       float bvr = blue(tx.pixels[pr]);
+       float bvu = blue(tx.pixels[pu]);
+       float bvd = blue(tx.pixels[pd]);
           
        boolean al = alpha(tx.pixels[pl]) > 0;
        boolean ar = alpha(tx.pixels[pr]) > 0;
        boolean au = alpha(tx.pixels[pu]) > 0;
        boolean ad = alpha(tx.pixels[pd]) > 0;
        
-       float sum = 0;
+       float rsum = 0;
+       float gsum = 0;
+       float bsum = 0;
+       
        int sumnum = 0;
-       if (al) { sum += vl; sumnum++; }
-       if (ar) { sum += vr; sumnum++; }
-       if (au) { sum += vu; sumnum++; }
-       if (ad) { sum += vd; sumnum++; }
+       if (al) { 
+         rsum += rvl; 
+         gsum += gvl;
+         bsum += bvl;
+         sumnum++; 
+       }
+       if (ar) {  
+         rsum += rvr; 
+         gsum += gvr;
+         bsum += bvr;
+         sumnum++; 
+       }
+       if (au) { 
+         rsum += rvu; 
+         gsum += gvu;
+         bsum += bvu;
+         sumnum++; 
+       }
+       if (ad) { 
+
+         rsum += rvd; 
+         gsum += gvd;
+         bsum += bvd;
+         sumnum++;  
+       }
 
         if (sumnum > 0) {
-            float val = sum/(float)sumnum;
+            float rval = rsum/(float)sumnum;
+            float gval = gsum/(float)sumnum;
+            float bval = bsum/(float)sumnum;
             
-           rx.pixels[p] = color(val, 255);      
+           rx.pixels[p] = color(rval,gval,bval, 255);      
         } else {
          unfillednum++; 
         }
@@ -121,13 +157,27 @@ class CloudConverter {
            
            
           //print( j + ", " + z + "\n");
-          if (z > 100.0) {  
+          
+          float minval = 100.0;
+          float maxval = 30000.0;
+          if (z > minval) {
+            
+            if (z > maxval) z = maxval;
+            if (z < minval) z = minval;
+                
+            float powval = 0.8;
+            float val = (pow(z,powval)-pow(minval,powval))/pow(maxval,powval);  
+            
+        
+            /*
             int val;
            //  val = int( (log(z)-log(100))/(log(20000.0)-log(100))*255.0);
              val = int( (z/20000.0)*255.0);
             if (val > 255) val = 255;
             if (val < 0) val = 0;
-            tx.pixels[pixind] = color(255 - val,255);
+            */
+            tx.pixels[pixind] = makecolor(1.0-val);
+            //color(255 - val,255);
           } else {
            tx.pixels[pixind] = color(0,0,0,0);
           } 
@@ -136,7 +186,7 @@ class CloudConverter {
     }
     }
 
-//tx.updatePixels();
+
    tx = fillGaps(tx,2);
    tx.updatePixels();
     
