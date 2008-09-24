@@ -32,7 +32,7 @@ for i in range(rng):
 	if (rng > 1):
 		filename = filename + str(i) + '.bin'
 	
-	fraw = open(filename) 
+	fraw = open(filename,'rb') 
 	filesize= os.path.getsize(filename)
 		
 	bsize = 14
