@@ -15,6 +15,8 @@
 #include <AR/param.h>
 #include <AR/ar.h>
 
+#include <wand/MagickWand.h>
+
 //
 // Camera configuration.
 //
@@ -39,20 +41,11 @@ double          patt_trans[3][4];
 
 static void   init(void);
 static void   cleanup(void);
-static void   keyEvent( unsigned char key, int x, int y);
+//static void   keyEvent( unsigned char key, int x, int y);
 static void   mainLoop(void);
 static void   draw( void );
 
-int main(int argc, char **argv)
-{
-	glutInit(&argc, argv);
-	init();
-
-    arVideoCapStart();
-    argMainLoop( NULL, keyEvent, mainLoop );
-	return (0);
-}
-
+#if 0
 static void   keyEvent( unsigned char key, int x, int y)
 {
     /* quit if the ESC key is pressed */
@@ -62,22 +55,96 @@ static void   keyEvent( unsigned char key, int x, int y)
         exit(0);
     }
 }
+#endif
 
-/* main loop */
-static void mainLoop(void)
+int main(int argc, char **argv)
 {
+	glutInit(&argc, argv);
+	init();
+
+    //arVideoCapStart();
+ //   argMainLoop( NULL, keyEvent, mainLoop,argv[1] );
+//}
+///* main loop */
+//static void mainLoop(char* filename)
+//{
     ARUint8         *dataPtr;
     ARMarkerInfo    *marker_info;
     int             marker_num;
     int             j, k;
 
-    /* grab a vide frame */
-    if( (dataPtr = (ARUint8 *)arVideoGetImage()) == NULL ) {
-        arUtilSleep(2);
-        return;
+	////
+	Image *image;
+	MagickWand* magick_wand;
+
+	MagickWandGenesis();
+	magick_wand=NewMagickWand(); 
+	
+
+	MagickBooleanType status=MagickReadImage(magick_wand,argv[1]);
+	if (status == MagickFalse)
+		return(1);
+		//ThrowWandException(magick_wand);
+	
+	image = GetImageFromMagickWand(magick_wand);
+
+
+	///
+	ARParam  wparam;
+	
+    /* open the video path */
+    //if( arVideoOpen( vconf ) < 0 ) exit(0);
+    /* find the size of the window */
+    //if( arVideoInqSize(&xsize, &ysize) < 0 ) exit(0);
+    printf("Image size (x,y) = (%d,%d)\n", image->columns, image->rows);
+
+    /* set the initial camera parameters */
+    if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
+        printf("Camera parameter load error !!\n");
+        exit(0);
     }
-    if( count == 0 ) arUtilTimerReset();
-    count++;
+    arParamChangeSize( &wparam, image->columns, image->rows, &cparam );
+    arInitCparam( &cparam );
+    printf("*** Camera Parameter ***\n");
+    arParamDisp( &cparam );
+
+    if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
+        printf("pattern load error !!\n");
+        exit(0);
+    }
+
+    /* open the graphics window */
+    argInit( &cparam, 1.0, 0, 0, 0, 0 );
+	///
+
+	int index = 0;
+	dataPtr = malloc(sizeof(ARUint8) * 4 * image->rows * image->columns);
+	int y;
+	for (y=0; y < (long) image->rows; y++)
+	{
+		PixelPacket *p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
+		if (p == (const PixelPacket *) NULL)
+			break;
+		int x;
+		for (x=0; x < (long) image->columns; x++)
+		{
+			/// TBD convert to ARUint8 dataPtr
+			dataPtr[index*4] = p->red;
+			dataPtr[index*4+1] = p->green;
+			dataPtr[index*4+2] = p->blue;
+			dataPtr[index*4+3] = 255;
+			
+			//(void) printf("%d %d: %d %d %d\n",y,x,p->red,p->green,p->blue);
+			p++;
+			index++;
+		}
+	}
+
+	/* grab a vide frame */
+    //if( (dataPtr = (ARUint8 *)arVideoGetImage()) == NULL ) {
+    
+	//if( count == 0 ) arUtilTimerReset();
+    //count++;
 
     argDrawMode2D();
     argDispImage( dataPtr, 0,0 );
@@ -89,7 +156,7 @@ static void mainLoop(void)
     }
 
 	
-    arVideoCapNext();
+    //arVideoCapNext();
 
     /* check for object visibility */
     k = -1;
@@ -110,36 +177,14 @@ static void mainLoop(void)
     draw();
 
     argSwapBuffers();
+
+
+	return (0);
 }
 
 static void init( void )
 {
-    ARParam  wparam;
-	
-    /* open the video path */
-    if( arVideoOpen( vconf ) < 0 ) exit(0);
-    /* find the size of the window */
-    if( arVideoInqSize(&xsize, &ysize) < 0 ) exit(0);
-    printf("Image size (x,y) = (%d,%d)\n", xsize, ysize);
-
-    /* set the initial camera parameters */
-    if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
-        printf("Camera parameter load error !!\n");
-        exit(0);
     }
-    arParamChangeSize( &wparam, xsize, ysize, &cparam );
-    arInitCparam( &cparam );
-    printf("*** Camera Parameter ***\n");
-    arParamDisp( &cparam );
-
-    if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
-        printf("pattern load error !!\n");
-        exit(0);
-    }
-
-    /* open the graphics window */
-    argInit( &cparam, 1.0, 0, 0, 0, 0 );
-}
 
 /* cleanup function called when program exits */
 static void cleanup(void)
