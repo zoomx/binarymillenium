@@ -1,14 +1,18 @@
 ARDIR=/home/lucasw/other/sw/ARToolKit
 INC_DIR= $(ARDIR)/include
 LIB_DIR= $(ARDIR)/lib
+
+IMDIR=/home/lucasw/other/sw//ImageMagick-6.4.3
+#IMINCDIR=$(IMDIR)/wand
+
 BIN_DIR=.
 #$(ARDIR)/bin
 
 EXEC=arlaser
 
 LDFLAG=-L/usr/X11R6/lib -L$(LIB_DIR)
-LIBS= -lARgsub -lARvideo -lAR -lglut -lGLU -lGL -lXi -lXmu -lX11 -lm
-CFLAG= -O -I/usr/X11R6/include -g -I$(INC_DIR)
+LIBS= -lMagick++ -lARgsub -lARvideo -lAR -lglut -lGLU -lGL -lXi -lXmu -lX11 -lm
+CFLAG= -O -I/usr/X11R6/include -g -I$(INC_DIR) -I$(IMDIR)
 
 OBJS =
 HEADDERS =
