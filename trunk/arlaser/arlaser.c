@@ -1,3 +1,12 @@
+/**
+ * binarymillenium 2008
+ *
+ *
+ * Offered under the latest version of the GNU GPL
+ *
+ *
+ * /
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -147,8 +156,8 @@ int main(int argc, char **argv)
 	findMarkers();
 
 	/// find red laser dot
-	int dot_x = 0;
-	int dot_y = 0;
+	float dot_x = 0;
+	float dot_y = 0;
 	int dot_num = 0;
 	
 	index = 0;
@@ -188,10 +197,11 @@ int main(int argc, char **argv)
 
 	dot_x = dot_x/dot_num;
 	dot_y = dot_y/dot_num;
-
+	
+	/// draw a target to verify the found dot position
 	{
-		const int ind = (dot_y*image->columns + dot_x)*3;
-		printf("%d\t%d\n", dot_x,dot_y);
+		const int ind = (dot_y*image->columns + (int)dot_x)*3;
+		printf("%d\t%d\n", (int)dot_x,dot_y);
 		int x;
 		for (x = -10; x <=10; x++) {
 		for (y = -1; y <=1; y++) {
@@ -211,7 +221,37 @@ int main(int argc, char **argv)
 	}
 	///
 
+	/// fov scaled by image size?
+	float dot_depth = 1600.0;
+	/// now find the nearest intersection of the line from the camera (0,0,0)
+	/// to the dot point and the line from the fiducial in the y direction
+	/// http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/	
+	float lines[12] = {
+		0,0,0,				/// p1
+		dot_x,dot_y,dot_depth, 		/// p2
+		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
+		patt_trans[0][3] + patt_trans[0][0], patt_trans[1][3] + patt_trans[1][0], patt_trans[2][3] + patt_trans[2][0]  /// p4	
+	};
 
+	float lx[4] = { lines[0], lines[3], lines[6], lines[9] }; 
+	float ly[4] = { lines[1], lines[4], lines[7], lines[10] }; 
+	float lz[4] = { lines[2], lines[5], lines[8], lines[11] }; 
+
+	float mua = 
+	   (dmnop(lx,ly,lz, 1,3,4,3) * 
+		dmnop(lx,ly,lz, 4,3,2,1) - 
+		dmnop(lx,ly,lz, 1,3,2,1) * 
+		dmnop(lx,ly,lz, 4,3,4,3))	/
+	   (dmnop(lx,ly,lz, 2,1,2,1) * 
+	   	dmnop(lx,ly,lz, 4,3,4,3) - 
+	   	dmnop(lx,ly,lz, 4,3,2,1) * 
+	   	dmnop(lx,ly,lz, 4,3,2,1)); 
+	
+	float mub = 
+	 	  	  (dmnop(lx,ly,lz, 1,3,4,3)  +  
+	     mua * dmnop(lx,ly,lz, 4,3,2,1)) /  
+	 	  	   dmnop(lx,ly,lz, 4,3,4,3);   
+	
 	int singleLoop = 0;
 	if (singleLoop) {
 		mainLoop();
@@ -219,6 +259,15 @@ int main(int argc, char **argv)
     	argMainLoop( NULL, NULL /*keyEvent*/, mainLoop );
 	
 	}
+}
+
+float dmnop(float* x, float* y, float* z, int m, int n, int o, int p)
+{
+	/// the webpage uses 1 based indexing so subtract 1 here
+	float rv =
+		(x[m-1] - x[n-1])*(x[o-1]-x[p-1]) +	
+		(y[m-1] - y[n-1])*(y[o-1]-y[p-1]) +	
+		(z[m-1] - z[n-1])*(z[o-1]-z[p-1]);	
 }
 
 void findMarkers(void) 
@@ -276,9 +325,9 @@ void findMarkers(void)
 		/// what is patt_center, it seems to be zeros
 		//printf("%f,\t%f,\t", patt_center[0], patt_center[1]);
 		int i;
-		for (i = 0; i < 4; i ++) {
-			for (j = 0; j < 3; j++) {
-				printf("%f,\t", patt_trans[i][j]);	
+		for (j = 0; j < 3; j++) {
+		for (i = 0; i < 4; i++) {
+				printf("%f,\t", patt_trans[j][i]);	
 			}
 			//printf("\n");
 		}
