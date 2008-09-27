@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 	/// http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/	
 	float lines[12] = {
 		0,0,0,				/// p1
-		dot_x-xsize/2,-(dot_y-ysize/2),dot_depth, 		/// p2
+		dot_x-xsize/2,(dot_y-ysize/2),dot_depth, 		/// p2
 		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
 		patt_trans[0][3] + patt_trans[0][1], patt_trans[1][3] + patt_trans[1][1], patt_trans[2][3] + patt_trans[2][1]  /// p4	
 	};
