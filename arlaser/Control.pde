@@ -31,8 +31,8 @@ void rotations(){
   vX*=.95;
   vZ*=.95;
 
-  if (rX >0 ) { vX = -vX*0.5; rX = 0; }
-  if (rX < -95 ) { vX = -vX*0.5; /*rX = -92;*/ }
+ // if (rX >0 ) { vX = -vX*0.5; rX = 0; }
+ // if (rX < -95 ) { vX = -vX*0.5; /*rX = -92;*/ }
  
 
   if(mousePressed){
