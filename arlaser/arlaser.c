@@ -5,7 +5,7 @@
  * Offered under the latest version of the GNU GPL
  *
  *
- * /
+ */
 
 #ifdef _WIN32
 #include <windows.h>
@@ -55,6 +55,7 @@ static void   mainLoop(void);
 static void   draw( void );
 
 void findMarkers(void);
+float dmnop(float* x, float* y, float* z, int m, int n, int o, int p);
 
 static void   keyEvent( unsigned char key, int x, int y)
 {
@@ -68,6 +69,7 @@ static void   keyEvent( unsigned char key, int x, int y)
 
 char* filename;
 ARUint8 *dataPtr;
+float mua, mub;
 
 int main(int argc, char **argv)
 {
@@ -94,18 +96,20 @@ int main(int argc, char **argv)
 	image = GetImageFromMagickWand(magick_wand);
 
 	int index;
-	
+
+	xsize = image->columns;
+	ysize = image->rows;
 		
-	dataPtr = malloc(sizeof(ARUint8) * 3 * image->rows * image->columns);
+	dataPtr = malloc(sizeof(ARUint8) * 3 * image->rows * xsize);
 	int y;
 	index = 0;
 	for (y=0; y < (long) image->rows; y++)
 	{
-		const PixelPacket *p = AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
+		const PixelPacket *p = AcquireImagePixels(image,0,y,xsize,1,&image->exception);
 		if (p == (const PixelPacket *) NULL)
 			break;
 		int x;
-		for (x=0; x < (long) image->columns; x++)
+		for (x=0; x < (long) xsize; x++)
 		{
 			/// convert to ARUint8 dataPtr
 			/// probably a faster way to give the data straight over
@@ -128,14 +132,14 @@ int main(int argc, char **argv)
     //if( arVideoOpen( vconf ) < 0 ) exit(0);
     /* find the size of the window */
     //if( arVideoInqSize(&xsize, &ysize) < 0 ) exit(0);
-    //printf("Image size (x,y) = (%d,%d)\n", image->columns, image->rows);
+    //printf("Image size (x,y) = (%d,%d)\n", xsize, image->rows);
 
     /* set the initial camera parameters */
     if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
         printf("Camera parameter load error !!\n");
         exit(0);
     }
-    arParamChangeSize( &wparam, image->columns, image->rows, &cparam );
+    arParamChangeSize( &wparam, xsize, image->rows, &cparam );
     arInitCparam( &cparam );
     //printf("*** Camera Parameter ***\n");
     //arParamDisp( &cparam );
@@ -163,11 +167,11 @@ int main(int argc, char **argv)
 	index = 0;
 	for (y=0; y < (long) image->rows; y++)
 	{
-		const PixelPacket *p = AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
+		const PixelPacket *p = AcquireImagePixels(image,0,y,xsize,1,&image->exception);
 		if (p == (const PixelPacket *) NULL)
 			break;
 		int x;
-		for (x=0; x < (long) image->columns; x++)
+		for (x=0; x < (long) xsize; x++)
 		{
 			int red8bit = p->red/256;
 			int green8bit = p->green/256;
@@ -195,32 +199,33 @@ int main(int argc, char **argv)
 		}
 	}
 
-	dot_x = dot_x/dot_num;
-	dot_y = dot_y/dot_num;
+	dot_x = dot_x/(float)dot_num;
+	dot_y = dot_y/(float)dot_num;
 	
 	/// draw a target to verify the found dot position
 	{
-		const int ind = (dot_y*image->columns + (int)dot_x)*3;
-		printf("%d\t%d\n", (int)dot_x,dot_y);
+		const int ind = ((int)dot_y*xsize + (int)dot_x)*3;
+		printf("%d\t%d\n", (int)dot_x,(int)dot_y);
 		int x;
 		for (x = -10; x <=10; x++) {
 		for (y = -1; y <=1; y++) {
-			dataPtr[ind+(x + y*image->columns)*3] = 255;
-			dataPtr[ind+(x + y*image->columns)*3+1] = 0;
-			dataPtr[ind+(x + y*image->columns)*3+2] = 0;
+			dataPtr[ind+(x + y*xsize)*3] = 255;
+			dataPtr[ind+(x + y*xsize)*3+1] = 0;
+			dataPtr[ind+(x + y*xsize)*3+2] = 0;
 		}
 		}
 
 		for (x = -1; x <=1; x++) {
 		for (y = -10; y <=10; y++) {
-			dataPtr[ind+(x + y*image->columns)*3] = 255;
-			dataPtr[ind+(x + y*image->columns)*3+1] = 0;
-			dataPtr[ind+(x + y*image->columns)*3+2] = 0;
+			dataPtr[ind+(x + y*xsize)*3] = 255;
+			dataPtr[ind+(x + y*xsize)*3+1] = 0;
+			dataPtr[ind+(x + y*xsize)*3+2] = 0;
 		}
 		}
 	}
 	///
 
+	{
 	/// fov scaled by image size?
 	float dot_depth = 1600.0;
 	/// now find the nearest intersection of the line from the camera (0,0,0)
@@ -228,30 +233,42 @@ int main(int argc, char **argv)
 	/// http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/	
 	float lines[12] = {
 		0,0,0,				/// p1
-		dot_x,dot_y,dot_depth, 		/// p2
+		dot_x-xsize/2,-(dot_y-ysize/2),dot_depth, 		/// p2
 		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
-		patt_trans[0][3] + patt_trans[0][0], patt_trans[1][3] + patt_trans[1][0], patt_trans[2][3] + patt_trans[2][0]  /// p4	
+		patt_trans[0][3] + patt_trans[1][0], patt_trans[1][3] - patt_trans[1][1], patt_trans[2][3] - patt_trans[1][2]  /// p4	
 	};
+	int i;
+	printf("lines");
+	for (i = 0; i < 12; i++) {
+		if (i%3 == 0) printf("\n\t");
+		printf("%f,\t", lines[i]);
+	}
+	printf("\n");
 
 	float lx[4] = { lines[0], lines[3], lines[6], lines[9] }; 
 	float ly[4] = { lines[1], lines[4], lines[7], lines[10] }; 
 	float lz[4] = { lines[2], lines[5], lines[8], lines[11] }; 
 
-	float mua = 
-	   (dmnop(lx,ly,lz, 1,3,4,3) * 
-		dmnop(lx,ly,lz, 4,3,2,1) - 
-		dmnop(lx,ly,lz, 1,3,2,1) * 
-		dmnop(lx,ly,lz, 4,3,4,3))	/
-	   (dmnop(lx,ly,lz, 2,1,2,1) * 
-	   	dmnop(lx,ly,lz, 4,3,4,3) - 
-	   	dmnop(lx,ly,lz, 4,3,2,1) * 
-	   	dmnop(lx,ly,lz, 4,3,2,1)); 
+	float mua_num =   dmnop(lx,ly,lz, 1,3,4,3) *
+	       			  dmnop(lx,ly,lz, 4,3,2,1) -
+			          dmnop(lx,ly,lz, 1,3,2,1) *
+					  dmnop(lx,ly,lz, 4,3,4,3);
+
+	float mua_denom = dmnop(lx,ly,lz, 2,1,2,1) *
+	        		  dmnop(lx,ly,lz, 4,3,4,3) -
+			          dmnop(lx,ly,lz, 4,3,2,1) *
+					  dmnop(lx,ly,lz, 4,3,2,1);
 	
-	float mub = 
+	mua = mua_num/mua_denom;
+
+	mub = 
 	 	  	  (dmnop(lx,ly,lz, 1,3,4,3)  +  
 	     mua * dmnop(lx,ly,lz, 4,3,2,1)) /  
 	 	  	   dmnop(lx,ly,lz, 4,3,4,3);   
 	
+	printf("%f %f , mua mub %f,\t%f,\n", mua_num, mua_denom, mua, mub);
+	}
+
 	int singleLoop = 0;
 	if (singleLoop) {
 		mainLoop();
@@ -324,12 +341,13 @@ void findMarkers(void)
 
 		/// what is patt_center, it seems to be zeros
 		//printf("%f,\t%f,\t", patt_center[0], patt_center[1]);
+		printf("patt_trans\n");
 		int i;
 		for (j = 0; j < 3; j++) {
 		for (i = 0; i < 4; i++) {
 				printf("%f,\t", patt_trans[j][i]);	
 			}
-			//printf("\n");
+			printf("\n");
 		}
 		printf("\n");
 
@@ -404,6 +422,11 @@ static void draw( void )
 	glBegin(GL_LINES);
 	glVertex3f(0.0,0.0,0.0);
 	glVertex3f(0.0,900.0,0.0);
+	
+	glVertex3f(-10.0,mub,0.0);
+	glVertex3f( 10.0,mub,0.0);
+	glVertex3f(  0.0,mub,-10.0);
+	glVertex3f(  0.0,mub, 10.0);
 	glEnd();
 
     glDisable( GL_DEPTH_TEST );
