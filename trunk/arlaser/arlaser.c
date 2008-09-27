@@ -80,6 +80,7 @@ int main(int argc, char **argv)
 	filename = argv[1];
 	base_filename = argv[2];
 
+	fprintf(stderr,"%s,\n", filename);
 
 
 	////
@@ -291,6 +292,7 @@ int main(int argc, char **argv)
 	
 		//printf(" mua mub %f,\t%f,\n", mua, mub);
 		/// the 2D and 3D position of the point
+		printf("%s,\t", filename);
 		printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
 		
 		/// print the color of the point from the base image
