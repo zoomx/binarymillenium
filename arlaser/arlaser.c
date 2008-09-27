@@ -205,7 +205,7 @@ int main(int argc, char **argv)
 	/// draw a target to verify the found dot position
 	{
 		const int ind = ((int)dot_y*xsize + (int)dot_x)*3;
-		printf("%d\t%d\n", (int)dot_x,(int)dot_y);
+		//printf("%d\t%d\n", (int)dot_x,(int)dot_y);
 		int x;
 		for (x = -10; x <=10; x++) {
 		for (y = -1; y <=1; y++) {
@@ -231,12 +231,16 @@ int main(int argc, char **argv)
 	/// now find the nearest intersection of the line from the camera (0,0,0)
 	/// to the dot point and the line from the fiducial in the y direction
 	/// http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/	
+	float dot_camx = dot_x-xsize/2;
+	float dot_camy = dot_y-ysize/2;
 	float lines[12] = {
 		0,0,0,				/// p1
-		dot_x-xsize/2,(dot_y-ysize/2),dot_depth, 		/// p2
+		dot_camx,dot_camy,dot_depth, 		/// p2
 		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
 		patt_trans[0][3] + patt_trans[0][1], patt_trans[1][3] + patt_trans[1][1], patt_trans[2][3] + patt_trans[2][1]  /// p4	
 	};
+	
+	#if 0
 	int i;
 	printf("lines");
 	for (i = 0; i < 12; i++) {
@@ -244,6 +248,7 @@ int main(int argc, char **argv)
 		printf("%f,\t", lines[i]);
 	}
 	printf("\n");
+	#endif
 
 	float lx[4] = { lines[0], lines[3], lines[6], lines[9] }; 
 	float ly[4] = { lines[1], lines[4], lines[7], lines[10] }; 
@@ -266,15 +271,16 @@ int main(int argc, char **argv)
 	     mua * dmnop(lx,ly,lz, 4,3,2,1)) /  
 	 	  	   dmnop(lx,ly,lz, 4,3,4,3);   
 	
-	printf("%f %f , mua mub %f,\t%f,\n", mua_num, mua_denom, mua, mub);
+		//printf(" mua mub %f,\t%f,\n", mua, mub);
+		/// the 2D and 3D position of the point
+		printf("%f,\t%f,\t%f,\t%f,\t%f,\n", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
 	}
 
-	int singleLoop = 0;
+	int singleLoop = 1;
 	if (singleLoop) {
 		mainLoop();
 	} else {
     	argMainLoop( NULL, NULL /*keyEvent*/, mainLoop );
-	
 	}
 }
 
@@ -323,7 +329,8 @@ void findMarkers(void)
     if( k == -1 ) {
         argSwapBuffers();
 		//printf("no visible objects\n");
-       
+      
+	  	#if 0
 	   int i;
 		for (i = 0; i < 4; i ++) {
 			for (j = 0; j < 3; j++) {
@@ -332,7 +339,7 @@ void findMarkers(void)
 			//printf("\n");
 		}
 		printf("\n");
-
+		#endif
 	   
 	   //return;
     } else {
@@ -344,6 +351,7 @@ void findMarkers(void)
 
 		/// what is patt_center, it seems to be zeros
 		//printf("%f,\t%f,\t", patt_center[0], patt_center[1]);
+		#if 0
 		printf("patt_trans\n");
 		int i;
 		for (j = 0; j < 3; j++) {
@@ -353,6 +361,7 @@ void findMarkers(void)
 			printf("\n");
 		}
 		printf("\n");
+		#endif
 
 		draw();
 	}
