@@ -30,10 +30,10 @@ int             xsize, ysize;
 int             thresh = 100;
 int             count = 0;
 
-char           *cparam_name    = "Data/camera_para.dat";
+char           *cparam_name    = "camera_para.dat";
 ARParam         cparam;
 
-char           *patt_name      = "Data/patt.hiro";
+char           *patt_name      = "patt.hiro";
 int             patt_id;
 double          patt_width     = 80.0;
 double          patt_center[2] = {0.0, 0.0};
@@ -41,11 +41,10 @@ double          patt_trans[3][4];
 
 static void   init(void);
 static void   cleanup(void);
-//static void   keyEvent( unsigned char key, int x, int y);
+static void   keyEvent( unsigned char key, int x, int y);
 static void   mainLoop(void);
 static void   draw( void );
 
-#if 0
 static void   keyEvent( unsigned char key, int x, int y)
 {
     /* quit if the ESC key is pressed */
@@ -55,23 +54,18 @@ static void   keyEvent( unsigned char key, int x, int y)
         exit(0);
     }
 }
-#endif
+
+char* filename;
+ARUint8 *dataPtr;
 
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	init();
+	
+	filename = argv[1];
 
-    //arVideoCapStart();
- //   argMainLoop( NULL, keyEvent, mainLoop,argv[1] );
-//}
-///* main loop */
-//static void mainLoop(char* filename)
-//{
-    ARUint8         *dataPtr;
-    ARMarkerInfo    *marker_info;
-    int             marker_num;
-    int             j, k;
+
 
 	////
 	Image *image;
@@ -81,12 +75,39 @@ int main(int argc, char **argv)
 	magick_wand=NewMagickWand(); 
 	
 
-	MagickBooleanType status=MagickReadImage(magick_wand,argv[1]);
+	MagickBooleanType status=MagickReadImage(magick_wand,filename);
 	if (status == MagickFalse)
-		return(1);
+		return; //(1);
 		//ThrowWandException(magick_wand);
 	
 	image = GetImageFromMagickWand(magick_wand);
+
+	int index = 0;
+	
+		
+	dataPtr = malloc(sizeof(ARUint8) * 3 * image->rows * image->columns);
+	int y;
+	for (y=0; y < (long) image->rows; y++)
+	{
+		const PixelPacket *p = AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
+		if (p == (const PixelPacket *) NULL)
+			break;
+		int x;
+		for (x=0; x < (long) image->columns; x++)
+		{
+			/// TBD convert to ARUint8 dataPtr
+			dataPtr[index*3+2]   = p->red;
+			dataPtr[index*3+1] = p->green;
+			dataPtr[index*3] = p->blue;
+			//dataPtr[index*4+3] = 255;
+			
+			//(void) printf("%d %d: %d %d %d\n",y,x,p->red,p->green,p->blue);
+			p++;
+			index++;
+		}
+	}
+
+
 
 
 	///
@@ -105,8 +126,8 @@ int main(int argc, char **argv)
     }
     arParamChangeSize( &wparam, image->columns, image->rows, &cparam );
     arInitCparam( &cparam );
-    printf("*** Camera Parameter ***\n");
-    arParamDisp( &cparam );
+    //printf("*** Camera Parameter ***\n");
+    //arParamDisp( &cparam );
 
     if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
         printf("pattern load error !!\n");
@@ -117,29 +138,18 @@ int main(int argc, char **argv)
     argInit( &cparam, 1.0, 0, 0, 0, 0 );
 	///
 
-	int index = 0;
-	dataPtr = malloc(sizeof(ARUint8) * 4 * image->rows * image->columns);
-	int y;
-	for (y=0; y < (long) image->rows; y++)
-	{
-		PixelPacket *p=AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
-		if (p == (const PixelPacket *) NULL)
-			break;
-		int x;
-		for (x=0; x < (long) image->columns; x++)
-		{
-			/// TBD convert to ARUint8 dataPtr
-			dataPtr[index*4] = p->red;
-			dataPtr[index*4+1] = p->green;
-			dataPtr[index*4+2] = p->blue;
-			dataPtr[index*4+3] = 255;
-			
-			//(void) printf("%d %d: %d %d %d\n",y,x,p->red,p->green,p->blue);
-			p++;
-			index++;
-		}
-	}
 
+
+    //arVideoCapStart();
+    argMainLoop( NULL, NULL /*keyEvent*/, mainLoop );
+}
+
+/* main loop */
+static void mainLoop(void)
+{
+    ARMarkerInfo    *marker_info;
+    int             marker_num;
+    int             j, k;
 	/* grab a vide frame */
     //if( (dataPtr = (ARUint8 *)arVideoGetImage()) == NULL ) {
     
@@ -155,7 +165,6 @@ int main(int argc, char **argv)
         exit(0);
     }
 
-	
     //arVideoCapNext();
 
     /* check for object visibility */
@@ -168,18 +177,30 @@ int main(int argc, char **argv)
     }
     if( k == -1 ) {
         argSwapBuffers();
-        return;
-    }
+		printf("no visible objects\n");
+        //return;
+    } else {
 
-    /* get the transformation between the marker and the real camera */
-    arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
+		printf("patt_trans\n");
 
-    draw();
+		/* get the transformation between the marker and the real camera */
+		arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
+
+		int i;
+		for (i = 0; i < 4; i ++) {
+			for (j = 0; j < 3; j++) {
+				printf("%f ", patt_trans[i][j]);	
+			}
+			printf("\n");
+		}
+		printf("\n");
+
+		draw();
+	}
 
     argSwapBuffers();
 
-
-	return (0);
+	return; // (0);
 }
 
 static void init( void )
