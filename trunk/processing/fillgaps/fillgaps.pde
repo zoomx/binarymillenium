@@ -180,28 +180,37 @@ void keyPressed(){
 /////////////
 
  PImage  fillGaps(PImage tx, int numiterations) {
-    PImage rx;
-    try{ 
-    rx = (PImage) tx.clone();
-    } catch (Exception e ) {
-        return tx;
-    }
+   PImage rx;
+
+   try{ 
+          rx = (PImage) tx.clone();
+       } catch (Exception e ) {
+          return tx;
+       }
     
     int unfillednum =1;
     for (int k = 0; (k < numiterations) &&(unfillednum > 0); k++) {
-      unfillednum =0;
       
-    /// ignore edges for now
-   for (int i = 1; i <tx.width-1; i++) {
-    for (int j = 1; j <tx.height-1; j++) {
       
-       //int p = i*tx.height + j;
-       int p = j*tx.width + i;
-       boolean a  = alpha(tx.pixels[p]) > 0;
+       try { 
+          tx = (PImage) rx.clone();
+       } catch (Exception e ) {
+          return rx;
+       }
+      
+       unfillednum =0;
+      
+       /// ignore edges for now
+       for (int i = 1; i <tx.width-1; i++) {
+         for (int j = 1; j <tx.height-1; j++) {
+      
+         //int p = i*tx.height + j;
+         int p = j*tx.width + i;
+         boolean a  = alpha(tx.pixels[p]) > 0;
        
-       if (!a) {
+         if (!a) {
          
-       int pl = j*tx.width + i-1;
+         int pl = j*tx.width + i-1;
        int pr = j*tx.width + i+1;
        int pu = (j-1)*tx.width + i;
        int pd = (j+1)*tx.width + i;
@@ -264,59 +273,49 @@ void keyPressed(){
              
             color newColor = color(rval,gval,bval, 255); 
            
+           
            if (ar && !al) {
               int d = nearestLeft(tx, p);
-              newColor = interp(newColor, tx, p, d, rval, gval, bval); 
+              newColor = interp(newColor, tx, p, d,d, rval, gval, bval); 
            } else if (!ar && al) {
               int d = nearestRight(tx, p);
-              newColor = interp(newColor, tx, p, d, rval, gval, bval); 
+              newColor = interp(newColor, tx, p, d,d, rval, gval, bval); 
            } 
            
+             
            if (au && !ad) {
               int d = nearestDown(tx, p);
-              newColor = interp(newColor, tx, p, d, rval, gval, bval); 
+              newColor = interp(newColor, tx, p, d,d/tx.width, rval, gval, bval); 
            } else if (!au && ad) {
              int d = nearestUp(tx, p);
-             newColor = interp(newColor, tx, p, d, rval, gval, bval); 
-           }
+             newColor = interp(newColor, tx, p, d, d/tx.width,rval, gval, bval); 
+           }  
+           
             
            rx.pixels[p] = newColor;      
         } else {
-          /* else if (!ar && al) {
-              int d = nearestRight(tx, p);
-              
-              if (d != 0) {
-               val =  d/(d+1.0)*val + 1.0/(d+ 1.0)*brightness(tx.pixels[p + d]);
-              }
-            }
-            
-            */
           
          unfillednum++; 
         }
-//rx.pixels[p] = color(255,0,0,255);
        } 
     }
    } 
    
-   println(unfillednum + " unfilled");
-      try{ 
-    tx = (PImage) rx.clone();
-    } catch (Exception e ) {
-        return rx;
-    }
-    
+    println(unfillednum + " unfilled");  
    
     }
-   return rx;
+    
+    tx.updatePixels();
+   return tx;
     
   }
   
   
   
+int maxinterp = 30;
 
 int nearestLeft(PImage tx, int index) {
-  for (int i = 0; i < index%tx.width ; i++) {
+  for (int i = 0; (i < maxinterp) && (i < index%tx.width) ; i++) {
      
     if  (alpha(tx.pixels[index-i]) > 0) return -i;
   } 
@@ -324,7 +323,7 @@ int nearestLeft(PImage tx, int index) {
 }
 
 int nearestRight(PImage tx, int index) {
-  for (int i = 0; i < tx.width-index%tx.width ; i++) {
+  for (int i = 0; (i < maxinterp) && (i < tx.width-index%tx.width) ; i++) {
      
     if  (alpha(tx.pixels[index+i]) > 0) return i;
   } 
@@ -332,7 +331,7 @@ int nearestRight(PImage tx, int index) {
 }
 
 int nearestUp(PImage tx, int index) {
-  for (int i = 0; index-i*tx.width > 0 ; i++ ) {
+  for (int i = 0; (i < maxinterp) && (index-i*tx.width > 0) ; i++ ) {
      
     if  (alpha(tx.pixels[index-i*tx.width]) > 0) return -i*tx.width;
   } 
@@ -340,7 +339,7 @@ int nearestUp(PImage tx, int index) {
 }
 
 int nearestDown(PImage tx, int index) {
-  for (int i = 0; index + i*tx.width < tx.width*tx.height ; i++ ) {
+  for (int i = 0; (i < maxinterp) && (index + i*tx.width < tx.width*tx.height) ; i++ ) {
      
     if  (alpha(tx.pixels[index+i*tx.width]) > 0) return i*tx.width;
   } 
@@ -348,7 +347,7 @@ int nearestDown(PImage tx, int index) {
 }
 
 
-color interp(color newColor, PImage tx, int p, int d, float rval, float gval, float bval)
+color interp(color newColor, PImage tx, int p, int d,int real_d, float rval, float gval, float bval)
 {
   if (d != 0) {         
 //print("p " + p + ", d " + d + "\n");    
@@ -356,13 +355,15 @@ color interp(color newColor, PImage tx, int p, int d, float rval, float gval, fl
                 float glval = green(  tx.pixels[p + d]);
                 float blval = blue(   tx.pixels[p + d]);
                 
-                //print(d + " " + rlval + ", " + rval + " ");
+                print(real_d + " " + rlval + ", " + rval + " ");
                 
-                d = abs(d);
-                 rval =  (float)d/(d+1.0)*rval + 1.0/(d+ 1.0)*rlval;
-                 gval =  (float)d/(d+1.0)*gval + 1.0/(d+ 1.0)*glval;
-                 bval =  (float)d/(d+1.0)*bval + 1.0/(d+ 1.0)*blval;
-                 //print(rval + "\n");
+                float fct = 0.5;
+                
+                float df = float(abs(real_d));
+                 rval =  df/(df+fct)*rval + fct/(df + fct)*rlval;
+                 gval =  df/(df+fct)*gval + fct/(df + fct)*glval;
+                 bval =  df/(df+fct)*bval + fct/(df + fct)*blval;
+                 print(rval + "\n");
                  
                  newColor = color(rval,gval,bval, 255); 
   }   
