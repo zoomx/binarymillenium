@@ -117,7 +117,7 @@ int main(int argc, char **argv)
     //if( arVideoOpen( vconf ) < 0 ) exit(0);
     /* find the size of the window */
     //if( arVideoInqSize(&xsize, &ysize) < 0 ) exit(0);
-    printf("Image size (x,y) = (%d,%d)\n", image->columns, image->rows);
+    //printf("Image size (x,y) = (%d,%d)\n", image->columns, image->rows);
 
     /* set the initial camera parameters */
     if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
@@ -141,7 +141,9 @@ int main(int argc, char **argv)
 
 
     //arVideoCapStart();
-    argMainLoop( NULL, NULL /*keyEvent*/, mainLoop );
+    //argMainLoop( NULL, NULL /*keyEvent*/, mainLoop );
+
+	mainLoop();
 }
 
 /* main loop */
@@ -177,21 +179,34 @@ static void mainLoop(void)
     }
     if( k == -1 ) {
         argSwapBuffers();
-		printf("no visible objects\n");
-        //return;
+		//printf("no visible objects\n");
+       
+	   int i;
+		for (i = 0; i < 4; i ++) {
+			for (j = 0; j < 3; j++) {
+				printf("%f,\t", 0);	
+			}
+			//printf("\n");
+		}
+		printf("\n");
+
+	   
+	   //return;
     } else {
 
-		printf("patt_trans\n");
+		//printf("patt_trans\n");
 
 		/* get the transformation between the marker and the real camera */
 		arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
 
+		/// what is patt_center, it seems to be zeros
+		//printf("%f,\t%f,\t", patt_center[0], patt_center[1]);
 		int i;
 		for (i = 0; i < 4; i ++) {
 			for (j = 0; j < 3; j++) {
-				printf("%f ", patt_trans[i][j]);	
+				printf("%f,\t", patt_trans[i][j]);	
 			}
-			printf("\n");
+			//printf("\n");
 		}
 		printf("\n");
 
