@@ -235,7 +235,7 @@ int main(int argc, char **argv)
 		0,0,0,				/// p1
 		dot_x-xsize/2,-(dot_y-ysize/2),dot_depth, 		/// p2
 		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
-		patt_trans[0][3] + patt_trans[1][0], patt_trans[1][3] - patt_trans[1][1], patt_trans[2][3] - patt_trans[1][2]  /// p4	
+		patt_trans[0][3] + patt_trans[0][1], patt_trans[1][3] + patt_trans[1][1], patt_trans[2][3] + patt_trans[2][1]  /// p4	
 	};
 	int i;
 	printf("lines");
@@ -282,9 +282,12 @@ float dmnop(float* x, float* y, float* z, int m, int n, int o, int p)
 {
 	/// the webpage uses 1 based indexing so subtract 1 here
 	float rv =
-		(x[m-1] - x[n-1])*(x[o-1]-x[p-1]) +	
-		(y[m-1] - y[n-1])*(y[o-1]-y[p-1]) +	
-		(z[m-1] - z[n-1])*(z[o-1]-z[p-1]);	
+		(x[m-1] - x[n-1]) * (x[o-1] - x[p-1]) +	
+		(y[m-1] - y[n-1]) * (y[o-1] - y[p-1]) +	
+		(z[m-1] - z[n-1]) * (z[o-1] - z[p-1]);
+
+
+	return rv;
 }
 
 void findMarkers(void) 
