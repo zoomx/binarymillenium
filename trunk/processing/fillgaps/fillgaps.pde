@@ -1,10 +1,22 @@
 
+PImage tx;
+PImage bg;
+
+ import processing.opengl.*; 
+ 
 void setup() {
-    PImage tx = new PImage();
+  
+      frameRate(15);
     
-    tx.width = 400;
-    tx.height = 300;
+      size(640,480,OPENGL);
+      
+    tx = new PImage();
+    
+    tx.width = 100;
+    tx.height = 75;
     tx.pixels = new color[tx.width*tx.height];
+    
+    bg = loadImage("fl_000024.jpg");
     
     BufferedReader reader = createReader("../../arlaser/hits.csv");
      
@@ -61,15 +73,111 @@ void setup() {
  }
     
     
-    print(minz + " " + maxz + "\n");
+    print("minz maxz: " + minz + " " + maxz + "\n");
     
      tx.updatePixels();
     
-    tx = fillGaps(tx,38);
+    tx = fillGaps(tx,18);
     
     String fullname = "/home/lucasw/own/prog/google/trunk/processing/fillgaps/output.png";
     tx.save(fullname);
+    
+
 }
+
+
+
+void draw() {
+  
+background(0);
+
+lights();
+
+rotations();
+int sc = bg.width/tx.width;
+
+noStroke();
+
+for (int i = 0; i< tx.width-1; i++) {
+    beginShape(QUAD_STRIP);
+    texture(bg);
+    for (int j = 0; j< tx.height; j++) {
+      
+       float x1 = i-tx.width/2;
+       float x2 = i+1-tx.width/2;
+       float y1 = j - tx.height/2;
+       float y2 = j - tx.height/2;
+       
+       float hsc = tx.width/255.0*10;
+       
+       vertex(x1*hsc, y1*hsc, brightness(tx.pixels[j*tx.width + i]), i*sc ,j*sc );
+       vertex(x2*hsc, y2*hsc, brightness(tx.pixels[j*tx.width + i+1]), i*sc ,j*sc );
+    }
+  endShape(); 
+}
+}
+
+
+  //////////////////
+  float x_off;
+float y_off;
+float z_off = 8;
+
+float rX = -3.2;
+float rZ = -8.86;
+float vX,vZ;
+
+
+void rotations(){
+  
+   translate(x_off + width/2, y_off + height/2, z_off); 
+   
+  rX+=vX;
+  rZ+=vZ;
+  vX*=.95;
+  vZ*=.95;
+
+
+
+  if(mousePressed){
+    vX+=(mouseY-pmouseY)*.01;
+    vZ+=(mouseX-pmouseX)*.01;
+    
+     //println(rX + " " + vX);
+  }
+
+rotateY( radians(- rZ) ); 
+  rotateX( radians(-rX) );  
+   
+}
+
+void keyPressed(){
+
+  
+  if(key == 'a'){
+    x_off += 10;
+  }
+  if(key == 'd'){
+    x_off -= 8;
+  }
+  if(key == 'q'){
+    y_off += 10;
+  }
+  if(key == 'z'){
+    y_off -= 8;
+  }
+  if(key == 'w'){
+    z_off += 10;
+  }
+  if(key == 's'){
+    z_off -= 8;
+  }
+  
+ print(rX + " " + rZ + ", " + x_off + " " + y_off + " " + z_off + ", " + "\n");
+ 
+}
+
+/////////////
 
  PImage  fillGaps(PImage tx, int numiterations) {
     PImage rx;
@@ -93,12 +201,6 @@ void setup() {
        
        if (!a) {
          
-         /*
-       int pl = i*tx.height + j-1;
-       int pr = i*tx.height + j+1;
-       int pu = (i-1)*tx.height + j;
-       int pd = (i+1)*tx.height + j;
-       */
        int pl = j*tx.width + i-1;
        int pr = j*tx.width + i+1;
        int pu = (j-1)*tx.width + i;
@@ -154,14 +256,42 @@ void setup() {
          bsum += bvd;
          sumnum++;  
        }
-
+    
         if (sumnum > 0) {
             float rval = rsum/(float)sumnum;
             float gval = gsum/(float)sumnum;
             float bval = bsum/(float)sumnum;
+             
+            color newColor = color(rval,gval,bval, 255); 
+           
+           if (ar && !al) {
+              int d = nearestLeft(tx, p);
+              newColor = interp(newColor, tx, p, d, rval, gval, bval); 
+           } else if (!ar && al) {
+              int d = nearestRight(tx, p);
+              newColor = interp(newColor, tx, p, d, rval, gval, bval); 
+           } 
+           
+           if (au && !ad) {
+              int d = nearestDown(tx, p);
+              newColor = interp(newColor, tx, p, d, rval, gval, bval); 
+           } else if (!au && ad) {
+             int d = nearestUp(tx, p);
+             newColor = interp(newColor, tx, p, d, rval, gval, bval); 
+           }
             
-           rx.pixels[p] = color(rval,gval,bval, 255);      
+           rx.pixels[p] = newColor;      
         } else {
+          /* else if (!ar && al) {
+              int d = nearestRight(tx, p);
+              
+              if (d != 0) {
+               val =  d/(d+1.0)*val + 1.0/(d+ 1.0)*brightness(tx.pixels[p + d]);
+              }
+            }
+            
+            */
+          
          unfillednum++; 
         }
 //rx.pixels[p] = color(255,0,0,255);
@@ -181,3 +311,61 @@ void setup() {
    return rx;
     
   }
+  
+  
+  
+
+int nearestLeft(PImage tx, int index) {
+  for (int i = 0; i < index%tx.width ; i++) {
+     
+    if  (alpha(tx.pixels[index-i]) > 0) return -i;
+  } 
+  return 0;
+}
+
+int nearestRight(PImage tx, int index) {
+  for (int i = 0; i < tx.width-index%tx.width ; i++) {
+     
+    if  (alpha(tx.pixels[index+i]) > 0) return i;
+  } 
+  return 0;
+}
+
+int nearestUp(PImage tx, int index) {
+  for (int i = 0; index-i*tx.width > 0 ; i++ ) {
+     
+    if  (alpha(tx.pixels[index-i*tx.width]) > 0) return -i*tx.width;
+  } 
+  return 0;
+}
+
+int nearestDown(PImage tx, int index) {
+  for (int i = 0; index + i*tx.width < tx.width*tx.height ; i++ ) {
+     
+    if  (alpha(tx.pixels[index+i*tx.width]) > 0) return i*tx.width;
+  } 
+  return 0;
+}
+
+
+color interp(color newColor, PImage tx, int p, int d, float rval, float gval, float bval)
+{
+  if (d != 0) {         
+//print("p " + p + ", d " + d + "\n");    
+                float rlval = red(    tx.pixels[p + d]);
+                float glval = green(  tx.pixels[p + d]);
+                float blval = blue(   tx.pixels[p + d]);
+                
+                //print(d + " " + rlval + ", " + rval + " ");
+                
+                d = abs(d);
+                 rval =  (float)d/(d+1.0)*rval + 1.0/(d+ 1.0)*rlval;
+                 gval =  (float)d/(d+1.0)*gval + 1.0/(d+ 1.0)*glval;
+                 bval =  (float)d/(d+1.0)*bval + 1.0/(d+ 1.0)*blval;
+                 //print(rval + "\n");
+                 
+                 newColor = color(rval,gval,bval, 255); 
+  }   
+              
+  return newColor;
+}
