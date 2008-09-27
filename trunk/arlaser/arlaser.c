@@ -45,6 +45,8 @@ static void   keyEvent( unsigned char key, int x, int y);
 static void   mainLoop(void);
 static void   draw( void );
 
+void findMarkers(void);
+
 static void   keyEvent( unsigned char key, int x, int y)
 {
     /* quit if the ESC key is pressed */
@@ -82,11 +84,12 @@ int main(int argc, char **argv)
 	
 	image = GetImageFromMagickWand(magick_wand);
 
-	int index = 0;
+	int index;
 	
 		
 	dataPtr = malloc(sizeof(ARUint8) * 3 * image->rows * image->columns);
 	int y;
+	index = 0;
 	for (y=0; y < (long) image->rows; y++)
 	{
 		const PixelPacket *p = AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
@@ -95,18 +98,17 @@ int main(int argc, char **argv)
 		int x;
 		for (x=0; x < (long) image->columns; x++)
 		{
-			/// TBD convert to ARUint8 dataPtr
+			/// convert to ARUint8 dataPtr
+			/// probably a faster way to give the data straight over
+			/// in BGR format
 			dataPtr[index*3+2]   = p->red;
 			dataPtr[index*3+1] = p->green;
 			dataPtr[index*3] = p->blue;
-			//dataPtr[index*4+3] = 255;
-			
-			//(void) printf("%d %d: %d %d %d\n",y,x,p->red,p->green,p->blue);
 			p++;
 			index++;
 		}
 	}
-
+	///
 
 
 
@@ -141,13 +143,85 @@ int main(int argc, char **argv)
 
 
     //arVideoCapStart();
-    //argMainLoop( NULL, NULL /*keyEvent*/, mainLoop );
 
-	mainLoop();
+	findMarkers();
+
+	/// find red laser dot
+	int dot_x = 0;
+	int dot_y = 0;
+	int dot_num = 0;
+	
+	index = 0;
+	for (y=0; y < (long) image->rows; y++)
+	{
+		const PixelPacket *p = AcquireImagePixels(image,0,y,image->columns,1,&image->exception);
+		if (p == (const PixelPacket *) NULL)
+			break;
+		int x;
+		for (x=0; x < (long) image->columns; x++)
+		{
+			int red8bit = p->red/256;
+			int green8bit = p->green/256;
+			int blue8bit = p->blue/256;
+			/// convert to ARUint8 dataPtr
+			/// probably a faster way to give the data straight over
+			/// in BGR format
+			if ((red8bit > 253) && (green8bit >150) && (blue8bit > 150) ) {
+				dataPtr[index*3+2] = red8bit; 
+				dot_x += x;
+				dot_y += y;
+				dot_num++;
+	//			printf("%d\t%d,\t%d\t%d\t%d\n", x,y, p->red/256, p->green/256, p->blue/256);
+			} else { 
+				dataPtr[index*3+2] = 0; 
+			}
+			
+			dataPtr[index*3+2] = red8bit;
+			dataPtr[index*3+1] = green8bit;
+			dataPtr[index*3]   = blue8bit;
+			
+			//printf("%d\t%d\t%d\n", p->red, p->green, p->blue);
+			p++;
+			index++;
+		}
+	}
+
+	dot_x = dot_x/dot_num;
+	dot_y = dot_y/dot_num;
+
+	{
+		const int ind = (dot_y*image->columns + dot_x)*3;
+		printf("%d\t%d\n", dot_x,dot_y);
+		int x;
+		for (x = -10; x <=10; x++) {
+		for (y = -1; y <=1; y++) {
+			dataPtr[ind+(x + y*image->columns)*3] = 255;
+			dataPtr[ind+(x + y*image->columns)*3+1] = 0;
+			dataPtr[ind+(x + y*image->columns)*3+2] = 0;
+		}
+		}
+
+		for (x = -1; x <=1; x++) {
+		for (y = -10; y <=10; y++) {
+			dataPtr[ind+(x + y*image->columns)*3] = 255;
+			dataPtr[ind+(x + y*image->columns)*3+1] = 0;
+			dataPtr[ind+(x + y*image->columns)*3+2] = 0;
+		}
+		}
+	}
+	///
+
+
+	int singleLoop = 0;
+	if (singleLoop) {
+		mainLoop();
+	} else {
+    	argMainLoop( NULL, NULL /*keyEvent*/, mainLoop );
+	
+	}
 }
 
-/* main loop */
-static void mainLoop(void)
+void findMarkers(void) 
 {
     ARMarkerInfo    *marker_info;
     int             marker_num;
@@ -184,7 +258,7 @@ static void mainLoop(void)
 	   int i;
 		for (i = 0; i < 4; i ++) {
 			for (j = 0; j < 3; j++) {
-				printf("%f,\t", 0);	
+				printf("0,\t");	
 			}
 			//printf("\n");
 		}
@@ -212,8 +286,20 @@ static void mainLoop(void)
 
 		draw();
 	}
+}
+/* main loop */
+static void mainLoop(void)
+{
+
+    argDrawMode2D();
+    argDispImage( dataPtr, 0,0 );
+
+
+	draw();
 
     argSwapBuffers();
+
+	sleep(1);
 
 	return; // (0);
 }
@@ -261,9 +347,15 @@ static void draw( void )
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);	
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
     glMatrixMode(GL_MODELVIEW);
-    glTranslatef( 0.0, 0.0, 25.0 );
-    glutSolidCube(50.0);
+    glTranslatef( 0.0, 0.0, -25.0 );
+    glutSolidCube(60.0);
     glDisable( GL_LIGHTING );
+	/// the position of the laser in the block is below the fiducial
+	glTranslatef( 0.0, 0.0, 0.0 );
+	glBegin(GL_LINES);
+	glVertex3f(0.0,0.0,0.0);
+	glVertex3f(0.0,900.0,0.0);
+	glEnd();
 
     glDisable( GL_DEPTH_TEST );
 }
