@@ -68,6 +68,7 @@ static void   keyEvent( unsigned char key, int x, int y)
 }
 
 char* filename;
+char* base_filename;
 ARUint8 *dataPtr;
 float mua, mub;
 
@@ -77,6 +78,7 @@ int main(int argc, char **argv)
 	init();
 	
 	filename = argv[1];
+	base_filename = argv[2];
 
 
 
@@ -122,6 +124,22 @@ int main(int argc, char **argv)
 		}
 	}
 	///
+
+	Image *base_image;
+	MagickWand* base_magick_wand;
+
+	base_magick_wand=NewMagickWand(); 
+	
+
+	status=MagickReadImage(base_magick_wand,base_filename);
+	if (status == MagickFalse)
+		return; 
+	
+	base_image = GetImageFromMagickWand(base_magick_wand);
+
+	///
+
+
 
 
 
@@ -180,18 +198,18 @@ int main(int argc, char **argv)
 			/// probably a faster way to give the data straight over
 			/// in BGR format
 			if ((red8bit > 253) && (green8bit >150) && (blue8bit > 150) ) {
-				dataPtr[index*3+2] = red8bit; 
+				//dataPtr[index*3+2] = red8bit; 
 				dot_x += x;
 				dot_y += y;
 				dot_num++;
 	//			printf("%d\t%d,\t%d\t%d\t%d\n", x,y, p->red/256, p->green/256, p->blue/256);
 			} else { 
-				dataPtr[index*3+2] = 0; 
+				//dataPtr[index*3+2] = 0; 
 			}
 			
-			dataPtr[index*3+2] = red8bit;
-			dataPtr[index*3+1] = green8bit;
-			dataPtr[index*3]   = blue8bit;
+			//dataPtr[index*3+2] = red8bit;
+			//dataPtr[index*3+1] = green8bit;
+			//dataPtr[index*3]   = blue8bit;
 			
 			//printf("%d\t%d\t%d\n", p->red, p->green, p->blue);
 			p++;
@@ -273,7 +291,28 @@ int main(int argc, char **argv)
 	
 		//printf(" mua mub %f,\t%f,\n", mua, mub);
 		/// the 2D and 3D position of the point
-		printf("%f,\t%f,\t%f,\t%f,\t%f,\n", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
+		printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
+		
+		/// print the color of the point from the base image
+		const PixelPacket *base_p = AcquireImagePixels(base_image,0,(int)dot_y,xsize,1,&base_image->exception);
+		int i;
+
+		int red = 0;
+		int green = 0;
+		int blue = 0;
+		
+		/// how many pixels to average over 
+		int avgnum =4;
+		for (i = 0; i <= dot_x; i++) {
+			if (i > dot_x-avgnum) red  += base_p->red/256;
+			if (i > dot_x-avgnum) green+= base_p->green/256;
+			if (i > dot_x-avgnum) blue += base_p->blue/256;
+			base_p++;
+		}
+		printf("%d,\t%d,\t%d\n", 
+			red/avgnum, 
+			green/avgnum, 
+			blue/avgnum); 
 	}
 
 	int singleLoop = 1;
