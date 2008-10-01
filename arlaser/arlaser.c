@@ -72,6 +72,8 @@ char* base_filename;
 ARUint8 *dataPtr;
 float mua, mub;
 
+int singleLoop = 1;
+
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -80,8 +82,12 @@ int main(int argc, char **argv)
 	filename = argv[1];
 	base_filename = argv[2];
 
-	fprintf(stderr,"%s,\n", filename);
+	fprintf(stderr,"%d %s,\n", argc, filename);
 
+	if (argc > 3) {
+		printf("showing graphics\n");
+		singleLoop = 0;	
+	}
 
 	////
 	Image *image;
@@ -97,6 +103,9 @@ int main(int argc, char **argv)
 		//ThrowWandException(magick_wand);
 	
 	image = GetImageFromMagickWand(magick_wand);
+
+	//ContrastImage(image,MagickTrue); 
+	//EnhanceImage(image,&image->exception); 
 
 	int index;
 
@@ -198,14 +207,19 @@ int main(int argc, char **argv)
 			/// convert to ARUint8 dataPtr
 			/// probably a faster way to give the data straight over
 			/// in BGR format
-			if ((red8bit > 253) && (green8bit >150) && (blue8bit > 150) ) {
-				//dataPtr[index*3+2] = red8bit; 
+			//if ((red8bit > 253) && (green8bit >150) && (green8bit <200) && (blue8bit < 200) && (blue8bit > 150) ) {
+			if ((red8bit > 253) && (green8bit >200) && (blue8bit > 200) ) {
+				dataPtr[index*3+2] = red8bit; 
+				dataPtr[index*3+1] = green8bit; 
+				dataPtr[index*3+0] = blue8bit; 
 				dot_x += x;
 				dot_y += y;
 				dot_num++;
 	//			printf("%d\t%d,\t%d\t%d\t%d\n", x,y, p->red/256, p->green/256, p->blue/256);
 			} else { 
-				//dataPtr[index*3+2] = 0; 
+				dataPtr[index*3+2] = 0; 
+				dataPtr[index*3+1] = 0; 
+				dataPtr[index*3+0] = blue8bit; 
 			}
 			
 			//dataPtr[index*3+2] = red8bit;
@@ -217,6 +231,9 @@ int main(int argc, char **argv)
 			index++;
 		}
 	}
+
+	/// quit if no red dot
+	if (dot_num == 0) return;
 
 	dot_x = dot_x/(float)dot_num;
 	dot_y = dot_y/(float)dot_num;
@@ -258,7 +275,9 @@ int main(int argc, char **argv)
 		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
 		patt_trans[0][3] + patt_trans[0][1], patt_trans[1][3] + patt_trans[1][1], patt_trans[2][3] + patt_trans[2][1]  /// p4	
 	};
+
 	
+
 	#if 0
 	int i;
 	printf("lines");
@@ -282,7 +301,9 @@ int main(int argc, char **argv)
 	        		  dmnop(lx,ly,lz, 4,3,4,3) -
 			          dmnop(lx,ly,lz, 4,3,2,1) *
 					  dmnop(lx,ly,lz, 4,3,2,1);
-	
+
+	if (mua_denom == 0) return;
+
 	mua = mua_num/mua_denom;
 
 	mub = 
@@ -290,7 +311,7 @@ int main(int argc, char **argv)
 	     mua * dmnop(lx,ly,lz, 4,3,2,1)) /  
 	 	  	   dmnop(lx,ly,lz, 4,3,4,3);   
 	
-		//printf(" mua mub %f,\t%f,\n", mua, mub);
+		//printf(" mua mub %f,\t%f, %f,\n", mua, mub, mua_denom);
 		/// the 2D and 3D position of the point
 		printf("%s,\t", filename);
 		printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
@@ -317,7 +338,6 @@ int main(int argc, char **argv)
 			blue/avgnum); 
 	}
 
-	int singleLoop = 1;
 	if (singleLoop) {
 		mainLoop();
 	} else {
