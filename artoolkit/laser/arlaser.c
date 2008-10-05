@@ -77,8 +77,11 @@ int singleLoop = 1;
 
 
 /// find red laser dot
-int findRedLaserDot(float* dot_x, float* dot_y)
+int findRedLaserDot(float* dot_x, float* dot_y, int rmin, int gmin, int bmin, int rmax, int gmax, int bmax)
 {
+	*dot_x = 0;
+	*dot_y = 0;
+
 	int dot_num = 0;
 	
 	int index = 0;
@@ -95,23 +98,15 @@ int findRedLaserDot(float* dot_x, float* dot_y)
 			/// convert to ARUint8 dataPtr
 			/// probably a faster way to give the data straight over
 			/// in BGR format
-			//if ((red8bit > 253) && (green8bit >150) && (green8bit <200) && (blue8bit < 200) && (blue8bit > 150) ) {
-			//if ((red8bit > 170) && (green8bit < 150) && (green8bit > 100) && (blue8bit < 150) && (blue8bit > 100) ) {
-			if ((red8bit > 200) && (green8bit > 200) && (blue8bit > 200) ) {
-				///dataPtr[index*3+2] = red8bit; 
-				//dataPtr[index*3+1] = green8bit; 
-				//dataPtr[index*3+0] = blue8bit; 
+			//if ((red8bit > 254) && (green8bit > 230) && (blue8bit > 250) ) {
+			if ((red8bit > rmin) && (green8bit > gmin) && (blue8bit > bmin) &&
+				(red8bit <= rmax) && (green8bit < gmax) && (blue8bit < bmax) ) {
 				*dot_x += x;
 				*dot_y += y;
 				dot_num++;
-			printf("%d, %d, %d\t%d\t%d\n", x, y, red8bit, green8bit, blue8bit);
-			} else { 
-				dataPtr[index*3+2] = red8bit/4; 
-				dataPtr[index*3+1] = green8bit/4; 
-			  dataPtr[index*3+0] = blue8bit/4; 
+			//fprintf(stderr,"%d, %d, %d\t%d\t%d\n", x, y, red8bit, green8bit, blue8bit);
 			}
 			
-			//printf("%d, %d, %d\t%d\t%d\n", x, y, red8bit, green8bit, blue8bit);
 			
 			index++;
 		}
@@ -122,31 +117,31 @@ int findRedLaserDot(float* dot_x, float* dot_y)
 
 	*dot_x = *dot_x/(float)dot_num;
 	*dot_y = *dot_y/(float)dot_num;
-	
-	/// draw a target to verify the found dot position
-	{
-		const int ind = ((int)*dot_y*xsize + (int)*dot_x)*3;
-		//printf("%d\t%d\n", (int)dot_x,(int)dot_y);
-		int x;
-		for (x = -10; x <=10; x++) {
-		for (y = -1; y <=1; y++) {
-			dataPtr[ind+(x + y*xsize)*3] = 255;
-			dataPtr[ind+(x + y*xsize)*3+1] = 0;
-			dataPtr[ind+(x + y*xsize)*3+2] = 0;
-		}
-		}
-
-		for (x = -1; x <=1; x++) {
-		for (y = -10; y <=10; y++) {
-			dataPtr[ind+(x + y*xsize)*3] = 255;
-			dataPtr[ind+(x + y*xsize)*3+1] = 0;
-			dataPtr[ind+(x + y*xsize)*3+2] = 0;
-		}
-		}
-	}
-	///
 
 	return 0;
+}
+
+/// draw a target to verify the found dot position
+void drawTarget(float* dot_x, float* dot_y)
+{
+	const int ind = ((int)*dot_y*xsize + (int)*dot_x)*3;
+	//printf("%d\t%d\n", (int)dot_x,(int)dot_y);
+	int x,y;
+	for (x = -10; x <=10; x++) {
+		for (y = -1; y <=1; y++) {
+			dataPtr[ind+(x + y*xsize)*3] =  dataPtr[ind+(x + y*xsize)*3]+100;
+			//dataPtr[ind+(x + y*xsize)*3+1] = 0;
+			//dataPtr[ind+(x + y*xsize)*3+2] = 0;
+		}
+	}
+
+	for (x = -1; x <=1; x++) {
+		for (y = -10; y <=10; y++) {
+			dataPtr[ind+(x + y*xsize)*3] =  dataPtr[ind+(x + y*xsize)*3]+100;
+			//dataPtr[ind+(x + y*xsize)*3+1] = 0;
+			//dataPtr[ind+(x + y*xsize)*3+2] = 0;
+		}
+	}
 }
 
 
@@ -208,6 +203,93 @@ ARUint8* loadImage(char* filename)
 	return dptr;
 }
 
+int findIntersection(int dot_x, int dot_y) 
+{
+	/// fov scaled by image size?
+	//float dot_depth = 1600.0;
+	float dot_depth = 0.7*xsize; ///TBD just a guess
+	/// now find the nearest intersection of the line from the camera (0,0,0)
+	/// to the dot point and the line from the fiducial in the y direction
+	/// http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/	
+	float dot_camx = dot_x-xsize/2;
+	float dot_camy = dot_y-ysize/2;
+	float lines[12] = {
+		0,0,0,				/// p1
+		dot_camx,dot_camy,dot_depth, 		/// p2
+		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
+		patt_trans[0][3] + patt_trans[0][1], patt_trans[1][3] + patt_trans[1][1], patt_trans[2][3] + patt_trans[2][1]  /// p4	
+	};
+
+
+
+#if 0
+	int i;
+	printf("lines");
+	for (i = 0; i < 12; i++) {
+		if (i%3 == 0) printf("\n\t");
+		printf("%f,\t", lines[i]);
+	}
+	printf("\n");
+#endif
+
+	float lx[4] = { lines[0], lines[3], lines[6], lines[9] }; 
+	float ly[4] = { lines[1], lines[4], lines[7], lines[10] }; 
+	float lz[4] = { lines[2], lines[5], lines[8], lines[11] }; 
+
+	float mua_num =   dmnop(lx,ly,lz, 1,3,4,3) *
+		dmnop(lx,ly,lz, 4,3,2,1) -
+		dmnop(lx,ly,lz, 1,3,2,1) *
+		dmnop(lx,ly,lz, 4,3,4,3);
+
+	float mua_denom = dmnop(lx,ly,lz, 2,1,2,1) *
+		dmnop(lx,ly,lz, 4,3,4,3) -
+		dmnop(lx,ly,lz, 4,3,2,1) *
+		dmnop(lx,ly,lz, 4,3,2,1);
+
+	if (mua_denom == 0) {
+		fprintf(stderr, "mua_Denom is 0, mua_num %g,\t %g, %g, %g, %g \n", mua_num,  
+				dmnop(lx,ly,lz, 2,1,2,1), dmnop(lx,ly,lz, 4,3,4,3), 
+				dmnop(lx,ly,lz, 4,3,2,1), dmnop(lx,ly,lz, 4,3,2,1) );
+		return -1;
+	}
+
+	mua = mua_num/mua_denom;
+
+	mub = 
+		(dmnop(lx,ly,lz, 1,3,4,3)  +  
+		 mua * dmnop(lx,ly,lz, 4,3,2,1)) /  
+		dmnop(lx,ly,lz, 4,3,4,3);   
+
+	//printf(" mua mub %f,\t%f, %f,\n", mua, mub, mua_denom);
+	/// the 2D and 3D position of the point
+	printf("%s,\t", cur_filename);
+	printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
+
+	/// print the color of the point from the base image
+
+	int red = 0;
+	int green = 0;
+	int blue = 0;
+
+	/// how many pixels to average over 
+	int avgnum =4;
+	int i;
+	for (i = 0; i <= avgnum; i++) {
+		const int ind = ((int)dot_y*xsize + (int)(dot_x-avgnum/2+i))*3;
+		red  += baseDataPtr[ind+2];
+		green+= baseDataPtr[ind+1];
+		blue += baseDataPtr[ind+0];
+	}
+
+	printf("%d,\t%d,\t%d\n", 
+			red/avgnum, 
+			green/avgnum, 
+			blue/avgnum); 
+
+	return 0;
+}
+
+
 int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
@@ -264,97 +346,19 @@ int main(int argc, char **argv)
 	findMarkers();
 
 	float dot_x, dot_y;
-	int rv = findRedLaserDot(&dot_x, &dot_y);
-
+	int 	   rv = findRedLaserDot(&dot_x, &dot_y, 253, 230,250, 255,255,255);
+	if (rv <0) rv = findRedLaserDot(&dot_x, &dot_y, 253, 150,190,255,200,255);
+	if (rv <0) rv = findRedLaserDot(&dot_x, &dot_y, 208, 160,190,255,200,255);
 	if (rv <0) {
 		fprintf(stderr,"no laser dots found\n");
-		return;
+		//return;
+	} else {
+		if (singleLoop == 0) drawTarget(&dot_x, &dot_y);
+		findIntersection(dot_x, dot_y);
 	}
-
-	//////////////////////////////////
-
-	{
-	/// fov scaled by image size?
-	//float dot_depth = 1600.0;
-	float dot_depth = xsize; ///TBD just a guess
-	/// now find the nearest intersection of the line from the camera (0,0,0)
-	/// to the dot point and the line from the fiducial in the y direction
-	/// http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/	
-	float dot_camx = dot_x-xsize/2;
-	float dot_camy = dot_y-ysize/2;
-	float lines[12] = {
-		0,0,0,				/// p1
-		dot_camx,dot_camy,dot_depth, 		/// p2
-		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
-		patt_trans[0][3] + patt_trans[0][1], patt_trans[1][3] + patt_trans[1][1], patt_trans[2][3] + patt_trans[2][1]  /// p4	
-	};
-
 	
-
-	#if 0
-	int i;
-	printf("lines");
-	for (i = 0; i < 12; i++) {
-		if (i%3 == 0) printf("\n\t");
-		printf("%f,\t", lines[i]);
-	}
-	printf("\n");
-	#endif
-
-	float lx[4] = { lines[0], lines[3], lines[6], lines[9] }; 
-	float ly[4] = { lines[1], lines[4], lines[7], lines[10] }; 
-	float lz[4] = { lines[2], lines[5], lines[8], lines[11] }; 
-
-	float mua_num =   dmnop(lx,ly,lz, 1,3,4,3) *
-	       			  dmnop(lx,ly,lz, 4,3,2,1) -
-			          dmnop(lx,ly,lz, 1,3,2,1) *
-					  dmnop(lx,ly,lz, 4,3,4,3);
-
-	float mua_denom = dmnop(lx,ly,lz, 2,1,2,1) *
-	        		  dmnop(lx,ly,lz, 4,3,4,3) -
-			          dmnop(lx,ly,lz, 4,3,2,1) *
-					  dmnop(lx,ly,lz, 4,3,2,1);
-
-	if (mua_denom == 0) {
-		fprintf(stderr, "mua_Denom is 0\n");
-		return;
-	}
-
-	mua = mua_num/mua_denom;
-
-	mub = 
-	 	  	  (dmnop(lx,ly,lz, 1,3,4,3)  +  
-	     mua * dmnop(lx,ly,lz, 4,3,2,1)) /  
-	 	  	   dmnop(lx,ly,lz, 4,3,4,3);   
-	
-		//printf(" mua mub %f,\t%f, %f,\n", mua, mub, mua_denom);
-		/// the 2D and 3D position of the point
-		printf("%s,\t", cur_filename);
-		printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
-		
-		/// print the color of the point from the base image
-
-		int red = 0;
-		int green = 0;
-		int blue = 0;
-		
-		/// how many pixels to average over 
-		int avgnum =4;
-		int i;
-		for (i = 0; i <= avgnum; i++) {
-			const int ind = ((int)dot_y*xsize + (int)(dot_x-avgnum/2+i))*3;
-			red  += baseDataPtr[ind+2];
-			green+= baseDataPtr[ind+1];
-			blue += baseDataPtr[ind+0];
-		}
-		printf("%d,\t%d,\t%d\n", 
-			red/avgnum, 
-			green/avgnum, 
-			blue/avgnum); 
-	}
-
 	if (singleLoop) {
-		mainLoop();
+		//mainLoop();
 	} else {
     	argMainLoop( NULL, NULL /*keyEvent*/, mainLoop );
 	}
@@ -503,12 +507,12 @@ static void draw( void )
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
     glMatrixMode(GL_MODELVIEW);
     glTranslatef( 0.0, 0.0, -25.0 );
-    glutSolidCube(60.0);
+    //glutSolidCube(60.0);
     glDisable( GL_LIGHTING );
 	/// the position of the laser in the block is below the fiducial
 	glTranslatef( 0.0, 0.0, 0.0 );
 	glBegin(GL_LINES);
-	glVertex3f(0.0,0.0,0.0);
+	glVertex3f(0.0,-100.0,0.0);
 	glVertex3f(0.0,900.0,0.0);
 	
 	glVertex3f(-10.0,mub,0.0);
