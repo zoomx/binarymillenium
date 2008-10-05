@@ -39,7 +39,7 @@ int             xsize, ysize;
 int             thresh = 100;
 int             count = 0;
 
-char           *cparam_name    = "camera_para.dat";
+char           *cparam_name    = "../calib_camera2/newparam.dat";
 ARParam         cparam;
 
 char           *patt_name      = "patt.hiro";
@@ -67,180 +67,65 @@ static void   keyEvent( unsigned char key, int x, int y)
     }
 }
 
-char* filename;
+char* cur_filename;
 char* base_filename;
 ARUint8 *dataPtr;
+ARUint8 *baseDataPtr;
 float mua, mub;
 
 int singleLoop = 1;
 
-int main(int argc, char **argv)
+
+/// find red laser dot
+int findRedLaserDot(float* dot_x, float* dot_y)
 {
-	glutInit(&argc, argv);
-	init();
-	
-	filename = argv[1];
-	base_filename = argv[2];
-
-	fprintf(stderr,"%d %s,\n", argc, filename);
-
-	if (argc > 3) {
-		printf("showing graphics\n");
-		singleLoop = 0;	
-	}
-
-	////
-	Image *image;
-	MagickWand* magick_wand;
-
-	MagickWandGenesis();
-	magick_wand=NewMagickWand(); 
-	
-
-	MagickBooleanType status=MagickReadImage(magick_wand,filename);
-	if (status == MagickFalse)
-		return; //(1);
-		//ThrowWandException(magick_wand);
-	
-	image = GetImageFromMagickWand(magick_wand);
-
-	//ContrastImage(image,MagickTrue); 
-	//EnhanceImage(image,&image->exception); 
-
-	int index;
-
-	xsize = image->columns;
-	ysize = image->rows;
-		
-	dataPtr = malloc(sizeof(ARUint8) * 3 * image->rows * xsize);
-	int y;
-	index = 0;
-	for (y=0; y < (long) image->rows; y++)
-	{
-		const PixelPacket *p = AcquireImagePixels(image,0,y,xsize,1,&image->exception);
-		if (p == (const PixelPacket *) NULL)
-			break;
-		int x;
-		for (x=0; x < (long) xsize; x++)
-		{
-			/// convert to ARUint8 dataPtr
-			/// probably a faster way to give the data straight over
-			/// in BGR format
-			dataPtr[index*3+2]   = p->red;
-			dataPtr[index*3+1] = p->green;
-			dataPtr[index*3] = p->blue;
-			p++;
-			index++;
-		}
-	}
-	///
-
-	Image *base_image;
-	MagickWand* base_magick_wand;
-
-	base_magick_wand=NewMagickWand(); 
-	
-
-	status=MagickReadImage(base_magick_wand,base_filename);
-	if (status == MagickFalse)
-		return; 
-	
-	base_image = GetImageFromMagickWand(base_magick_wand);
-
-	///
-
-
-
-
-
-	///
-	ARParam  wparam;
-	
-    /* open the video path */
-    //if( arVideoOpen( vconf ) < 0 ) exit(0);
-    /* find the size of the window */
-    //if( arVideoInqSize(&xsize, &ysize) < 0 ) exit(0);
-    //printf("Image size (x,y) = (%d,%d)\n", xsize, image->rows);
-
-    /* set the initial camera parameters */
-    if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
-        printf("Camera parameter load error !!\n");
-        exit(0);
-    }
-    arParamChangeSize( &wparam, xsize, image->rows, &cparam );
-    arInitCparam( &cparam );
-    //printf("*** Camera Parameter ***\n");
-    //arParamDisp( &cparam );
-
-    if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
-        printf("pattern load error !!\n");
-        exit(0);
-    }
-
-    /* open the graphics window */
-    argInit( &cparam, 1.0, 0, 0, 0, 0 );
-	///
-
-
-
-    //arVideoCapStart();
-
-	findMarkers();
-
-	/// find red laser dot
-	float dot_x = 0;
-	float dot_y = 0;
 	int dot_num = 0;
 	
-	index = 0;
-	for (y=0; y < (long) image->rows; y++)
+	int index = 0;
+	int y;
+	
+	for (y=0; y < (long) ysize; y++)
 	{
-		const PixelPacket *p = AcquireImagePixels(image,0,y,xsize,1,&image->exception);
-		if (p == (const PixelPacket *) NULL)
-			break;
 		int x;
 		for (x=0; x < (long) xsize; x++)
 		{
-			int red8bit = p->red/256;
-			int green8bit = p->green/256;
-			int blue8bit = p->blue/256;
+			int red8bit   = dataPtr[index*3+2];
+			int green8bit = dataPtr[index*3+1];
+			int blue8bit  = dataPtr[index*3+0];
 			/// convert to ARUint8 dataPtr
 			/// probably a faster way to give the data straight over
 			/// in BGR format
 			//if ((red8bit > 253) && (green8bit >150) && (green8bit <200) && (blue8bit < 200) && (blue8bit > 150) ) {
-			if ((red8bit > 253) && (green8bit >200) && (blue8bit > 200) ) {
-				dataPtr[index*3+2] = red8bit; 
-				dataPtr[index*3+1] = green8bit; 
-				dataPtr[index*3+0] = blue8bit; 
-				dot_x += x;
-				dot_y += y;
+			//if ((red8bit > 170) && (green8bit < 150) && (green8bit > 100) && (blue8bit < 150) && (blue8bit > 100) ) {
+			if ((red8bit > 200) && (green8bit > 200) && (blue8bit > 200) ) {
+				///dataPtr[index*3+2] = red8bit; 
+				//dataPtr[index*3+1] = green8bit; 
+				//dataPtr[index*3+0] = blue8bit; 
+				*dot_x += x;
+				*dot_y += y;
 				dot_num++;
-	//			printf("%d\t%d,\t%d\t%d\t%d\n", x,y, p->red/256, p->green/256, p->blue/256);
+			printf("%d, %d, %d\t%d\t%d\n", x, y, red8bit, green8bit, blue8bit);
 			} else { 
-				dataPtr[index*3+2] = 0; 
-				dataPtr[index*3+1] = 0; 
-				dataPtr[index*3+0] = blue8bit; 
+				dataPtr[index*3+2] = red8bit/4; 
+				dataPtr[index*3+1] = green8bit/4; 
+			  dataPtr[index*3+0] = blue8bit/4; 
 			}
 			
-			//dataPtr[index*3+2] = red8bit;
-			//dataPtr[index*3+1] = green8bit;
-			//dataPtr[index*3]   = blue8bit;
+			//printf("%d, %d, %d\t%d\t%d\n", x, y, red8bit, green8bit, blue8bit);
 			
-			//printf("%d\t%d\t%d\n", p->red, p->green, p->blue);
-			p++;
 			index++;
 		}
 	}
 
 	/// quit if no red dot
-	if (dot_num == 0) return;
+	if (dot_num == 0) return -1;
 
-	dot_x = dot_x/(float)dot_num;
-	dot_y = dot_y/(float)dot_num;
+	*dot_x = *dot_x/(float)dot_num;
+	*dot_y = *dot_y/(float)dot_num;
 	
 	/// draw a target to verify the found dot position
 	{
-		const int ind = ((int)dot_y*xsize + (int)dot_x)*3;
+		const int ind = ((int)*dot_y*xsize + (int)*dot_x)*3;
 		//printf("%d\t%d\n", (int)dot_x,(int)dot_y);
 		int x;
 		for (x = -10; x <=10; x++) {
@@ -261,9 +146,137 @@ int main(int argc, char **argv)
 	}
 	///
 
+	return 0;
+}
+
+
+ARUint8* loadImage(char* filename)
+{
+	
+	ARUint8 *dptr;
+	
+	Image *image;
+	MagickWand* magick_wand;
+
+	MagickWandGenesis();
+	magick_wand=NewMagickWand(); 
+	
+
+	MagickBooleanType status=MagickReadImage(magick_wand,filename);
+	if (status == MagickFalse) {
+		fprintf(stderr, "%s cant be read\n", filename);
+		return; //(1);
+		//ThrowWandException(magick_wand);
+	}
+
+	image = GetImageFromMagickWand(magick_wand);
+
+	//ContrastImage(image,MagickTrue); 
+	//EnhanceImage(image,&image->exception); 
+
+	int index;
+
+	xsize = image->columns;
+	ysize = image->rows;
+		
+	dptr = malloc(sizeof(ARUint8) * 3 * image->rows * xsize);
+	int y;
+	index = 0;
+	for (y=0; y < (long) image->rows; y++)
+	{
+		const PixelPacket *p = AcquireImagePixels(image,0,y,xsize,1,&image->exception);
+		if (p == (const PixelPacket *) NULL)
+			break;
+		int x;
+		for (x=0; x < (long) xsize; x++)
+		{
+			/// convert to ARUint8 dptr
+			/// probably a faster way to give the data straight over
+			/// in BGR format
+			dptr[index*3+2]   = p->red/256;
+			dptr[index*3+1] = p->green/256;
+			dptr[index*3] = p->blue/256;
+			
+			//printf("%d, %d, %d\t%d\t%d\n", x, y, p->red/256, p->green/256, p->blue/256);
+			p++;
+			index++;
+		}
+	}
+	///
+
+
+	return dptr;
+}
+
+int main(int argc, char **argv)
+{
+	glutInit(&argc, argv);
+	init();
+	
+	cur_filename = argv[1];
+	base_filename = argv[2];
+
+	fprintf(stderr,"%d %s %s,\n", argc, cur_filename,base_filename);
+
+	if (argc > 3) {
+		printf("showing graphics\n");
+		singleLoop = 0;	
+	}
+
+	////
+
+	dataPtr	    = loadImage(cur_filename);
+	baseDataPtr = loadImage(base_filename);
+
+
+	///
+	ARParam  wparam;
+	
+    /* open the video path */
+    //if( arVideoOpen( vconf ) < 0 ) exit(0);
+    /* find the size of the window */
+    //if( arVideoInqSize(&xsize, &ysize) < 0 ) exit(0);
+    //printf("Image size (x,y) = (%d,%d)\n", xsize, image->rows);
+
+    /* set the initial camera parameters */
+    if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
+        printf("Camera parameter load error !!\n");
+        exit(0);
+    }
+    arParamChangeSize( &wparam, xsize, ysize, &cparam );
+    arInitCparam( &cparam );
+    //printf("*** Camera Parameter ***\n");
+    //arParamDisp( &cparam );
+
+    if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
+        printf("pattern load error !!\n");
+        exit(0);
+    }
+
+    /* open the graphics window */
+    argInit( &cparam, 1.0, 0, 0, 0, 0 );
+	///
+
+
+
+    //arVideoCapStart();
+
+	findMarkers();
+
+	float dot_x, dot_y;
+	int rv = findRedLaserDot(&dot_x, &dot_y);
+
+	if (rv <0) {
+		fprintf(stderr,"no laser dots found\n");
+		return;
+	}
+
+	//////////////////////////////////
+
 	{
 	/// fov scaled by image size?
-	float dot_depth = 1600.0;
+	//float dot_depth = 1600.0;
+	float dot_depth = xsize; ///TBD just a guess
 	/// now find the nearest intersection of the line from the camera (0,0,0)
 	/// to the dot point and the line from the fiducial in the y direction
 	/// http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/	
@@ -302,7 +315,10 @@ int main(int argc, char **argv)
 			          dmnop(lx,ly,lz, 4,3,2,1) *
 					  dmnop(lx,ly,lz, 4,3,2,1);
 
-	if (mua_denom == 0) return;
+	if (mua_denom == 0) {
+		fprintf(stderr, "mua_Denom is 0\n");
+		return;
+	}
 
 	mua = mua_num/mua_denom;
 
@@ -313,12 +329,10 @@ int main(int argc, char **argv)
 	
 		//printf(" mua mub %f,\t%f, %f,\n", mua, mub, mua_denom);
 		/// the 2D and 3D position of the point
-		printf("%s,\t", filename);
+		printf("%s,\t", cur_filename);
 		printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
 		
 		/// print the color of the point from the base image
-		const PixelPacket *base_p = AcquireImagePixels(base_image,0,(int)dot_y,xsize,1,&base_image->exception);
-		int i;
 
 		int red = 0;
 		int green = 0;
@@ -326,11 +340,12 @@ int main(int argc, char **argv)
 		
 		/// how many pixels to average over 
 		int avgnum =4;
-		for (i = 0; i <= dot_x; i++) {
-			if (i > dot_x-avgnum) red  += base_p->red/256;
-			if (i > dot_x-avgnum) green+= base_p->green/256;
-			if (i > dot_x-avgnum) blue += base_p->blue/256;
-			base_p++;
+		int i;
+		for (i = 0; i <= avgnum; i++) {
+			const int ind = ((int)dot_y*xsize + (int)(dot_x-avgnum/2+i))*3;
+			red  += baseDataPtr[ind+2];
+			green+= baseDataPtr[ind+1];
+			blue += baseDataPtr[ind+0];
 		}
 		printf("%d,\t%d,\t%d\n", 
 			red/avgnum, 
