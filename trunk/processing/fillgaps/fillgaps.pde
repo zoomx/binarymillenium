@@ -12,13 +12,13 @@ void setup() {
       
     tx = new PImage();
     
-    tx.width = 100;
-    tx.height = 75;
+    tx.width = 200; //160;
+    tx.height =150; //120;
     tx.pixels = new color[tx.width*tx.height];
     
-    bg = loadImage("fl_000024.jpg");
+    bg = loadImage("../../artoolkit/laser/images/fl4base.jpg");
     
-    BufferedReader reader = createReader("../../arlaser/hits.csv");
+    BufferedReader reader = createReader("../../artoolkit/laser/hits.csv");
      
       String newline;
   try {
@@ -30,7 +30,7 @@ void setup() {
  float minz = 0;
  float maxz = 0;
  
- float points[][] = new float[3][500];
+ float points[][] = new float[3][700];
  
  float numpoints = 0;
  
@@ -66,6 +66,10 @@ void setup() {
   }
  }
  
+ /// TBD
+ minz = 500;
+ maxz = 2300;
+ 
  for (int i = 0;  i <= numpoints ; i++) {
    tx.pixels[(int)(points[0][i]/1600*tx.width) +
             (int)(points[1][i]/1200*tx.height)*tx.width] = 
@@ -77,12 +81,12 @@ void setup() {
     
      tx.updatePixels();
     
-    tx = fillGaps(tx,18);
+    tx = fillGaps(tx,80);
     
     String fullname = "/home/lucasw/own/prog/google/trunk/processing/fillgaps/output.png";
     tx.save(fullname);
     
-
+//exit();
 }
 
 
@@ -91,7 +95,7 @@ void draw() {
   
 background(0);
 
-lights();
+//lights();
 
 rotations();
 int sc = bg.width/tx.width;
@@ -108,13 +112,16 @@ for (int i = 0; i< tx.width-1; i++) {
        float y1 = j - tx.height/2;
        float y2 = j - tx.height/2;
        
-       float hsc = tx.width/255.0*10;
+       float hsc = 255/tx.width*3.0;
        
        vertex(x1*hsc, y1*hsc, brightness(tx.pixels[j*tx.width + i]), i*sc ,j*sc );
        vertex(x2*hsc, y2*hsc, brightness(tx.pixels[j*tx.width + i+1]), i*sc ,j*sc );
     }
   endShape(); 
 }
+
+
+//saveFrame("frames/couch_######.jpg");
 }
 
 
@@ -301,7 +308,7 @@ void keyPressed(){
     }
    } 
    
-    println(unfillednum + " unfilled");  
+    println(k + " " + unfillednum + " unfilled");  
    
     }
     
@@ -355,7 +362,7 @@ color interp(color newColor, PImage tx, int p, int d,int real_d, float rval, flo
                 float glval = green(  tx.pixels[p + d]);
                 float blval = blue(   tx.pixels[p + d]);
                 
-                print(real_d + " " + rlval + ", " + rval + " ");
+                //print(real_d + " " + rlval + ", " + rval + " ");
                 
                 float fct = 0.5;
                 
@@ -363,7 +370,7 @@ color interp(color newColor, PImage tx, int p, int d,int real_d, float rval, flo
                  rval =  df/(df+fct)*rval + fct/(df + fct)*rlval;
                  gval =  df/(df+fct)*gval + fct/(df + fct)*glval;
                  bval =  df/(df+fct)*bval + fct/(df + fct)*blval;
-                 print(rval + "\n");
+                 //print(rval + "\n");
                  
                  newColor = color(rval,gval,bval, 255); 
   }   
