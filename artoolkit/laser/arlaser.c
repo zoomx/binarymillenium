@@ -104,7 +104,9 @@ int findRedLaserDot(float* dot_x, float* dot_y, int rmin, int gmin, int bmin, in
 				*dot_x += x;
 				*dot_y += y;
 				dot_num++;
-			//fprintf(stderr,"%d, %d, %d\t%d\t%d\n", x, y, red8bit, green8bit, blue8bit);
+				
+				//fprintf(stderr,"%d, %d, %d\t%d\t%d, \t\t%g\t%g\n", x, y, red8bit, green8bit, blue8bit, 
+				//			*dot_x/dot_num, *dot_y/dot_num);
 			}
 			
 			
@@ -115,16 +117,16 @@ int findRedLaserDot(float* dot_x, float* dot_y, int rmin, int gmin, int bmin, in
 	/// quit if no red dot
 	if (dot_num == 0) return -1;
 
-	*dot_x = *dot_x/(float)dot_num;
-	*dot_y = *dot_y/(float)dot_num;
+	*dot_x = *dot_x/dot_num;
+	*dot_y = *dot_y/dot_num;
 
 	return 0;
 }
 
 /// draw a target to verify the found dot position
-void drawTarget(float* dot_x, float* dot_y)
+void drawTarget(float dot_x, float dot_y)
 {
-	const int ind = ((int)*dot_y*xsize + (int)*dot_x)*3;
+	const int ind = ((int)dot_y*xsize + (int)dot_x)*3;
 	//printf("%d\t%d\n", (int)dot_x,(int)dot_y);
 	int x,y;
 	for (x = -10; x <=10; x++) {
@@ -203,7 +205,7 @@ ARUint8* loadImage(char* filename)
 	return dptr;
 }
 
-int findIntersection(int dot_x, int dot_y) 
+int findIntersection(float dot_x, float dot_y) 
 {
 	/// fov scaled by image size?
 	//float dot_depth = 1600.0;
@@ -351,9 +353,8 @@ int main(int argc, char **argv)
 	if (rv <0) rv = findRedLaserDot(&dot_x, &dot_y, 208, 160,190,255,200,255);
 	if (rv <0) {
 		fprintf(stderr,"no laser dots found\n");
-		//return;
 	} else {
-		if (singleLoop == 0) drawTarget(&dot_x, &dot_y);
+		if (singleLoop == 0) drawTarget(dot_x, dot_y);
 		findIntersection(dot_x, dot_y);
 	}
 	
