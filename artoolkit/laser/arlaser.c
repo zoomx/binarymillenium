@@ -261,17 +261,23 @@ int findIntersection(float dot_x, float dot_y)
 		(dmnop(lx,ly,lz, 1,3,4,3)  +  
 		 mua * dmnop(lx,ly,lz, 4,3,2,1)) /  
 		dmnop(lx,ly,lz, 4,3,4,3);   
+	
+	static int numpoints = 0;
+	numpoints++;
 
 	//printf(" mua mub %f,\t%f, %f,\n", mua, mub, mua_denom);
 	/// the 2D and 3D position of the point
 	printf("%s,\t", cur_filename);
 	printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
+	fprintf(stderr, "DEPTH %f\t, NUM %d, X %d, Y %d \n", dot_depth*mua, numpoints, (int)dot_x, (int)dot_y);
 
 	/// print the color of the point from the base image
 
 	int red = 0;
 	int green = 0;
 	int blue = 0;
+
+	baseDataPtr = loadImage(base_filename);
 
 	/// how many pixels to average over 
 	int avgnum =4;
@@ -300,7 +306,7 @@ int main(int argc, char **argv)
 	cur_filename = argv[1];
 	base_filename = argv[2];
 
-	fprintf(stderr,"%d %s %s,\n", argc, cur_filename,base_filename);
+	//fprintf(stderr,"%d %s %s,\n", argc, cur_filename,base_filename);
 
 	if (argc > 3) {
 		printf("showing graphics\n");
@@ -310,7 +316,6 @@ int main(int argc, char **argv)
 	////
 
 	dataPtr	    = loadImage(cur_filename);
-	baseDataPtr = loadImage(base_filename);
 
 
 	///
@@ -448,9 +453,12 @@ void findMarkers(void)
 	}
 }
 /* main loop */
+int maincount = 0;
 static void mainLoop(void)
 {
-
+	//maincount++;
+	//if (maincount > 2) exit(0);
+	
     argDrawMode2D();
     argDispImage( dataPtr, 0,0 );
 
