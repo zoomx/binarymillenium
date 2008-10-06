@@ -355,7 +355,7 @@ int main(int argc, char **argv)
 	float dot_x, dot_y;
 	int 	   rv = findRedLaserDot(&dot_x, &dot_y, 253, 230,250, 255,255,255);
 	if (rv <0) rv = findRedLaserDot(&dot_x, &dot_y, 253, 150,190,255,200,255);
-	if (rv <0) rv = findRedLaserDot(&dot_x, &dot_y, 208, 160,190,255,200,255);
+	//if (rv <0) rv = findRedLaserDot(&dot_x, &dot_y, 208, 160,190,255,200,255);
 	if (rv <0) {
 		fprintf(stderr,"no laser dots found\n");
 	} else {
