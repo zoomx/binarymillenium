@@ -12,11 +12,11 @@ void setup() {
       
     tx = new PImage();
     
-    tx.width = 200; //160;
-    tx.height =150; //120;
+    tx.width = 800; //160;
+    tx.height =600; //120;
     tx.pixels = new color[tx.width*tx.height];
     
-    bg = loadImage("../../artoolkit/laser/images/fl4base.jpg");
+    bg = loadImage("../../artoolkit/laser/intimages/nowbase.jpg");  //images/fl4base.jpg");
     
     BufferedReader reader = createReader("../../artoolkit/laser/hits.csv");
      
@@ -42,18 +42,16 @@ void setup() {
     float z = new Float(thisLine[5]).floatValue();
   
    //print(thisLine[0] + "\n");
-   
    points[0][i] = x;
    points[1][i] = y;
    points[2][i] = z;
-   
-  
    
    if (i == 0) {
       minz = z;
       maxz = z;
    }
    
+
    if (z < minz) minz = z;
    if (z > maxz) maxz = z;
   
@@ -67,13 +65,22 @@ void setup() {
  }
  
  /// TBD
- minz = 500;
- maxz = 2300;
+// minz = 500;
+ //maxz = 2300;
  
  for (int i = 0;  i <= numpoints ; i++) {
-   tx.pixels[(int)(points[0][i]/1600*tx.width) +
-            (int)(points[1][i]/1200*tx.height)*tx.width] = 
-       color(255*(1.0-(points[2][i]-minz)/(maxz-minz)),255);
+   
+   int xval = (int)(points[0][i]/1600*tx.width);
+   int yval = (int)(points[1][i]/1200*tx.height);
+   int dval = (int) (255*(1.0-(points[2][i]-minz)/(maxz-minz)));
+   
+   if (dval < 0) dval = 0;
+   if (dval > 255) dval = 255;
+   
+   if ((xval < tx.width) && (yval < tx.height)) {
+     tx.pixels[xval + yval*tx.width] = 
+         color(dval,255);
+   }  
  }
     
     
@@ -81,12 +88,12 @@ void setup() {
     
      tx.updatePixels();
     
-    tx = fillGaps(tx,80);
+    tx = fillGaps(tx,8);
     
     String fullname = "/home/lucasw/own/prog/google/trunk/processing/fillgaps/output.png";
     tx.save(fullname);
     
-//exit();
+    exit();
 }
 
 
