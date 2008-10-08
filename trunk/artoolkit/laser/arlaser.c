@@ -26,6 +26,8 @@
 
 #include <wand/MagickWand.h>
 
+#include <math.h>
+
 //
 // Camera configuration.
 //
@@ -209,15 +211,20 @@ int findIntersection(float dot_x, float dot_y)
 {
 	/// fov scaled by image size?
 	//float dot_depth = 1600.0;
-	float dot_depth = 0.7*xsize; ///TBD just a guess
+	float dot_depth = 0.9*xsize; ///TBD just a guess
 	/// now find the nearest intersection of the line from the camera (0,0,0)
 	/// to the dot point and the line from the fiducial in the y direction
 	/// http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline3d/	
+	/// Pa = P1 + mua (P2 - P1)
+	/// Pb = P3 + mub (P4 - P3) 
 	float dot_camx = dot_x-xsize/2;
 	float dot_camy = dot_y-ysize/2;
+
+	float camnorm = sqrtf(dot_camx*dot_camx + dot_camy*dot_camy + dot_depth*dot_depth);
+
 	float lines[12] = {
 		0,0,0,				/// p1
-		dot_camx,dot_camy,dot_depth, 		/// p2
+		dot_camx/camnorm, dot_camy/camnorm, dot_depth/camnorm, 	/// p2
 		patt_trans[0][3], 					 patt_trans[1][3], 					  patt_trans[2][3],  /// p3
 		patt_trans[0][3] + patt_trans[0][1], patt_trans[1][3] + patt_trans[1][1], patt_trans[2][3] + patt_trans[2][1]  /// p4	
 	};
@@ -268,8 +275,9 @@ int findIntersection(float dot_x, float dot_y)
 	//printf(" mua mub %f,\t%f, %f,\n", mua, mub, mua_denom);
 	/// the 2D and 3D position of the point
 	printf("%s,\t", cur_filename);
-	printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx*mua,dot_camy*mua,dot_depth*mua);
-	fprintf(stderr, "DEPTH %f\t, NUM %d, X %d, Y %d \n", dot_depth*mua, numpoints, (int)dot_x, (int)dot_y);
+	printf("%f,\t%f,\t%f,\t%f,\t%f,\t", dot_x, dot_y, dot_camx/camnorm*mua, dot_camy/camnorm*mua, dot_depth/camnorm*mua);
+	fprintf(stderr, "DEPTH %f\t, NUM %d, X %d, Y %d \n", mua, numpoints, (int)dot_x, (int)dot_y);
+	fprintf(stderr, "MUA (Cam line) %g\tMUB (marker line) %g\n", mua, mub);
 
 	/// print the color of the point from the base image
 
@@ -306,7 +314,7 @@ int main(int argc, char **argv)
 	cur_filename = argv[1];
 	base_filename = argv[2];
 
-	//fprintf(stderr,"%d %s %s,\n", argc, cur_filename,base_filename);
+	fprintf(stderr,"%d %s %s,\n", argc, cur_filename,base_filename);
 
 	if (argc > 3) {
 		printf("showing graphics\n");
@@ -338,9 +346,25 @@ int main(int argc, char **argv)
     //arParamDisp( &cparam );
 
     if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
-        printf("pattern load error !!\n");
+        fprintf(stderr,"pattern load error !!\n");
         exit(0);
     }
+
+
+	fprintf(stderr,"xysize %d %d\n\
+cparam %g\t%g\t%g\t%g\n \
+mat\n \
+%g\t%g\t%g\t%g\n \
+%g\t%g\t%g\t%g\n \
+%g\t%g\t%g\t%g\n", 
+		cparam.xsize, cparam.ysize,
+		cparam.dist_factor[0], cparam.dist_factor[1], cparam.dist_factor[2], cparam.dist_factor[3], 
+		cparam.mat[0][0], cparam.mat[0][1], cparam.mat[0][2], cparam.mat[0][3], 	
+		cparam.mat[1][0], cparam.mat[1][1], cparam.mat[1][2], cparam.mat[1][3], 	
+		cparam.mat[2][0], cparam.mat[2][1], cparam.mat[2][2], cparam.mat[2][3]	
+		);
+
+
 
     /* open the graphics window */
     argInit( &cparam, 1.0, 0, 0, 0, 0 );
@@ -360,7 +384,13 @@ int main(int argc, char **argv)
 		fprintf(stderr,"no laser dots found\n");
 	} else {
 		if (singleLoop == 0) drawTarget(dot_x, dot_y);
-		findIntersection(dot_x, dot_y);
+
+		double ix, iy;
+		arParamObserv2Ideal(cparam.dist_factor, dot_x, dot_y, &ix, &iy);
+		
+		if (singleLoop == 0) drawTarget(ix, iy);
+		fprintf(stderr, "Observ2Ideal %g\t%g\t%g\t%g \n", dot_x, dot_y, ix, iy);
+		findIntersection(ix, iy);
 	}
 	
 	if (singleLoop) {
