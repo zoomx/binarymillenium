@@ -3,21 +3,22 @@
 
 boolean has_been_setup = false;
 
-color cind[] = new color[6];
+color cind[] = new color[8];
 int NUM = 256*(cind.length-1);
 color grad[] = new color[NUM];
 
 void spectrum_setup() {
 /// red is the warmest
 
-
-cind[5] = color(255,0,0);
-cind[4] = color(255,255,0);
-cind[3] = color(0,255,0);
-cind[2] = color(0,255,255);
+cind[7] = color(255,255,255);
+cind[6] = color(255,0,0);
+cind[5] = color(255,255,0);
+cind[4] = color(0,255,0);
+cind[3] = color(0,255,255);
 /// blue is the coolest
-cind[1] = color(0,0,255);
-cind[0] = color(255,0,255);
+cind[2] = color(0,0,255);
+cind[1] = color(255,0,255);
+cind[0] = color(0,0,0);
 
 //size(NUM,140);
 
