@@ -5,7 +5,10 @@ import com.sun.opengl.util.*;
 
 import javax.media.opengl.glu.*; 
 
+import saito.objloader.*;
+
 GL gl; 
+OBJModel model;
 
 PImage tx;
  
@@ -16,16 +19,28 @@ void setup() {
    gl=((PGraphicsOpenGL)g).gl; 
   
    tx = createImage(width, height, RGB);
+   
+  frameRate(30);
+  model = new OBJModel(this);
+  model.debugMode();
+  model.load("scene4.obj");
   
+  noStroke();
+  model.drawMode(POLYGON);
+  //perspective(PI*0.44, float(width)/float(height),1,1000);
+  
+ 
 }
 
 float f = 0.0;
-String base = "/home/lucasw/gprocessing/depthbuffer/";
+//String base = "/home/lucasw/gprocessing/depthbuffer/";
+String base = "C:/cygwin/home/lucasw/google/processing2/depthbuffer/";
 int index = 0;
 
 void draw() {
-  
-  background(0);
+
+
+  background(5,10,100);
   
   gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT); 
   
@@ -34,13 +49,17 @@ void draw() {
   fill(255, 255, 255);
   
   pushMatrix();
-   translate(width/2,height/2,-1*f);
-  rotateX(0.4*f);
+   translate(width/2,height*0.1,-1*f);
+  rotateY(0.4*f);
 //  translate(0.1*f,-0.1*f);
   
+     pointLight(251, 102, 126, 35, 40, 36);
   //sphere(100);
+  scale(50);
   
+  model.draw();
   
+  /*
   pushMatrix();
   scale(50);
    beginShape(QUADS);
@@ -52,9 +71,7 @@ void draw() {
    
   endShape();
   popMatrix();
-  
-  
-  
+  */
   popMatrix();
   
   FloatBuffer fb = BufferUtil.newFloatBuffer(width*height);
@@ -66,12 +83,13 @@ void draw() {
   float mind = 0.85;
   float maxd = 0.99;
   
+  for (int j = 0; j < height; j++) {
   for (int i = 0; i < width; i++) {
-    for (int j = 0; j < height; j++) {
-      
-        int ind = i*height+j;
-         float d = fb.get(ind);
-        
+    
+      // framebuffer has opposite vertical coord
+        int ind1 = (height-j-1)*width+i;
+         float d = fb.get(ind1);
+         int ind = j*width+i;
         
         if (d > maxd) d = maxd;
         if (d < mind) d = mind;
