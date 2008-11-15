@@ -143,7 +143,7 @@ void draw() {
   */
   popMatrix();
   
-  /*
+  
   FloatBuffer fb = BufferUtil.newFloatBuffer(width*height);
   //set up a floatbuffer to get the depth buffer value of the mouse position
  
@@ -162,6 +162,8 @@ void draw() {
          float d = fb.get(ind1);
          int ind = j*width+i;
         
+        d+= (maxd-mind)/15.0 * noise((float)j/2.0,(float)i/2.0,f*10);
+        
         if (d > maxd) d = maxd;
         if (d < mind) d = mind;
         
@@ -173,10 +175,10 @@ void draw() {
   }
   
   tx.updatePixels();
-  */
   
-  //saveFrame("frames/vis" +        (index+10000) + ".png");
-  //tx.save(base + "frames/depth" + (index+10000) + ".png");
+  
+  saveFrame("frames/vis" +        (index+10000) + ".png");
+  tx.save(base + "frames/depth" + (index+10000) + ".png");
   index++;
 
   
