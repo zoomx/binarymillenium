@@ -53,9 +53,13 @@ void draw() {
   rotateY(0.4*f);
 //  translate(0.1*f,-0.1*f);
   
-     pointLight(251, 102, 126, 35, 40, 36);
+     
   //sphere(100);
   scale(50);
+  
+  pointLight(251, 102, 126, 35, 40, 36);
+  
+  pointLight(-251, -102, 126, 135, 140, 136);
   
   model.draw();
   
@@ -103,7 +107,8 @@ void draw() {
   
   tx.updatePixels();
   
-  tx.save(base + "frames/depth" + (index+10000) + ".png");
+  //saveFrame("frames/vis" +        (index+10000) + ".png");
+  //tx.save(base + "frames/depth" + (index+10000) + ".png");
   index++;
 
   

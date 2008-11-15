@@ -1,5 +1,14 @@
 # Exported from Wings 3D 0.99.04a
 newmtl default
+Ns 100.0
+d 1.0
+illum 2
+Kd 1.0 1.0 1.0
+Ka 1.0 1.0 1.0
+Ks 1.0 1.0 1.0
+Ke 0.0 0.0 0.0
+
+newmtl default2_256x256_seamless_texture_03
 Ns 90.66666666666666
 d 1.0
 illum 2
@@ -7,13 +16,74 @@ Kd 1.0 1.0 1.0
 Ka 0.8533333333333334 0.5874779637079709 0.3868444444444445
 Ks 1.0 1.0 1.0
 Ke 0.19414 0.19414 0.19414
+#map_Kd 256x256_seamless_texture_03.jpg
 
-newmtl street
+newmtl default2_plaster1_smth
+Ns 90.66666666666666
+d 1.0
+illum 2
+Kd 1.0 1.0 1.0
+Ka 0.8533333333333334 0.5874779637079709 0.3868444444444445
+Ks 1.0 1.0 1.0
+Ke 0.19414 0.19414 0.19414
+#map_Kd plaster1_smth.jpg
+
+newmtl default_plaster1_smth
+Ns 100.0
+d 1.0
+illum 2
+Kd 1.0 1.0 1.0
+Ka 1.0 1.0 1.0
+Ks 1.0 1.0 1.0
+Ke 0.0 0.0 0.0
+#map_Kd plaster1_smth.jpg
+
+newmtl dome
+Ns 23.333333333333332
+d 1.0
+illum 2
+Kd 0.13999999999999999 0.3039433551198256 0.5615686274509804
+Ka 1.0 1.0 1.0
+Ks 1.0 1.0 1.0
+Ke 0.0 0.0 0.0
+
+newmtl sidewalk_flagstone3
 Ns 46.666666666666664
 d 1.0
 illum 2
-Kd 0.62 0.62 0.4133333333333334
+Kd 0.41753623188405803 0.43239760869565214 0.44666666666666666
 Ka 1.0 1.0 1.0
 Ks 0.001 0.001 0.001
 Ke 0.001 0.001 0.001
+#map_Kd flagstone3.jpg
+
+newmtl sidewalk_plaster1_smth
+Ns 46.666666666666664
+d 1.0
+illum 2
+Kd 0.41753623188405803 0.43239760869565214 0.44666666666666666
+Ka 1.0 1.0 1.0
+Ks 0.001 0.001 0.001
+Ke 0.001 0.001 0.001
+#map_Kd plaster1_smth.jpg
+
+newmtl sidewalk_sqcobble
+Ns 46.666666666666664
+d 1.0
+illum 2
+Kd 0.41753623188405803 0.43239760869565214 0.44666666666666666
+Ka 1.0 1.0 1.0
+Ks 0.001 0.001 0.001
+Ke 0.001 0.001 0.001
+#map_Kd sqcobble.jpg
+
+newmtl street_sqcobble
+Ns 100.0
+d 1.0
+illum 2
+Kd 1.0 1.0 1.0
+Ka 1.0 1.0 1.0
+Ks 0.48052 0.48052 0.48052
+Ke 0.0 0.0 0.0
+#map_Kd sqcobble.jpg
 
