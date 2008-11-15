@@ -1,49 +1,57 @@
- import javax.media.opengl.*;
+import javax.media.opengl.*;
 import processing.opengl.*;
 import java.nio.*;
 import com.sun.opengl.util.*;  
-
 import javax.media.opengl.glu.*; 
-
 import saito.objloader.*;
 
 GL gl; 
 OBJModel model;
 
-/// waypoints
-float wp[][] = new float[7][4];
 /// xyz rot
 float state[] = new float[4];
 /// v xyz vrot
 float dstate[] = new float[4];
 int wpind=0;
 
-
 PImage tx;
  
+ /// waypoints
+float wp[][] = new float[8][4];
+
+
+float wprad = 0.67;
+
 void setup() {
   
+  float r = PI/9;
   //for (int i = 0; i< waypoints.length; i++ ) {
-  state[0] = 0;
+    float d = wprad*5;
+  state[0] = d;
   state[1] = 0;
-  state[2] = 50;
-  state[3] = 0;
+  state[2] = -d;
+  state[3] = r;
   
-  int i;  
-  i=0; wp[i][0] = 0;     wp[i][1] = 0; wp[i][2] = 100; wp[i][3] = 0;
-  i=1; wp[i][0] = 0;     wp[i][1] = 0; wp[i][2] = 300; wp[i][3] = 0;
-  i=2; wp[i][0] = 300;   wp[i][1] = 0; wp[i][2] = 300; wp[i][3] = 0;
-  i=3; wp[i][0] = 300;   wp[i][1] = 0; wp[i][2] = 300; wp[i][3] = -PI/2;
+  int i; 
+  i=0; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = PI/2;
+  i=1; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = PI/12;
+  i=2; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] =  d; wp[i][3] = 0;
+  i=3; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] =  d; wp[i][3] =-PI/2;
+  i=4; wp[i][0] = d;   wp[i][1] = 0; wp[i][2] =  d; wp[i][3] = -PI/2;
+  i=5; wp[i][0] = d;   wp[i][1] = 0; wp[i][2] =  d; wp[i][3] = -PI;
+  i=6; wp[i][0] = -d;  wp[i][1] = 0; wp[i][2] =  d; wp[i][3] = -PI;
+  i=7; wp[i][0] = -d;  wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = -PI;
+  /*
+ 
   i=4; wp[i][0] = 300;   wp[i][1] = 0; wp[i][2] = 0;   wp[i][3] = -PI/2;
   i=5; wp[i][0] = 0;     wp[i][1] = 0; wp[i][2] = 0;   wp[i][3] = -PI/2;
   i=6; wp[i][0] = 0;     wp[i][1] = 0; wp[i][2] = 0;   wp[i][3] = 0;
+  */
   //wp[4][0] = 200; wp[3][1] = 0; wp[3][2] = 190; wp[3][3] = 0;
   //wp[4][0] = 0; wp[4][1] = 0; wp[4][2] = 190; wp[4][3] = 0;
     
   //}
-  
- 
-    
+     
   size(400, 300, OPENGL); 
   
    gl=((PGraphicsOpenGL)g).gl; 
@@ -57,7 +65,8 @@ void setup() {
   
   noStroke();
   model.drawMode(POLYGON);
-  //perspective(PI*0.44, float(width)/float(height),1,1000);
+  
+  perspective(PI*0.44, float(width)/float(height),1,10000);
   
  
   float fogColor[] =
@@ -80,25 +89,45 @@ float f = 0.0;
 String base = "C:/cygwin/home/lucasw/google/processing2/depthbuffer/";
 int index = 0;
 
-void draw() {
+int wpcounter = 0;
 
-  float kd = 0.04;
-  //float kv = 0.09;
+float f2 = 0.0;
+
+void draw() {
+  f2 += 0.3;
+
+  float kd = 0.009;
+
   float diff[] = new float[4];
   for (int i = 0; i < 4; i++) {
     
-     diff[i] = wp[wpind][i] - state[i];    
-     dstate[i]+= diff[i]*kd;
+     diff[i] = wp[wpind][i] - state[i];   
+    
+     if (i == 4) {
+        if (diff[i] > 2*PI) diff[i] = diff[i] - 2*PI;
+        if (diff[i] <-2*PI) diff[i] = diff[i] + 2*PI;
+        
+        if (diff[i] > PI) diff[i] = 2*PI-diff[i];
+        if (diff[i] <-PI) diff[i] = 2*PI+diff[i];
+        
+     }
+     
+     dstate[i]+= diff[i]*kd +  0.0001*noise(f2 + 100*i);
      dstate[i] *= 0.8;  
-     state[i] += dstate[i];// - dstate[i]*kv;
+     state[i] += dstate[i] + 0.01*noise(f2 + 10*i);// - dstate[i]*kv;
   
   }
 
-    if ((abs(diff[0]) < 10) && (abs(diff[1]) < 10) && (abs(diff[2]) < 10) &&
-    (abs(dstate[0]) < 2) && (abs(dstate[1]) <2) && (abs(dstate[2]) < 2)
+    if ((abs(diff[0]) < wprad*2) && (abs(diff[1]) < wprad*2) && (abs(diff[2]) < wprad*2) &&
+    (abs(dstate[0]) < wprad/2.0) && (abs(dstate[1]) <wprad/2.0) && (abs(dstate[2]) < wprad/2.0) &&
+    (abs(diff[3]) < PI/15)
     ) {
         wpind++;
-        if (wpind >= wp.length) wpind = 0;
+        if (wpind >= wp.length) { 
+          wpcounter++; 
+          wpind = 0;
+          if (wpcounter >=2) noLoop();
+        }
         println("new waypoint " + wpind);
      }
  
@@ -113,18 +142,51 @@ void draw() {
   
   pushMatrix();
   
-   rotateY(state[3]);
-   translate(state[0],state[1],state[2]);
+  float r = state[3];
+   rotateY(r);
+   
+   /*
+   float rm[][]     = {
+                       {cos(r),  0,  -sin(r)}, 
+                       {0,       1,  0},  
+                       {sin(r),  0,  cos(r)} 
+                      };
+                      */
+                      
+   float rm[][]     = {
+                       {1,  0,  0}, 
+                       {0,  1,  0},  
+                       {0,  0,  1} 
+                      };
+   
+   float x = state[0];
+   float y = state[1];
+   float z = state[2];
+   
+   float rx,ry,rz;
+   
+   /*
+   rx = rm[0][0]*x + rm[0][1]*y + rm[0][2]*z;
+   ry = rm[1][0]*x + rm[1][1]*y + rm[1][2]*z;
+   rz = rm[2][0]*x + rm[2][1]*y + rm[2][2]*z;
+   */
+   
+   rx = rm[0][0]*x + rm[1][0]*y + rm[2][0]*z;
+   ry = rm[0][1]*x + rm[1][1]*y + rm[2][1]*z;
+   rz = rm[0][2]*x + rm[1][2]*y + rm[2][2]*z;
+   
+
   
-//  translate(0.1*f,-0.1*f);
   
+       translate(0,-400,0);
      
   //sphere(100);
-  scale(50);
+  scale(200);
   
-  pointLight(151, 102, 126, 35, -540, 36);
+   translate(rx,ry,rz);
   
-  pointLight(-51, 32, 46, 435, 540, 136);
+  pointLight(151, 151, 151, -435, -540, 436);  
+  pointLight(-51, 51,   51, 435, 540, 336);
   
   model.draw();
   
@@ -142,6 +204,7 @@ void draw() {
   popMatrix();
   */
   popMatrix();
+  
   
   
   FloatBuffer fb = BufferUtil.newFloatBuffer(width*height);
@@ -179,6 +242,8 @@ void draw() {
   
   saveFrame("frames/vis" +        (index+10000) + ".png");
   tx.save(base + "frames/depth" + (index+10000) + ".png");
+  
+  
   index++;
 
   
