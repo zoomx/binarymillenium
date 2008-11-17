@@ -1,11 +1,9 @@
 #!/bin/bash
 
-base=intimages
-#base="/media/sda1/cygwin/home/lucasw/lidlaser/fidlaser"
+#base="/media/NIKON D4OX/DCIM/100ND40X/arlidar_first"
+base=../frames3
 
-for i in $base/now0*jpg; do 
-#echo $i
-./arlaser $i $base/now0001.jpg
-#echo "./arlaser $base/fl_000$i.jpg $base/fl_000020.jpg "
+for i in $base/output*png; do 
+echo $i
+./arlaser "$i" 
 done
-#./arlaser images/fl_000200.jpg
