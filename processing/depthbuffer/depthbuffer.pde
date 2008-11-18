@@ -14,6 +14,9 @@ float state[] = new float[4];
 float dstate[] = new float[4];
 int wpind=0;
 
+float near = 1.0;
+float far = 8000.0;
+
 PImage tx;
  
  /// waypoints
@@ -66,7 +69,7 @@ void setup() {
   noStroke();
   model.drawMode(POLYGON);
   
-  perspective(PI*0.44, float(width)/float(height),1,8000);
+  perspective(PI*0.44, float(width)/float(height),near,far);
   
  
   float fogColor[] =
@@ -87,7 +90,8 @@ void setup() {
 float f = 0.0;
 //String base = "/home/lucasw/gprocessing/depthbuffer/";
 //String base = "C:/cygwin/home/lucasw/google/processing2/depthbuffer/";
-String base = "C:/Documents and Settings/lucasw/My Documents/own/ee587/final/depthbuffer/";
+//String base = "C:/Documents and Settings/lucasw/My Documents/own/ee587/final/depthbuffer/";
+String base = "C:/Users/lucasw/own/prog/googlecode/trunk/processing/depthbuffer/";
 int index = 0;
 
 int wpcounter = 0;
@@ -214,9 +218,10 @@ void draw() {
   gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, fb); 
   fb.rewind();
   
-  float mind = .998;//1000;
-  float maxd = 1;
+  float neard = 500.0; //.998;//1000;
+  float fard = far*0.6; //1;
   
+  /*
   int viewport[] = new int[4];
   double[] proj=new double[16];
   double[] model=new double[16];
@@ -224,6 +229,7 @@ void draw() {
   gl.glGetDoublev(GL.GL_PROJECTION_MATRIX,proj,0);
   gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX,model,0); 
   double[] mousePosArr=new double[4]; 
+*/
 
   for (int j = 0; j < height; j++) {
   for (int i = 0; i < width; i++) {
@@ -232,9 +238,12 @@ void draw() {
         int ind1 = (height-j-1)*width+i;
          float d = fb.get(ind1);
          
-         glu.gluUnProject(x,height-j,d, model,0,proj,0,viewport,0,mousePosArr,0); 
+         
+         d = -2*far*near/(d*(far-near) - (far+near));
+         
+         //glu.gluUnProject(x,height-j,d, model,0,proj,0,viewport,0,mousePosArr,0); 
   
-          println(mousePosArr[0] + " " + mousePosArr[1] + " " + mousePosArr[2] );
+          //println(mousePosArr[0] + " " + mousePosArr[1] + " " + mousePosArr[2] );
   
          int ind = j*width+i;
          
@@ -245,10 +254,10 @@ void draw() {
         
         
        
-        if (d > maxd) d = maxd;
-        if (d < mind) d = mind;
+        if (d > fard) d = fard;
+        if (d < neard) d = neard;
         
-        tx.pixels[ind] = makecolor( 1.0 - ((d-mind)/(maxd-mind)) ); 
+        tx.pixels[ind] = makecolor( 1.0 - ((d-neard)/(fard-neard)) ); 
     
       
     }
