@@ -34,7 +34,7 @@
 import processing.opengl.*;
 //import java.util.*
  
-int len = 200000;
+int len = 400000;
  
 VBPointCloud cloud;
 
@@ -77,7 +77,7 @@ void update() {
   //reader = createReader("mesaverde.csv");
   // reader = createReader("sphinx.csv");
   // reader = createReader("flower.csv");
-   reader = createReader("boxer.csv");
+   reader = createReader("temp.csv");
    
    rv = new PC(len);
 

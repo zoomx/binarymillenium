@@ -129,19 +129,28 @@ class CloudConverter {
     
   }
 
-  void processStrings(String[] raw) {
 
-   PImage tx = new PImage();
+  float finc = 0;
+
+  void processStrings(String[] raw) {
+  
+    finc += 0.01;
     
-    println("index: " + index);
+    PImage tx = new PImage();
     
     tx.width = 1280;
     tx.height = 64;
     tx.pixels = new color[tx.width*tx.height];
 
+    int offset = (int)( tx.width/2 + (tx.width-1)*(noise(finc)-0.5));
+    
+    println("index: " + index + ", " + offset);
+    
     /// preprocess to find out the extent of the data
     for (int i = 0; i < raw.length; i++) {
 
+
+      
       String[] ln = split(raw[i],',');
       for (int j = 0; j < ln.length; j++) {
      
@@ -151,10 +160,8 @@ class CloudConverter {
         //print( j + ", " + z + "\n");
       
         if ((j < tx.height) && (i < tx.width) ) {
-          int pixind = tx.width*(63-j) + i;
-           if (i >= 1280/2) pixind = pixind -1280/2;
-           else pixind = pixind + 1280/2;
-           
+          int pixind = tx.width*(63-j);
+          pixind += (i + offset)%tx.width;
            
           //print( j + ", " + z + "\n");
           
@@ -171,8 +178,8 @@ class CloudConverter {
         
             /*
             int val;
-           //  val = int( (log(z)-log(100))/(log(20000.0)-log(100))*255.0);
-             val = int( (z/20000.0)*255.0);
+             val = int( (log(z)-log(200))/(log(16000.0)-log(200))*255.0);
+             //val = int( (z/20000.0)*255.0);
             if (val > 255) val = 255;
             if (val < 0) val = 0;
             */
