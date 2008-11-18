@@ -20,7 +20,7 @@ PImage tx;
 float wp[][] = new float[8][4];
 
 
-float wprad = 0.67;
+float wprad = 0.55;
 
 void setup() {
   
@@ -52,7 +52,7 @@ void setup() {
     
   //}
      
-  size(400, 300, OPENGL); 
+  size(640, 480, OPENGL); 
   
    gl=((PGraphicsOpenGL)g).gl; 
   
@@ -66,7 +66,7 @@ void setup() {
   noStroke();
   model.drawMode(POLYGON);
   
-  perspective(PI*0.44, float(width)/float(height),1,10000);
+  perspective(PI*0.44, float(width)/float(height),1,8000);
   
  
   float fogColor[] =
@@ -86,7 +86,8 @@ void setup() {
 
 float f = 0.0;
 //String base = "/home/lucasw/gprocessing/depthbuffer/";
-String base = "C:/cygwin/home/lucasw/google/processing2/depthbuffer/";
+//String base = "C:/cygwin/home/lucasw/google/processing2/depthbuffer/";
+String base = "C:/Documents and Settings/lucasw/My Documents/own/ee587/final/depthbuffer/";
 int index = 0;
 
 int wpcounter = 0;
@@ -185,9 +186,10 @@ void draw() {
   
    translate(rx,ry,rz);
   
-  pointLight(151, 151, 151, -435, -540, 436);  
-  pointLight(-51, 51,   51, 435, 540, 336);
-  
+  pointLight(121, 121, 131, 435, -340, 436);  
+ // pointLight(-51, 51,   51, 435, 540, 336);
+   pointLight(71, 71,  11, -335, -20, 236);
+   
   model.draw();
   
   /*
@@ -206,16 +208,22 @@ void draw() {
   popMatrix();
   
   
-  
   FloatBuffer fb = BufferUtil.newFloatBuffer(width*height);
   //set up a floatbuffer to get the depth buffer value of the mouse position
  
   gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, fb); 
   fb.rewind();
   
-  float mind = 0.85;
-  float maxd = 0.99;
+  float mind = .998;//1000;
+  float maxd = 1;
   
+  int viewport[] = new int[4];
+  double[] proj=new double[16];
+  double[] model=new double[16];
+  gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+  gl.glGetDoublev(GL.GL_PROJECTION_MATRIX,proj,0);
+  gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX,model,0); 
+  double[] mousePosArr=new double[4]; 
 
   for (int j = 0; j < height; j++) {
   for (int i = 0; i < width; i++) {
@@ -223,19 +231,30 @@ void draw() {
       // framebuffer has opposite vertical coord
         int ind1 = (height-j-1)*width+i;
          float d = fb.get(ind1);
+         
+         glu.gluUnProject(x,height-j,d, model,0,proj,0,viewport,0,mousePosArr,0); 
+  
+          println(mousePosArr[0] + " " + mousePosArr[1] + " " + mousePosArr[2] );
+  
          int ind = j*width+i;
+         
+        //if (d < mind) mind = d;
+        //if (d > maxd) maxd = d; 
         
-        d+= (maxd-mind)/15.0 * noise((float)j/2.0,(float)i/2.0,f*10);
+        //d+= (maxd-mind)/15.0 * noise((float)j/2.0,(float)i/2.0,f*10);
         
+        
+       
         if (d > maxd) d = maxd;
         if (d < mind) d = mind;
         
         tx.pixels[ind] = makecolor( 1.0 - ((d-mind)/(maxd-mind)) ); 
     
-        //if (d < mind) mind = d;
-        //if (d > maxd) maxd = d;   
+      
     }
   }
+  
+  noLoop();
   
   tx.updatePixels();
   
@@ -247,5 +266,5 @@ void draw() {
   index++;
 
   
- // println(mind + " " + maxd);
+// println(mind + " " + maxd);
 }

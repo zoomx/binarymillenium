@@ -9,27 +9,9 @@
 import processing.opengl.*;
 //import java.util.*
 
-final int SZ = 10; //10;
+boolean converttogrid = false;
+
 int counter = 0;
-
-final int len = int((12*32*2604)/SZ); //33333*2;
-
-
-class PC {
-
-  int index;
-  float[][] points;
-  float[][] colors;
-
-  PC(int len) {
-    index = 0;
-    points = new float[SZ][len/SZ * 3];
-    colors = new float[SZ][len/SZ * 4]; 
-  }
-}
-
-//PC rv;
-
 
 CloudConverter converter;
 
@@ -49,20 +31,18 @@ void update() {
   
   BufferedReader reader;
   
-  counter++;
+  
   println(counter);
 
-    reader = createReader("data/2_two/vel2_" + counter + ".csv");
+    reader = createReader("data/normal/unit_46_velodyne_full_monterey_pc_" + counter + ".csv");
+    
+    counter++;
     //rv = new PC(len);
 
-    loadPoints(len,reader );
-
-  
+    loadPoints(reader );
 }
 
-
-
-void loadPoints(int len, BufferedReader reader) {
+void loadPoints(BufferedReader reader) {
 
   //byte b[] = loadBytes("../../velodyne/output" + counter +".bin");
 
@@ -71,27 +51,28 @@ void loadPoints(int len, BufferedReader reader) {
 
   //for (int i = 0; i < b.length/16; i++) {
 
-  for (int j = 0; j < SZ; j++) {
+    String newline;
+    newline = reader.readLine();
+    
+    while (newline != null) {
 
-    String raw[] = new String[0]; 
+      String raw[] = new String[0]; 
 
-    for (int i = 0; i < len; i++) {
-
-      String newline;
+      raw = append(raw, newline);
+      
       try {
         newline = reader.readLine();
       } 
       catch(Exception e) {
-        return;  
+        break;  
       }
-
-      raw = append(raw, newline);
-
     }
 
     converter.processStrings(raw, false); // (counter == 0) && (j==0));
-    converter.toGrid(width,height,  false);
-  }
+    
+    if (converttogrid)
+      converter.toGrid(width,height,  false);
+  
 
   return;
 }

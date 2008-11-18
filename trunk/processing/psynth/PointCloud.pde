@@ -27,7 +27,7 @@ public class VBPointCloud {
   PApplet p;
   GL gl; 
   PGraphicsOpenGL pgl;
-  public float pointSize = 3.0f;
+  public float pointSize = 1.0f;
   FloatBuffer pos, col;
 
   public VBPointCloud(PApplet p) {
