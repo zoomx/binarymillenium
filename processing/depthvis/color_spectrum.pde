@@ -34,6 +34,9 @@ void spectrum_setup() {
 
 color makecolor(float f)
 {
+  if (f >= 1.0) return cind[cind.length-1];
+  if (f <= 0.0) return cind[0];
+  
   if (!has_been_setup) spectrum_setup();
 
   int i1 = 0;
@@ -68,7 +71,7 @@ float getfloat(color c)
   }
 
   for (int i = 0; i < grad.length; i++) {
-   if (c == grad[i]) return (float)i/(float)grad.length; 
+   if (c == grad[i]) return 1.0-(float)i/(float)grad.length; 
   }
   
   return 0.0;
