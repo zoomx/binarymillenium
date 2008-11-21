@@ -1,16 +1,19 @@
+// binarymillenium 2008
+// licensed under the GNU GPL latest version
+
 PImage tx,tx2;
 
 // from depthbuffer
 // the original perspective command sets perspective in the
 // vertical direction, so it is wider in the horiz dir.
-float angle =  PI*0.44*640/480; //PI*0.44*640/480;
+float angle =  PI*0.5; //PI*0.44*640/480;
 float neard = 500;
 float fard = 8000*0.6;
 float ffract;
 
 void setup() {
   int h = 500;
-  int w = (int)(2*atan(angle*3/4)*h);
+  int w = (int)(h*2.0); //(int)(2*atan(angle/2)*h);
    size(w,h);
    
    ffract = (fard-neard)/fard;
@@ -24,7 +27,7 @@ void draw() {
   tx2 = loadImage("../depthbuffer/frames/vis/vis"     + index + ".png");
   index+=5;
   
-  float depth[][] = new float[tx.height][tx.width];
+  //float depth[][] = new float[tx.height][tx.width];
   
   loadPixels();
   
@@ -38,14 +41,18 @@ void draw() {
     
     if (c != color(0)) {
     float d = getfloat(c);
-    depth[i][j] = d;
     
-    float yf = (float)j/(float)tx.width;
+    /// add the 'missing' depth that is inbetween 
+    //d = (d + neard/fard)/(1.0+neard/fard);
+    //depth[i][j] = d;
+    //if (d > 0.9) print(d + " ");
+    
+    float yf = (float)j/(float)tx.width-0.5;
     
     float zc = 0.5 + d*zf;
     
-    int yc = (int)((1.0-d) * height *ffract);
-    int xc = (int)(width/2 +  (yf-0.5) * width * (d + neard/fard)/(1.0+neard/fard)  ); 
+    int yc = (int)((1.0-d) * height);// *ffract);
+    int xc = (int)(width/2 + d * yf * width); 
     
     int pixind = yc*width + xc;
     if (pixind >= width*height) pixind = width*height-1;
@@ -56,7 +63,7 @@ void draw() {
     }
   
     /// draw first person view in lower left corner  
-    pixels[(height-tx.height/2+ i/2)*width+j/2] = makecolor(zc);
+    //pixels[(height-tx.height/2+ i/2)*width+j/2] = makecolor(zc);
 
     }
   }
@@ -66,5 +73,5 @@ void draw() {
   
   updatePixels();
   saveFrame("frames/frame#####.jpg");
-//noLoop();
+noLoop();
 }

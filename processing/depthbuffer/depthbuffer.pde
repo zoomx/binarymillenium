@@ -15,7 +15,7 @@ float dstate[] = new float[4];
 int wpind=0;
 
 float near = 1.0;
-float far = 8000.0;
+float far = 4000.0;
 
 PImage tx;
  
@@ -55,7 +55,7 @@ void setup() {
     
   //}
      
-  size(640, 480, OPENGL); 
+  size(640, 640, OPENGL); 
   
    gl=((PGraphicsOpenGL)g).gl; 
   
@@ -69,7 +69,7 @@ void setup() {
   noStroke();
   model.drawMode(POLYGON);
   
-  perspective(PI*0.44, float(width)/float(height),near,far);
+  perspective(PI*0.5, float(width)/float(height),near,far);
   
  
   float fogColor[] =
@@ -164,6 +164,7 @@ void draw() {
                        {0,  0,  1} 
                       };
    
+   
    float x = state[0];
    float y = state[1];
    float z = state[2];
@@ -218,8 +219,8 @@ void draw() {
   gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, fb); 
   fb.rewind();
   
-  float neard = 500.0; //.998;//1000;
-  float fard = far*0.6; //1;
+  float neard = 0.0;// 500.0; //.998;//1000;
+  float fard = far;//*0.6; //1;
   
   /*
   int viewport[] = new int[4];
