@@ -64,7 +64,7 @@ void setup() {
   frameRate(10);
   model = new OBJModel(this);
   model.debugMode();
-  model.load("scene4.obj");
+  model.load("scenesimple2.obj");
   
   noStroke();
   model.drawMode(POLYGON);
@@ -263,13 +263,13 @@ void draw() {
     }
   }
   
-  noLoop();
+  //noLoop();
   
   tx.updatePixels();
   
   
-  saveFrame("frames/vis" +        (index+10000) + ".png");
-  tx.save(base + "frames/depth" + (index+10000) + ".png");
+  saveFrame("frames/vis/vis"   +        (index+10000) + ".png");
+  tx.save(base + "frames/depth/depth" + (index+10000) + ".png");
   
   
   index++;
