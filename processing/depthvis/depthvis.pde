@@ -59,7 +59,7 @@ void draw() {
     if (pixind < 0) pixind = 0;
     
     if ((pixels[pixind] == color(0)) ){  // || (getfloat(pixels[pixind]) > zc)) {
-      pixels[pixind] = makecolor(zc);///tx2.pixels[txpixind]; 
+      pixels[pixind] = color(zc*255); //makecolor(zc);///tx2.pixels[txpixind]; 
     }
   
     /// draw first person view in lower left corner  
