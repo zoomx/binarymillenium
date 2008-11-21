@@ -1,5 +1,5 @@
 // binarymillenium 2008
-// GNU GPL
+// licensed under the GNU GPL latest version
 
 boolean has_been_setup = false;
 

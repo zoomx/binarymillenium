@@ -1,3 +1,6 @@
+// binarymillenium 2008
+// licensed under the GNU GPL latest version
+
 import javax.media.opengl.*;
 import processing.opengl.*;
 import java.nio.*;
@@ -258,7 +261,8 @@ void draw() {
         if (d > fard) d = fard;
         if (d < neard) d = neard;
         
-        tx.pixels[ind] = makecolor( 1.0 - ((d-neard)/(fard-neard)) ); 
+        float distf=  1.0 - ((d-neard)/(fard-neard));
+        tx.pixels[ind] = color(distf*255); //makecolor(distf); 
     
       
     }

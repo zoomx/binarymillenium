@@ -40,7 +40,7 @@ void draw() {
     color c = tx.pixels[txpixind];
     
     if (c != color(0)) {
-    float d = getfloat(c);
+    float d = 1.0-red(c)/255.0; //getfloat(c);
     
     /// add the 'missing' depth that is inbetween 
     //d = (d + neard/fard)/(1.0+neard/fard);
@@ -58,7 +58,7 @@ void draw() {
     if (pixind >= width*height) pixind = width*height-1;
     if (pixind < 0) pixind = 0;
     
-    if ((pixels[pixind] == color(0)) || (getfloat(pixels[pixind]) > zc)) {
+    if ((pixels[pixind] == color(0)) ){  // || (getfloat(pixels[pixind]) > zc)) {
       pixels[pixind] = makecolor(zc);///tx2.pixels[txpixind]; 
     }
   
