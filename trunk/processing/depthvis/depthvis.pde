@@ -6,14 +6,14 @@ PImage tx,tx2;
 // from depthbuffer
 // the original perspective command sets perspective in the
 // vertical direction, so it is wider in the horiz dir.
-float angle =  PI*0.5; //PI*0.44*640/480;
+float angle =  PI*0.44*640/480;
 float neard = 500;
 float fard = 8000*0.6;
 float ffract;
 
 void setup() {
   int h = 500;
-  int w = (int)(h*2.0); //(int)(2*atan(angle/2)*h);
+  int w = (int)(2*atan(angle/2)*h); //(h*2.0);
    size(w,h);
    
    ffract = (fard-neard)/fard;
@@ -25,7 +25,7 @@ void draw() {
   background(0);
   tx  = loadImage("../depthbuffer/frames/depth/depth" + index + ".png");
   tx2 = loadImage("../depthbuffer/frames/vis/vis"     + index + ".png");
-  index+=5;
+  index+=1;
   
   //float depth[][] = new float[tx.height][tx.width];
   
@@ -40,10 +40,10 @@ void draw() {
     color c = tx.pixels[txpixind];
     
     if (c != color(0)) {
-    float d = 1.0-red(c)/255.0; //getfloat(c);
+    float d = getfloat(c);  //1.0 -  red(c)/255.0;
     
     /// add the 'missing' depth that is inbetween 
-    //d = (d + neard/fard)/(1.0+neard/fard);
+    d = (d + neard/fard)/(1.0+neard/fard);
     //depth[i][j] = d;
     //if (d > 0.9) print(d + " ");
     
@@ -51,15 +51,16 @@ void draw() {
     
     float zc = 0.5 + d*zf;
     
-    int yc = (int)((1.0-d) * height);// *ffract);
+    // the ffract is wrong give that d is scale above, but it looks less skewed
+    int yc = (int)((1.0-d) * height *ffract);
     int xc = (int)(width/2 + d * yf * width); 
     
     int pixind = yc*width + xc;
     if (pixind >= width*height) pixind = width*height-1;
     if (pixind < 0) pixind = 0;
     
-    if ((pixels[pixind] == color(0)) ){  // || (getfloat(pixels[pixind]) > zc)) {
-      pixels[pixind] = color(zc*255); //makecolor(zc);///tx2.pixels[txpixind]; 
+    if ((pixels[pixind] == color(0)) || (getfloat(pixels[pixind]) > zc)) {
+      pixels[pixind] = tx2.pixels[txpixind];//makecolor(zc);//color(zc*255); // // 
     }
   
     /// draw first person view in lower left corner  
@@ -72,6 +73,6 @@ void draw() {
   
   
   updatePixels();
-  saveFrame("frames/frame#####.jpg");
-noLoop();
+  saveFrame("frames/vis#####.png");
+//noLoop();
 }
