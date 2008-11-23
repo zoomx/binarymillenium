@@ -36,6 +36,19 @@ float minrot = 0.0;
 int minxo =0;
 int minyo =0;
 
+
+
+  int rsteps = 10;
+  float rrange = PI/20.0;
+  float div = 5.0;
+  
+  int latstepsize = (int)div;
+  int latrange=latstepsize*3;
+  
+  int totnum = 0;
+  
+  float[][] mse = new float[latrange/latstepsize*latrange/latstepsize*rsteps][5];
+    // println(mse.length + " ");
  for (int i = 0; i < ima.height; i++) { 
  for (int j = 0; j < ima.width; j++) {
    
@@ -44,14 +57,15 @@ int minyo =0;
       int y = (i - ima.height/2);
       int x = (j - ima.width/2);
       
-      for (int xo = -2; xo <= 2; xo++) {
-      for (int yo = -2; yo <= 2; yo++) {
-      for (float r = -PI/40.0; r < PI/40.0; r+= PI/400.0) {
-   
-        float mse = 0.0;
-  
-        int rx = (int) ((cos(cur_r+r)*(x+xo)-sin(cur_r+r)*(y+yo))/5.0);
-        int ry = (int) ((sin(cur_r+r)*(x+xo)+cos(cur_r+r)*(y+yo))/5.0);
+      int mseind = 0;
+      
+      for (int xo = -latrange/2; xo < latrange/2; xo+=latstepsize) {
+      for (int yo = -latrange/2; yo < latrange/2; yo+=latstepsize) {
+      for (float rind = 0; rind < rsteps; rind++) {
+        float r = -rrange/2+rind*rrange/rsteps;
+     
+        int rx = (int) ((cos(cur_r+r)*(x+xo)-sin(cur_r+r)*(y+yo))/div);
+        int ry = (int) ((sin(cur_r+r)*(x+xo)+cos(cur_r+r)*(y+yo))/div);
       
         int nx = cur_x + rx;
         int ny = cur_y + ry;
@@ -60,33 +74,62 @@ int minyo =0;
         
           if (grid[ny][nx] > 0) {
            
-           
             float diff = abs(grid[ny][nx]-h);
             
-            mse += diff*diff;
+            mse[mseind][0] += diff*diff;
+            mse[mseind][1] = xo;
+            mse[mseind][2] = xo;
+            mse[mseind][3] = r;
+            /// count the number of points differenced
+            mse[mseind][4]++;
+            
+            totnum++;
           }
            
         }
         
-        mse = mse/(ima.width*ima.height);
-  
-        if (mse < minmse) {
-          minmse = mse;
-          minrot = r;
-          minxo = xo;
-          minyo = yo;
-        }
 
+        mseind++;
+        
       }}}
    }
   }}
+      
+      
   
- 
+  /////////////////////////////////////////////////////////////////////  
+  /// find minmse
+  int mseind = 0;
+  int minmseind = 0;
+      
+     for (int xo = -latrange/2; xo < latrange/2; xo+=latstepsize) {
+      for (int yo = -latrange/2; yo < latrange/2; yo+=latstepsize) {
+      for (float rind = 0; rind < rsteps; rind++) {
+        float r = -rrange/2+rind*rrange/rsteps;
+          
+          mse[mseind][0] = mse[mseind][0]/mse[mseind][4];
+        if (mse[mseind][4] > 0.25*(float)totnum/(float)mse.length) {
+        
+  
+        if (mse[mseind][0] < minmse) {
+          minmse = mse[mseind][0];
+          minxo =  (int)mse[mseind][1];
+          minyo =  (int)mse[mseind][2];
+          minrot = mse[mseind][3];        
+          minmseind = mseind;
+        }
+        }
+        
+        mseind++;
+        
+      }}}
+        
+    
+    println(minmseind + ", mse " + mse[minmseind][0] + ", xo " + mse[minmseind][1] + 
+            ", yo " + mse[minmseind][2] + ", r " + 180.0*mse[minmseind][3]/PI + ", num " + mse[minmseind][4]);
  cur_x += minxo;
  cur_y += minyo;
  cur_r += minrot;
- 
- 
  
  return minmse;
   
@@ -133,7 +176,7 @@ void draw() {
   
  
   updategrid();
-  println(minmse + ", " + cur_x + " " + cur_y + ", " + cur_r/PI*180.0);
+  //println(minmse + ", " + cur_x + " " + cur_y + ", " + cur_r/PI*180.0);
    
   index++; 
  
