@@ -9,23 +9,26 @@
  
   PrintWriter output;
   
-  String base = "../velodyne/frames/hgt/prepross_height_";
+  String base = "../depthvis/frames/height/frame";
   
   void setup() {
     
     output = createWriter("angles.csv");
  
-     size(120, 120);
+     ima = loadImage(base + str(index).substring(1) + ".png");
+     size(ima.width, ima.height);
        
   }
  
- int index = 10000;
+ int index = 100001;
  
   void draw() {
     
        
-    ima = loadImage(base + index + ".png");
-    imb = loadImage(base + (index+1) +".png");
+    ima = loadImage(base + str(index).substring(1) + ".png");
+    imb = loadImage(base + str(index+1).substring(1) +".png");
+    
+    println(ima.width + " " + imb.width);
     
     imd = new PImage();
     imd.width = ima.width;
