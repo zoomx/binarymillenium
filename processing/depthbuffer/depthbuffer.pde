@@ -11,6 +11,8 @@ import saito.objloader.*;
 GL gl; 
 OBJModel model;
 
+PrintWriter output;
+
 /// xyz rot
 float state[] = new float[4];
 /// v xyz vrot
@@ -18,7 +20,9 @@ float dstate[] = new float[4];
 int wpind=0;
 
 float near = 1.0;
-float far = 4000.0;
+float far = 8000.0;
+
+float scaleval = 200;
 
 PImage tx;
  
@@ -29,6 +33,8 @@ float wp[][] = new float[8][4];
 float wprad = 0.55;
 
 void setup() {
+  
+  output = createWriter("angles.csv");
   
   float r = PI/9;
   //for (int i = 0; i< waypoints.length; i++ ) {
@@ -58,13 +64,13 @@ void setup() {
     
   //}
      
-  size(640, 640, OPENGL); 
+  size(640, 480, OPENGL); 
   
    gl=((PGraphicsOpenGL)g).gl; 
   
    tx = createImage(width, height, RGB);
    
-  frameRate(10);
+  //frameRate(10);
   model = new OBJModel(this);
   model.debugMode();
   model.load("scenesimple2.obj");
@@ -72,22 +78,8 @@ void setup() {
   noStroke();
   model.drawMode(POLYGON);
   
-  perspective(PI*0.5, float(width)/float(height),near,far);
+  perspective(PI*0.44, float(width)/float(height),near,far);
   
- 
-  float fogColor[] =
-    { 1.0f, 1.0f, 1.0f, 1.0f };
-    float f1 = 1.0f;
-    float f2 = 5.0f;
-    float f3 = 10.0f;
-
-   /* gl.glEnable(GL.GL_FOG);
-    gl.glFogi(GL.GL_FOG_MODE, GL.GL_EXP);
-    gl.glFogfv(GL.GL_FOG_COLOR, fogColor, 0);
-   //gl.glFogf(GL.GL_FOG_DENSITY, 0.000005f);
-   gl.glHint(GL.GL_FOG_HINT, GL.GL_DONT_CARE);
-   // gl.glFogi(GL.GL_FOG_COORDINATE_SOURCE_EXT, GL.GL_FOG_COORDINATE_EXT);
-    gl.glClearColor(0.0f, 0.25f, 0.25f, 1.0f);  */
 }
 
 float f = 0.0;
@@ -106,12 +98,14 @@ void draw() {
 
   float kd = 0.009;
 
+     output.print(index + ",\t");
+
   float diff[] = new float[4];
   for (int i = 0; i < 4; i++) {
     
      diff[i] = wp[wpind][i] - state[i];   
     
-     if (i == 4) {
+     if (i == 3) {
         if (diff[i] > 2*PI) diff[i] = diff[i] - 2*PI;
         if (diff[i] <-2*PI) diff[i] = diff[i] + 2*PI;
         
@@ -120,11 +114,21 @@ void draw() {
         
      }
      
-     dstate[i]+= diff[i]*kd +  0.0001*noise(f2 + 100*i);
+     dstate[i]+= diff[i]*kd;// +  0.0001*noise(f2 + 100*i);
      dstate[i] *= 0.8;  
-     state[i] += dstate[i] + 0.01*noise(f2 + 10*i);// - dstate[i]*kv;
-  
+     //dstate[i] += 0.01*noise(f2 + 10*i);// - dstate[i]*kv;
+     
+     print(diff[i] + " ");
+     if (i < 3) output.print(dstate[i]*scaleval + ",\t");
+     else   output.print(dstate[i]*180.0/PI + ",\t");
+     
+     state[i] += dstate[i];   
   }
+  output.print("\n");
+  output.flush();
+  
+  print("\n");
+  
 
     if ((abs(diff[0]) < wprad*2) && (abs(diff[1]) < wprad*2) && (abs(diff[2]) < wprad*2) &&
     (abs(dstate[0]) < wprad/2.0) && (abs(dstate[1]) <wprad/2.0) && (abs(dstate[2]) < wprad/2.0) &&
@@ -138,7 +142,7 @@ void draw() {
         }
         println("new waypoint " + wpind);
      }
- 
+///////////////////////////////////////////////////////// 
 
   background(100,100,240);
   
@@ -185,12 +189,9 @@ void draw() {
    rz = rm[0][2]*x + rm[1][2]*y + rm[2][2]*z;
    
 
-  
-  
-       translate(0,-400,0);
-     
-  //sphere(100);
-  scale(200);
+  translate(0,-400,0);
+
+  scale(scaleval);
   
    translate(rx,ry,rz);
   
@@ -200,21 +201,7 @@ void draw() {
    
   model.draw();
   
-  /*
-  pushMatrix();
-  scale(50);
-   beginShape(QUADS);
-
-  fill(0, 255, 255); vertex(-1,  1,  1);
-  fill(1, 255, 255); vertex( 1,  1,  1);
-  fill(1, 0, 255);   vertex( 1, -1,  1);
-  fill(1, 0, 255);   vertex(-1, -1,  1);
-   
-  endShape();
   popMatrix();
-  */
-  popMatrix();
-  
   
   FloatBuffer fb = BufferUtil.newFloatBuffer(width*height);
   //set up a floatbuffer to get the depth buffer value of the mouse position
@@ -222,18 +209,8 @@ void draw() {
   gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, fb); 
   fb.rewind();
   
-  float neard = 0.0;// 500.0; //.998;//1000;
-  float fard = far;//*0.6; //1;
-  
-  /*
-  int viewport[] = new int[4];
-  double[] proj=new double[16];
-  double[] model=new double[16];
-  gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
-  gl.glGetDoublev(GL.GL_PROJECTION_MATRIX,proj,0);
-  gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX,model,0); 
-  double[] mousePosArr=new double[4]; 
-*/
+  float neard =  500.0; //.998;//1000;
+  float fard = far*0.6; //1;
 
   for (int j = 0; j < height; j++) {
   for (int i = 0; i < width; i++) {
@@ -241,14 +218,9 @@ void draw() {
       // framebuffer has opposite vertical coord
         int ind1 = (height-j-1)*width+i;
          float d = fb.get(ind1);
-         
-         
+
          d = -2*far*near/(d*(far-near) - (far+near));
          
-         //glu.gluUnProject(x,height-j,d, model,0,proj,0,viewport,0,mousePosArr,0); 
-  
-          //println(mousePosArr[0] + " " + mousePosArr[1] + " " + mousePosArr[2] );
-  
          int ind = j*width+i;
          
         //if (d < mind) mind = d;
@@ -262,7 +234,7 @@ void draw() {
         if (d < neard) d = neard;
         
         float distf=  1.0 - ((d-neard)/(fard-neard));
-        tx.pixels[ind] = color(distf*255); //makecolor(distf); 
+        tx.pixels[ind] = makecolor(distf); //color(distf*255); //
     
       
     }
@@ -273,8 +245,8 @@ void draw() {
   tx.updatePixels();
   
   
-  saveFrame("frames/vis/vis"   +        (index+10000) + ".png");
-  tx.save(base + "frames/depth/depth" + (index+10000) + ".png");
+  //saveFrame("frames/vis/vis"   +        (index+10000) + ".png");
+  //tx.save(base + "frames/depth/depth" + (index+10000) + ".png");
   
   
   index++;

@@ -6,14 +6,14 @@ PImage tx,tx2;
 // from depthbuffer
 // the original perspective command sets perspective in the
 // vertical direction, so it is wider in the horiz dir.
-float angle =  PI*0.44*640/480;
-float neard = 500;
-float fard = 8000*0.6;
+final float angle =  PI*0.44*640/480;
+final float neard = 500;
+final float fard = 8000*0.6;
 float ffract;
 
 void setup() {
-  int h = 500;
-  int w = (int)(2*atan(angle/2)*h); //(h*2.0);
+  final int h = 500;
+  final int w = (int)(2*atan(angle/2)*h); //(h*2.0);
    size(w,h);
    
    ffract = (fard-neard)/fard;
