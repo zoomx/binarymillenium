@@ -6,17 +6,19 @@ PImage tx,tx2;
 // from depthbuffer
 // the original perspective command sets perspective in the
 // vertical direction, so it is wider in the horiz dir.
-final float angle =  PI*0.5;
-float h = 800;
-float scaleval = h/2;
+final float angle =  PI*0.5; ///with 640x480, 1.2 seems to work better than 4/3
+float origh = 640;
+float scaleval = origh/2;
 final float neard = scaleval/2;
 final float fard = scaleval*40*0.7;
 float ffract;
 
 void setup() {
-  final int h = 400;
+  final int h = 480;
   final int w = (int)(h*tan(angle/2)*2); //(h*2.0);
    size(w,h);
+   
+   println(w + " " + h);
    
    ffract = (fard-neard)/fard;
 }
@@ -81,5 +83,5 @@ void draw() {
   updatePixels();
   if (dovis)  saveFrame("frames/vis#####.png");
   else saveFrame("frames/hgt#####.png");
-noLoop();
+//noLoop();
 }
