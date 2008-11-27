@@ -6,21 +6,23 @@ PImage tx,tx2;
 // from depthbuffer
 // the original perspective command sets perspective in the
 // vertical direction, so it is wider in the horiz dir.
-final float angle =  PI*0.44*640/480;
-final float neard = 500;
-final float fard = 8000*0.6;
+final float angle =  PI*0.5*600/600;
+final float neard = 1600/4;
+final float fard = 1600/2*80;
 float ffract;
 
 void setup() {
-  final int h = 500;
-  final int w = (int)(2*atan(angle/2)*h); //(h*2.0);
+  final int h = 1600;
+  final int w = (int)(h*tan(angle/2)*2); //(h*2.0);
    size(w,h);
    
    ffract = (fard-neard)/fard;
 }
 
 int index = 10000;
-  
+
+boolean dovis = false;
+
 void draw() {
   background(0);
   tx  = loadImage("../depthbuffer/frames/depth/depth" + index + ".png");
@@ -47,20 +49,22 @@ void draw() {
     //depth[i][j] = d;
     //if (d > 0.9) print(d + " ");
     
-    float yf = (float)j/(float)tx.width-0.5;
+    float xf = (float)j/(float)tx.width-0.5;
     
     float zc = 0.5 + d*zf;
     
     // the ffract is wrong give that d is scale above, but it looks less skewed
-    int yc = (int)((1.0-d) * height *ffract);
-    int xc = (int)(width/2 + d * yf * width); 
+    int yc = (int)((1.0-d) * height); //*ffract*0.8);
+    int xc = (int)(width/2 + d * xf * width);   // (2*atan(angle/2)*height)
     
     int pixind = yc*width + xc;
     if (pixind >= width*height) pixind = width*height-1;
     if (pixind < 0) pixind = 0;
     
     if ((pixels[pixind] == color(0)) || (getfloat(pixels[pixind]) > zc)) {
-      pixels[pixind] = tx2.pixels[txpixind];//makecolor(zc);//color(zc*255); // // 
+      if (dovis)
+        pixels[pixind] = tx2.pixels[txpixind];
+      else pixels[pixind] =makecolor(zc);//color(zc*255); // // 
     }
   
     /// draw first person view in lower left corner  
@@ -73,6 +77,7 @@ void draw() {
   
   
   updatePixels();
-  saveFrame("frames/vis#####.png");
-//noLoop();
+  if (dovis)  saveFrame("frames/vis#####.png");
+  else saveFrame("frames/hgt#####.png");
+noLoop();
 }
