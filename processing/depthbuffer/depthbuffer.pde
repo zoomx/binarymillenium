@@ -9,9 +9,10 @@ import javax.media.opengl.glu.*;
 import saito.objloader.*;
 
 GL gl; 
+ GLU glu; 
 OBJModel model;
 
-boolean useopengl = false;
+boolean useopengl = true;
 boolean orthomode = false;
 boolean orthotopview = false;
 boolean savedata = true;
@@ -48,20 +49,21 @@ FloatBuffer fb;
 void setup() {
   
   cameraZ = (height/2.0) / tan(PI * fov / 360.0);
-  near = 500; //cameraZ/10.0;
-  far = 8000;//cameraZ*10.0;
-   println(cameraZ + ", " + near + " " + far);
-    
-  if useopengl)    size(1600, 1600, OPENGL); 
-  else             size(1600, 1600, P3D); 
+
+  if (useopengl)   size(800, 800, OPENGL); 
+  else             size(800, 800, P3D); 
   scaleval = height/2;
   
-  near = scaleval/2; //cameraZ/10.0;
-  far = scaleval*80;//cameraZ*10.0;
-    
+  near = scaleval/2; 
+  far = scaleval*60;
+  println(cameraZ + ", " + near + " " + far);
+   
   fb = BufferUtil.newFloatBuffer(width*height);
 
-  if (useopengl) gl=((PGraphicsOpenGL)g).gl; 
+  if (useopengl){
+    gl=((PGraphicsOpenGL)g).gl; 
+    glu=((PGraphicsOpenGL)g).glu; 
+  }
   
   tx = createImage(width, height, RGB);
    
@@ -217,6 +219,9 @@ void drawandgetdepth() {
   
   fill(255, 255, 255);
   
+  //noFill();
+  //stroke(255);
+  
   pushMatrix();
   
   float r = state[3];
@@ -279,6 +284,15 @@ void drawandgetdepth() {
   float neard =  500.0; //.998;//1000;
   float fard = far*0.7; //1;
 
+int viewport[] = new int[4]; 
+  double[] proj=new double[16];
+  double[] model=new double[16];
+  gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
+  gl.glGetDoublev(GL.GL_PROJECTION_MATRIX,proj,0);
+  gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX,model,0);
+  
+   double[] pos=new double[4];
+
   for (int j = 0; j < height; j++) {
     
   for (int i = 0; i < width; i++) {
@@ -287,17 +301,24 @@ void drawandgetdepth() {
         
         int ind = j*width+i;
         
-        float d = 0;
+        float rawd = 0;
          if (useopengl) {
            int ind1 = (height-j-1)*width+i;
-           d = fb.get(ind1);
+           rawd = fb.get(ind1);
          } else {
-           d = g.zbuffer[ind];
+           rawd = g.zbuffer[ind];
          }
 
-         d = -2*far*near/(d*(far-near) - (far+near));
+         //float d = (-2*far*near/(rawd*(far-near) - (far+near)));
          
+
+
+         glu.gluUnProject(i,height-j,rawd, model,0,proj,0,viewport,0,pos,0); 
+         float d = (float)-pos[2];
          
+         if ((i == width/2) && (j > height/2)) {
+            output.println(rawd + ",\t" + d/scaleval + ",\t" + (float)height/(2.0*(j-height/2)));
+         }
          
         //if (d < mind) mind = d;
         //if (d > maxd) maxd = d; 
@@ -331,7 +352,7 @@ void drawandgetdepth() {
 }
 
 void draw() {
- 
+   noLoop();
   if (orthomode) {
     
       updatestate();
@@ -471,7 +492,7 @@ void drawtopview() {
   }
   println("\n" + count + ", " + mind + " " + maxd);
   
-  noLoop();
+  
   
   tx.updatePixels();
   
@@ -481,6 +502,7 @@ void drawtopview() {
     tx.save(base + "frames/topheight.png");
   }
     
+    noLoop();
     
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
