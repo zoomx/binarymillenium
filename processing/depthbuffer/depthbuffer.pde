@@ -16,7 +16,7 @@ boolean useopengl = true;
 boolean orthomode = false;
 boolean orthotopview = false;
 boolean savedata = true;
-boolean usenoise = false;
+boolean usenoise = true;
 
 PrintWriter output;
 
@@ -50,8 +50,8 @@ void setup() {
   
   cameraZ = (height/2.0) / tan(PI * fov / 360.0);
 
-  if (useopengl)   size(800, 800, OPENGL); 
-  else             size(800, 800, P3D); 
+  if (useopengl)   size(640, 640, OPENGL); 
+  else             size(640, 640, P3D); 
   scaleval = height/2;
   
   near = scaleval/2; 
@@ -70,8 +70,8 @@ void setup() {
   //frameRate(10);
   model = new OBJModel(this);
   model.debugMode();
-  model.load("scenesimple2.obj");
-  //model.load("scene4.obj");
+  //model.load("scenesimple2.obj");
+  model.load("scene4.obj");
   
   noStroke();
   model.drawMode(POLYGON);
@@ -90,16 +90,16 @@ void setup() {
     
       if (savedata) output = createWriter("angles.csv");
   
-  final float r = 0;//PI/9;
+  final float r = PI/9;
   //for (int i = 0; i< waypoints.length; i++ ) {
-  final float d = wprad*5;
-  state[0] = 0;
+  final float d = 3.3;
+  state[0] = -d;
   state[1] = 0;
-  state[2] = 0;
+  state[2] = -d;
   state[3] = r;
   
   int i; 
- /* i=0; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = PI/2;
+  i=0; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = PI/2;
 
   i=1; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = PI/12;
   i=2; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] =  d; wp[i][3] = 0;
@@ -108,7 +108,7 @@ void setup() {
   i=5; wp[i][0] = d;   wp[i][1] = 0; wp[i][2] =  d; wp[i][3] = -PI;
   i=6; wp[i][0] = -d;  wp[i][1] = 0; wp[i][2] =  d; wp[i][3] = -PI;
   i=7; wp[i][0] = -d;  wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = -PI;
-  i=8; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = PI/2;*/
+  i=8; wp[i][0] =-d;   wp[i][1] = 0; wp[i][2] = -d; wp[i][3] = PI/2;
 
  /*
   i=4; wp[i][0] = 300;   wp[i][1] = 0; wp[i][2] = 0;   wp[i][3] = -PI/2;
@@ -197,7 +197,7 @@ void updatestate()
 
     if ((abs(diff[0]) < wprad*4) && (abs(diff[1]) < wprad*4) && (abs(diff[2]) < wprad*4) &&
     (abs(dstate[0]) < wprad*3) && (abs(dstate[1]) <wprad*3) && (abs(dstate[2]) < wprad*3) &&
-    (abs(diff[3]) < 16.0/180.0*PI)
+    (abs(dstate[3]) < 0.8/180.0*PI) && (abs(diff[3]) < 16.0/180.0*PI)
     ) {
         wpind++;
         if (wpind >= wp.length) { 
@@ -227,11 +227,8 @@ void drawandgetdepth() {
   float r = state[3];
    rotateY(r);
    
-   
-  
-
     scale(scaleval);
-    translate(0,1,0);
+    translate(0,-3,0);
     float x = state[0];
    float y = state[1];
    float z = state[2];
@@ -274,6 +271,8 @@ void drawandgetdepth() {
   popMatrix();
   
   
+  /// no point in generating the depth buffer if it's not being saved
+  if (savedata) {
   //set up a floatbuffer to get the depth buffer value of the mouse position
  
    if (useopengl) {
@@ -316,9 +315,9 @@ int viewport[] = new int[4];
          glu.gluUnProject(i,height-j,rawd, model,0,proj,0,viewport,0,pos,0); 
          float d = (float)-pos[2];
          
-         if ((i == width/2) && (j > height/2)) {
-            output.println(rawd + ",\t" + d/scaleval + ",\t" + (float)height/(2.0*(j-height/2)));
-         }
+         //if ((i == width/2) && (j > height/2)) {
+         //   output.println(rawd + ",\t" + d/scaleval + ",\t" + (float)height/(2.0*(j-height/2)));
+         //}
          
         //if (d < mind) mind = d;
         //if (d > maxd) maxd = d; 
@@ -339,10 +338,11 @@ int viewport[] = new int[4];
   
   tx.updatePixels();
   
-  
-  if (savedata) {
+ 
     saveFrame("frames/vis/vis"   +        (index+10000) + ".png");
     tx.save(base + "frames/depth/depth" + (index+10000) + ".png");
+  
+  
   }
   
   index++;
@@ -352,7 +352,7 @@ int viewport[] = new int[4];
 }
 
 void draw() {
-   noLoop();
+   //noLoop();
   if (orthomode) {
     
       updatestate();
