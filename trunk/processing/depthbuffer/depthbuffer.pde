@@ -55,7 +55,7 @@ void setup() {
   scaleval = height/2;
   
   near = scaleval/2; 
-  far = scaleval*60;
+  far = scaleval*40;
   println(cameraZ + ", " + near + " " + far);
    
   fb = BufferUtil.newFloatBuffer(width*height);
@@ -281,7 +281,7 @@ void drawandgetdepth() {
       fb.rewind();
    }
   
-  float neard =  500.0; //.998;//1000;
+  float neard =  near; //.998;//1000;
   float fard = far*0.7; //1;
 
 int viewport[] = new int[4]; 
