@@ -7,12 +7,14 @@ PImage tx,tx2;
 // the original perspective command sets perspective in the
 // vertical direction, so it is wider in the horiz dir.
 final float angle =  PI*0.5*600/600;
-final float neard = 1600/4;
-final float fard = 1600/2*80;
+float h = 800;
+float scaleval = h/2;
+final float neard = scaleval/2;
+final float fard = scaleval*60;
 float ffract;
 
 void setup() {
-  final int h = 1600;
+  final int h = 800;
   final int w = (int)(h*tan(angle/2)*2); //(h*2.0);
    size(w,h);
    
