@@ -1,10 +1,10 @@
 
-int SZ = 500;
+int SZ = 720;
 
 float[][] grid = new float[SZ][SZ];
 
 /// for registration
-final float div = 3.0;//5.0;
+final float div = 1.5;//5.0;
 /// for updating the grid
 //final float divgrid = 5.0;//5.0
 
@@ -12,14 +12,16 @@ float cur_x;
 float cur_y;
 float cur_r;
 
-          final float neard = 500;
-          final float fard = 8000*0.6;
+float origh = 640;
+float scaleval = origh/2;
+final float neard = scaleval/2;
+final float fard = scaleval*40*0.7;
           final float ffract = (fard-neard)/fard;
           
           
 /// cheat and use translations and rotations stored while
 /// source image files were generated
-final boolean usestoredstate = false;
+final boolean usestoredstate = true;
 BufferedReader reader;
 
 /// TBD temp- clear the grid to not accumulate errors
@@ -27,7 +29,7 @@ final boolean cleargrid = false;
 
 PImage ima;
 PImage imb;
-final String base = "../depthvis/frames/height/frame";
+final String base = "../depthvis/frames/";
 PrintWriter output;
 PrintWriter outputmse;
 
@@ -223,7 +225,7 @@ void getstoredstate() {
 
           /// 200.0 was a scaling factor in depthbuffer
           /// also the ima.height*ffract pixels / fard opengl units
-          final float fconv = ima.height*ffract/fard*2.0;
+          final float fconv = ima.height/(fard*div);
          
           float xo = new Float(thisLine[1]).floatValue()*-fconv;
           float yo = new Float(thisLine[3]).floatValue()*-fconv;
@@ -243,7 +245,7 @@ void getstoredstate() {
        
 void draw() {
   
-  ima = loadImage(base + str(index).substring(1) + ".png");
+  ima = loadImage(base + "hgt" + str(index).substring(1) + ".png");
   
   float minmse = 0.0; 
   
@@ -264,13 +266,13 @@ void draw() {
     for (int j = 0; j < SZ; j++) {
      
       int pixind = i*SZ+j;
-     pixels[pixind] = makecolor(grid[i][j]);      
+     pixels[pixind] = makecolor(grid[i][j]*2-0.5);      
       
-      grid[i][j] *= 0.9;  
+      //grid[i][j] *= 0.99;  
  }}
  updatePixels();
  
  
- //saveFrame("frames/registered#####.png");
+ saveFrame("frames/registered#####.png");
  //noLoop();
 }
