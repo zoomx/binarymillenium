@@ -10,8 +10,9 @@ import javax.media.opengl.glu.*;
 
 boolean firstperson = true;
 boolean savegrid = false;
-boolean updategrid = true;
-boolean savevis = true;
+boolean updategrid = false;
+boolean dovis = false;
+boolean savevis = false;
 
 PImage tx,tx2;
 
@@ -19,45 +20,72 @@ PImage tx,tx2;
 // the original perspective command sets perspective in the
 // vertical direction, so it is wider in the horiz dir.
 final float angle =  PI*0.5; ///with 640x480, 1.2 seems to work better than 4/3
-float origh = 640;
-float scaleval = origh/2;
-float ffract;
+float fov = degrees(angle); 
 
-final  float mv = -0.025;
+final  float mv = -0.1;//-0.025;
   
-float griddiv = 2.0;
 color grid3d[][][];
 int gridstats[][][];
-final float gridmult = 3.0;
+
+/// how many times bigger than a single grid to store one view the entire map should be
+final float gridmult = 2.0;
 final int ghgt = 40;
 
-float cameraZ = 0.0;
-float near = 0.0;
-float far = 0.0;
-float fov = degrees(angle); 
-float fard = 0.0, fard2 = 0.0;
-float neard = 0.0;
 
-final float scaleval2 = 200;
+/// derived values
+float cameraZ;
+float scaleval;
+float near;
+float far;
+float neard;
+float fard;
 
-PrintWriter output;
+/// the amount to scale the grid to get it back to scale used
+/// in depthbuffer
+float gridscale;
+float honegrid;
+float wonegrid;
 
+int index = 10000;
+
+/// opengl coords scaled by scaleval
 float cam_x,cam_y,cam_z, cam_rx ,cam_rz;
 float cam_vx = 0;
 float cam_vz = 0;
 
+PrintWriter output;
 BufferedReader reader;
 
-int h,w;
-
-float cur_x = 0.0, cur_y = 0.0, cur_z = 0.0, cur_r = 0.0;
+/// these are in grid coordinates and not the same coords as cam_...
+float cur_x=0.0, cur_y=0.0, cur_z=0.0, cur_r=0.0;
 
 void setup() {
   
+  size(640, 640, OPENGL); 
+ 
+  cameraZ = (height/2.0) / tan(PI * fov / 360.0);
+  scaleval = height/2;
+  near = scaleval/2; 
+  far = scaleval*40;
+  neard =  near; 
+  fard = far*0.7; 
+  
+  /// size of grid that stores one view
+  honegrid = 240;
+  wonegrid = (int)(honegrid*tan(angle/2)*2); //(h*2.0);
+  gridscale = fard/(scaleval*honegrid);
+  
+  
+   grid3d    = new color[(int)(gridmult*honegrid)][(int)(gridmult*wonegrid)][ghgt];
+   gridstats = new int[(int)(gridmult*honegrid)][(int)(gridmult*wonegrid)][ghgt];
+
+   cur_x = grid3d[0].length/2;
+   cur_y = grid3d.length/2;
+  
   if (firstperson) {
-     cam_x = 0.0;
+     cam_x = -4.3;
      cam_y = 0.0;
-     cam_z = 1.15; 
+     cam_z = -1.3; 
      cam_rx = 0.0;
      cam_rz = PI/9;
   } else {
@@ -72,42 +100,13 @@ void setup() {
    reader = createReader("../depthbuffer/angles.csv");
    cur_r = PI/9;
    
-  h = 480;
-  w = (int)(h*tan(angle/2)*2); //(h*2.0);
-   
-   size(640,640,OPENGL);
-   
-   
-  cameraZ = (height/2.0) / tan(PI * fov / 360.0);
-  scaleval = height/2;
- // near = scaleval/2; 
-  //far = scaleval*40;
-   near = scaleval/20.0; 
-  far = scaleval*40;
-  
-  neard = near;
-  fard = scaleval*40*0.7;
-  fard2 = far*0.7;
-   
-      perspective(angle, float(width)/float(height),near,far);
+   perspective(angle, float(width)/float(height),near,far);
    //frameRate(1);
-   println(near + " " + far + ", " + w + " " + h);
-   
-  
-   
-   grid3d    = new color[(int)(gridmult*h/griddiv)][(int)(gridmult*w/griddiv)][ghgt];
-   gridstats = new int[(int)(gridmult*h/griddiv)][(int)(gridmult*w/griddiv)][ghgt];
-   
-   
-     cur_x = grid3d[0].length/2;
-   cur_y = grid3d.length/2;
-
+   println(near + " " + far + ", " + wonegrid + " " + honegrid + ", gridscale " + gridscale);
    
    getstoredstate();
    makegrid();
-    
 }
-
 
 void getstoredstate() {
    String newline;
@@ -120,23 +119,19 @@ void getstoredstate() {
        if (newline !=null) {
          
           String[] thisLine = split(newline, ",");
-
-          /// 200.0 was a scaling factor in depthbuffer
-          /// also the ima.height*ffract pixels / fard opengl units
-          final float fconv = h/(fard*griddiv);
-         
+      
          /*
           float xo = new Float(thisLine[1]).floatValue();
           float yo = new Float(thisLine[3]).floatValue();
           float ro = radians(new Float(thisLine[4]).floatValue());
           
-          cur_x += xo*-fconv;
-          cur_y += yo*-fconv;
+          cur_x += xo/-gridscale;
+          cur_y += yo/-gridscale;
           cur_r+= ro; 
           
           if (firstperson) {
-             cam_x += xo/scaleval2;
-             cam_z += yo/scaleval2; 
+             cam_x += xo/scaleval;
+             cam_z += yo/scaleval; 
              cam_rz+= ro;   
          } 
          */
@@ -145,33 +140,28 @@ void getstoredstate() {
           float yo = new Float(thisLine[7]).floatValue();
           float ro = radians(new Float(thisLine[8]).floatValue());
           
-          cur_x = grid3d[0].length/2 + xo*-fconv;//+width/2;
-          cur_y = grid3d.length/2    + yo*-fconv;//+height/2;
+          cur_x = grid3d[0].length/2 - xo/gridscale;
+          cur_y = grid3d.length/2    - yo/gridscale;
           cur_r = ro;
           
          if (firstperson) {
-             cam_x = 3.3  + xo;
-             cam_z = 3.3 + 1.15 + yo; //1.15+ yo; 
+             cam_x = 3.3 -4.3 + xo;
+             cam_z = 3.3 -1.15 + yo; //1.15+ yo; 
              cam_rz= ro;   
          } 
           
-          println(xo + " " + yo + " " + degrees(ro));
+          println("new coords " + thisLine[0] + " " + xo + " " + yo + " " + degrees(ro) + ", " + cur_x + " " + cur_y);
        } else {
           noLoop(); 
        }
 }
 
-int index = 10000;
 
-boolean dovis = false;
-float txscale = 1;
 
 void makegrid() {
   tx  = loadImage("../depthbuffer/frames/depth/depth" + index + ".png");
   tx2 = loadImage("../depthbuffer/frames/vis/vis"     + index + ".png");
   
-  txscale = griddiv*fard2/(10.0*tx.height*scaleval2);
-    
   for (int i = 0; i < tx.height; i++) {
     float zf = -0.5*((float)(i - tx.height/2)/(float)(tx.height/2));
     //print("zf " + zf);
@@ -185,34 +175,27 @@ void makegrid() {
     float d = getfloat(c);  //1.0 -  red(c)/255.0;
     
     /// add the 'missing' depth that is inbetween 
-    d = (d + neard/fard2)/(1.0+neard/fard2);
+    d = (d + neard/fard)/(1.0+neard/fard);
     
     float xf = (float)j/(float)tx.width-0.5;
     
     float zc = 0.5 + d*zf;
     
     // the ffract is wrong give that d is scale above, but it looks less skewed
-    int yc = (int)((1.0-d) * h); //*ffract*0.8);
-    int xc = (int)(w/2 + d * xf * w);   // (2*atan(angle/2)*height)
-    
-    int pixind = yc*w + xc;
-    if (pixind >= w*h) pixind = w*h-1;
-    if (pixind < 0) pixind = 0;
-    
+    float yc = -(d * honegrid); //*ffract*0.8);
+    float xc = (d * xf * wonegrid);   // (2*atan(angle/2)*height)
     
     zc*= 3.0;
     zc -= 1.0;
     if (zc > 1.0) zc = 1.0;
     if (zc < 0.0) zc = 0.0;
     
-    int rx = (int) ((cos(cur_r)*(xc-w/2) - sin(cur_r)*(yc-h))/griddiv);
-    int ry = (int) ((sin(cur_r)*(xc-w/2) + cos(cur_r)*(yc-h))/griddiv);
-    
-    
+    float rx = cos(cur_r)*xc - sin(cur_r)*yc;
+    float ry = sin(cur_r)*xc + cos(cur_r)*yc;
+     
     int gz = (int)(zc*(ghgt-1));
-    int gx = (int)((float)(cur_y+ry));
-    int gy = (int)((float)(cur_x+rx));
-    
+    int gx = (int)(cur_y+ry);
+    int gy = (int)(cur_x+rx);
     
     if ((gx >= 0) && ( gx < grid3d.length) && ( gy >= 0) && (gy < grid3d[gx].length) &&
         (gz >= 0) && ( gz < grid3d[gx][gy].length)) {
@@ -239,11 +222,15 @@ void makegrid() {
 
     }}
     
-    /// white cube where viewer is
     int gz = ghgt/2;
     int gx = (int)(cur_y);
     int gy = (int)(cur_x);
-    grid3d[gx][gy][gz] = color(255);
+    /// white cube where viewer is
+    if ((gx >= 0) && ( gx < grid3d.length) && ( gy >= 0) && (gy < grid3d[gx].length) &&
+        (gz >= 0) && ( gz < grid3d[gx][gy].length)) {
+      
+      grid3d[gx][gy][gz] = color(255);
+    }
     
     println("finished " + index);
   }
@@ -272,10 +259,10 @@ void writegrid() {
   output = createWriter("grid_" + index + ".csv");
   
   for (int i = 0; i < grid3d.length; i++) {
-    float z = txscale*(float)(i-grid3d.length/2);
+    float z = gridscale*(float)(i-grid3d.length/2);
     
     for (int j = 0; j < grid3d[i].length; j++) {
-       float x = txscale*(float)(j-grid3d[i].length/2);
+       float x = gridscale*(float)(j-grid3d[i].length/2);
        
        for (int k = 0; k < grid3d[i][j].length; k++) {
          
@@ -291,11 +278,9 @@ void writegrid() {
 }
 
 void draw() {
-  
-  float cameraZ = (height/2.0) / tan(PI * fov / 360.0);
+  pushMatrix();
   translate(width/2,height/2,cameraZ);
   
-
   if (mousePressed) {
    cam_vx += (mouseY-pmouseY)*0.01; 
    cam_vz += (mouseX-pmouseX)*0.01;
@@ -310,7 +295,7 @@ void draw() {
   
   background(0);
 
-  scale(scaleval2);
+  scale(scaleval);
   
   translate(cam_x,cam_y,cam_z);
   rotateX(-cam_rx);
@@ -318,15 +303,15 @@ void draw() {
 
 
   final float vscale = 160.0/ghgt;
-  
+  if (true) {
   for (int i = 0; i < grid3d.length; i++) {
-    float z = txscale*(float)(i-grid3d.length/2);
+    float z = gridscale*(float)(i-grid3d.length/2);
     
     for (int j = 0; j < grid3d[i].length; j++) {
-       float x = txscale*(float)(j-grid3d[i].length/2);
+       float x = gridscale*(float)(j-grid3d[i].length/2);
        
        for (int k = 0; k < grid3d[i][j].length; k++) {
-         float y = -vscale*txscale*(float)(k-grid3d[i][j].length/2); //1.0/(float)ghgt* (float)grid3d.length/2.0*3.0/4.0;
+         float y = -vscale*gridscale*(float)(k-grid3d[i][j].length/2); //1.0/(float)ghgt* (float)grid3d.length/2.0*3.0/4.0;
          
          if (brightness(grid3d[i][j][k]) > 20) {
          pushMatrix();
@@ -334,16 +319,19 @@ void draw() {
          noStroke();
          fill(grid3d[i][j][k]);
          
-         //println(x + " " + z + " " + y);
-         
-         //point(0,0);
+         //println(x + ",\t" + y + ",\t" + z + ",\t" + brightness(grid3d[i][j][k]) + ",\t" + gridstats[i][j][k]);
+         // noLoop();
          //fill(255);
-         box(txscale,txscale*vscale,txscale);
-         //rect(-txscale,txscale,-txscale,txscale);
+         box(gridscale,gridscale*vscale,gridscale);
+         //rect(-gridscale,gridscale,-gridscale,gridscale);
          //sphere(istep);
          popMatrix();
          }
   }}}
+  
+  }
+  
+  popMatrix();
   
  
   //print('.');
@@ -356,6 +344,6 @@ void draw() {
   if (updategrid) { 
     index++;
     getstoredstate();
-   makegrid();
+    makegrid();
   }
 }
