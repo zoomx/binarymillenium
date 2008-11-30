@@ -9,12 +9,9 @@ import javax.media.opengl.glu.*;
 import saito.objloader.*;
 
 GL gl; 
- GLU glu; 
+GLU glu; 
 OBJModel model;
 
-boolean useopengl = true;
-boolean orthomode = false;
-boolean orthotopview = false;
 boolean savedata = true;
 boolean usenoise = true;
 
@@ -29,12 +26,13 @@ int wpind=0;
 final float movemax = 2.0;
 final float fov = 90.0;  //degrees
  
-float cameraZ = 0.0;
-float near= 0.0;
-float far = 0.0;
-
-
-float scaleval = 100;
+/// derived values
+float cameraZ;
+float scaleval;
+float near;
+float far;
+float neard;
+float fard;
 
 PImage tx;
  
@@ -47,23 +45,24 @@ float wprad = 0.55;
 FloatBuffer fb;
  
 void setup() {
-  
-  cameraZ = (height/2.0) / tan(PI * fov / 360.0);
 
-  if (useopengl)   size(640, 640, OPENGL); 
-  else             size(640, 640, P3D); 
+  size(640, 640, OPENGL); 
+ 
+  cameraZ = (height/2.0) / tan(PI * fov / 360.0);
   scaleval = height/2;
-  
   near = scaleval/2; 
   far = scaleval*40;
+  neard =  near; 
+  fard = far*0.7; 
+  
   println(cameraZ + ", " + near + " " + far);
    
   fb = BufferUtil.newFloatBuffer(width*height);
 
-  if (useopengl){
+  
     gl=((PGraphicsOpenGL)g).gl; 
     glu=((PGraphicsOpenGL)g).glu; 
-  }
+  
   
   tx = createImage(width, height, RGB);
    
@@ -275,13 +274,12 @@ void drawandgetdepth() {
   if (savedata) {
   //set up a floatbuffer to get the depth buffer value of the mouse position
  
-   if (useopengl) {
+   
     gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, fb); 
       fb.rewind();
-   }
+   
   
-  float neard =  near; //.998;//1000;
-  float fard = far*0.7; //1;
+
 
 int viewport[] = new int[4]; 
   double[] proj=new double[16];
@@ -301,12 +299,10 @@ int viewport[] = new int[4];
         int ind = j*width+i;
         
         float rawd = 0;
-         if (useopengl) {
+        
            int ind1 = (height-j-1)*width+i;
            rawd = fb.get(ind1);
-         } else {
-           rawd = g.zbuffer[ind];
-         }
+         
 
          //float d = (-2*far*near/(rawd*(far-near) - (far+near)));
          
@@ -353,159 +349,23 @@ int viewport[] = new int[4];
 
 void draw() {
    //noLoop();
-  if (orthomode) {
-    
-      updatestate();
-  
-      background(100,100,240);
-  
-      gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-    
-      
-      drawandgetdepth();
-    
-  } else if (orthotopview) {
-     drawtopview();
-  } else {
+
     
     
     updatestate();
   
   background(100,100,240);
   
-  if (useopengl) {
-    gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-  }
   
- /// this is critical, 0,0 is in the upper left 
-   float cameraZ = (height/2.0) / tan(PI * fov / 360.0);
+    gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+  
+  
+
     translate(width/2,height/2,cameraZ);
   
     drawandgetdepth();
- 
-  }
+
 }
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void setuporthotopview() {
-     near = 893;//270;
-    far = 887;//280;
-    /*
-    float minx =0,maxx=0,miny=0,maxy=0,minz=0,maxz = 0;
-    for (i = 0; i < model.getVertexsize(); i++) {
-      Vertex v =  model.getVertex(i);
-      if (i == 0) {
-        minx = v.vx;
-        maxx = v.vx;
-        miny = v.vy;
-        maxy = v.vy;
-        minz = v.vz;
-        maxz = v.vz;
-      } else {
-        if (v.vx > maxx) maxx = v.vx;
-        if (v.vx < minx) minx = v.vx;
-        if (v.vy > maxy) maxy = v.vy;
-        if (v.vy < miny) miny = v.vy;        
-        if (v.vz > maxz) maxz = v.vz;
-        if (v.vz < minz) minz = v.vz;
-       
-      }
-    }
-    
-    println(minx + " " + maxx + ", " + miny + " " + maxy + ", " + minz + " " + maxz);
-    */
-    float minx = -41;
-    float maxx = 32;
-    float miny = -10;
-    float maxy = 10;
-    float minz = -32;
-    float maxz = 36;
-    
-    //noLoop();
-    
-    ortho(-15,15,-15,15, near,far);
-//    ortho(0,width,0,height, -4000,4000);
-    //ortho(-width*10,width*10,-height*10,height*10, -4000,4000);
-   // perspective(fov/180.0*PI, float(width)/float(height),near,far);   
-}
-     
-void drawtopview() {
-     background(0);
-    pushMatrix();
-     
-     //translate
-   // float cameraZ = (height/2.0) / tan(PI * fov / 360.0);
-    translate(width/2,height/2,0);
-    rotateX(-90.0/180.0*PI);
-  
-    pointLight(121, 121, 131, 435, -340, 436);  
-    pointLight(71, 71,  11, -335, -20, 236);
-    model.draw();
-    popMatrix();
-    
-     gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, fb); 
-  fb.rewind();
-  
-  float neard =  500.0; //.998;//1000;
-  float fard = far*0.8; //1;
-
-  float mind=100000.0,maxd=0.0;
-  
-  loadPixels();
-  int count = 0;
-  for (int j = 0; j < height; j++) {
-  for (int i = 0; i < width; i++) {
-    
-      // framebuffer has opposite vertical coord
-        int ind1 =(height-j-1)*width+i;
-        
-        //if (pixels[ind1] != color(0)) {
-          count++;
-         float d = fb.get(ind1);
-
-         d *= (far-near);
-         //d = -2*far*near/(d*(far-near) - (far+near));
-         
-         int ind = j*width+i;
-         
-        //if (d < mind) mind = d;
-        //if (d > maxd) maxd = d; 
-        
-        //d+= (maxd-mind)/15.0 * noise((float)j/2.0,(float)i/2.0,f*10);
-        
-        //if (d > fard)  d = fard;
-        //if (d < neard) d = neard;
-        
-       // float distf=  //((d-near)/(far-near));
-        
-        if (d < mind) mind = d;
-        if (d > maxd) maxd = d; 
-       // print(distf + " " + d + ", ");
-        tx.pixels[ind] = makecolor(d/(far-near)); //color(distf*255); //   
-        //}
-    }
-  }
-  println("\n" + count + ", " + mind + " " + maxd);
-  
-  
-  
-  tx.updatePixels();
-  
-  
-  if (savedata) {
-    saveFrame("frames/topvis.png");
-    tx.save(base + "frames/topheight.png");
-  }
-    
-    noLoop();
-    
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-     
