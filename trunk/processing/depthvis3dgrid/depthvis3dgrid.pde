@@ -9,10 +9,9 @@ import com.sun.opengl.util.*;
 import javax.media.opengl.glu.*; 
 
 boolean firstperson = true;
-boolean savegrid = false;
-boolean updategrid = false;
-boolean dovis = false;
-boolean savevis = false;
+boolean savegrid   = true;
+boolean updategrid = true;
+boolean savevis = true;
 
 PImage tx,tx2;
 
@@ -145,8 +144,8 @@ void getstoredstate() {
           cur_r = ro;
           
          if (firstperson) {
-             cam_x = 3.3 -4.3 + xo;
-             cam_z = 3.3 -1.15 + yo; //1.15+ yo; 
+             cam_x =-0.1 + xo;
+             cam_z = 0.7 + yo; //1.15+ yo; 
              cam_rz= ro;   
          } 
           
@@ -218,10 +217,10 @@ void makegrid() {
     /// TBD - need to clear out grid locations between the seen point and the viewer
     }
     
-    
-
     }}
     
+    
+    if (false) {
     int gz = ghgt/2;
     int gx = (int)(cur_y);
     int gy = (int)(cur_x);
@@ -231,6 +230,7 @@ void makegrid() {
       
       grid3d[gx][gy][gz] = color(255);
     }
+}
     
     println("finished " + index);
   }
@@ -238,8 +238,10 @@ void makegrid() {
 
 
 
+
 void keyPressed() {
 
+  if (false) {
   
   if (key =='a' ) cam_x -= mv;
   if (key =='d' ) cam_x += mv;
@@ -251,7 +253,8 @@ void keyPressed() {
   if (key =='k') cam_rz += radians(2);
   
   println(cam_x + " " + cam_y + " " + cam_z + ", " + cam_rx + " " + degrees(cam_rz));
- 
+  }
+  
 }
 
 
@@ -266,7 +269,7 @@ void writegrid() {
        
        for (int k = 0; k < grid3d[i][j].length; k++) {
          
-         if (brightness(grid3d[i][j][k]) > 20) {
+         if (brightness(gridstats[i][j][k]) > 0) {
            output.println(i + ",\t" + j + ",\t" + k + ",\t" + gridstats[i][j][k] + ",\t" + grid3d[i][j][k]);
          }
  }
@@ -281,6 +284,7 @@ void draw() {
   pushMatrix();
   translate(width/2,height/2,cameraZ);
   
+  if (false) {
   if (mousePressed) {
    cam_vx += (mouseY-pmouseY)*0.01; 
    cam_vz += (mouseX-pmouseX)*0.01;
@@ -290,17 +294,16 @@ void draw() {
   
   cam_vx *= 0.9;
   cam_vz *= 0.9;
-  
+  }
 
   
   background(0);
 
   scale(scaleval);
-  
-  translate(cam_x,cam_y,cam_z);
+
   rotateX(-cam_rx);
   rotateY( cam_rz);
-
+  translate(cam_x,cam_y,cam_z);
 
   final float vscale = 160.0/ghgt;
   if (true) {
@@ -313,7 +316,7 @@ void draw() {
        for (int k = 0; k < grid3d[i][j].length; k++) {
          float y = -vscale*gridscale*(float)(k-grid3d[i][j].length/2); //1.0/(float)ghgt* (float)grid3d.length/2.0*3.0/4.0;
          
-         if (brightness(grid3d[i][j][k]) > 20) {
+         if (brightness(gridstats[i][j][k]) > 0) {
          pushMatrix();
          translate(x,y,z);
          noStroke();
@@ -333,9 +336,6 @@ void draw() {
   
   popMatrix();
   
- 
-  //print('.');
-  //if (dovis)  
   if (savevis) saveFrame("frames/grid3d_" + index + ".png");
   //else saveFrame("frames/hgt#####.png");
 //noLoop();
