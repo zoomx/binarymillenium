@@ -9,11 +9,12 @@ import com.sun.opengl.util.*;
 import javax.media.opengl.glu.*; 
 
 boolean firstperson = true;
-boolean savegrid   = true;
+boolean savegrid   = false;
 boolean updategrid = true;
 boolean savevis = true;
+boolean allowmove = true;
 
-PImage tx,tx2;
+PImage tx,tx2,txdiff;
 
 // from depthbuffer
 // the original perspective command sets perspective in the
@@ -61,6 +62,8 @@ float cur_x=0.0, cur_y=0.0, cur_z=0.0, cur_r=0.0;
 void setup() {
   
   size(640, 640, OPENGL); 
+  
+  txdiff = createImage(width,height,RGB);
  
   cameraZ = (height/2.0) / tan(PI * fov / 360.0);
   scaleval = height/2;
@@ -83,7 +86,7 @@ void setup() {
   
   if (firstperson) {
      cam_x = -4.3;
-     cam_y = 0.0;
+     cam_y = -0.3;
      cam_z = -1.3; 
      cam_rx = 0.0;
      cam_rz = PI/9;
@@ -241,7 +244,7 @@ void makegrid() {
 
 void keyPressed() {
 
-  if (false) {
+  if (allowmove) {
   
   if (key =='a' ) cam_x -= mv;
   if (key =='d' ) cam_x += mv;
@@ -337,6 +340,25 @@ void draw() {
   popMatrix();
   
   if (savevis) saveFrame("frames/grid3d_" + index + ".png");
+  
+  loadPixels();
+  for (int i = 0; i< height; i++) {
+  for (int j = 0; j < width; j++) {
+    
+    int pixind = i*tx.width+j;
+      color vish = pixels[pixind];
+      color visc = tx2.pixels[pixind];  
+      
+      int r = 128 + (int)((red(visc)  - red(vish))/2);
+      int g = 128 + (int)((green(visc)- green(vish))/2);
+      int b = 128 + (int)((blue(visc) - blue(vish))/2);
+                                      
+      pixels[pixind] = color(r,g,b);
+                               
+  }}
+  updatePixels();
+  
+  if (savevis) saveFrame("frames/diff/diffgrid_" + index + ".png");
   //else saveFrame("frames/hgt#####.png");
 //noLoop();
 
