@@ -213,7 +213,6 @@ void updatestate()
 
 void drawandgetdepth() {
   
- 
   f+= 0.1;  
   
   fill(255, 255, 255);
@@ -240,10 +239,7 @@ void drawandgetdepth() {
                        {sin(r),  0,  cos(r)} 
                       };                   
    
- 
-   
    float rx,ry,rz;
-   
    
    if (true) {
    rx = rm[0][0]*x + rm[0][1]*y + rm[0][2]*z;
@@ -269,29 +265,23 @@ void drawandgetdepth() {
   
   popMatrix();
   
-  
   /// no point in generating the depth buffer if it's not being saved
   if (savedata) {
   //set up a floatbuffer to get the depth buffer value of the mouse position
  
+  gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, fb); 
+  fb.rewind();
    
-    gl.glReadPixels(0, 0, width, height, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, fb); 
-      fb.rewind();
-   
-  
-
-
-int viewport[] = new int[4]; 
-  double[] proj=new double[16];
-  double[] model=new double[16];
+  int viewport[] = new int[4]; 
+  double[] proj  = new double[16];
+  double[] model = new double[16];
   gl.glGetIntegerv(GL.GL_VIEWPORT, viewport, 0);
-  gl.glGetDoublev(GL.GL_PROJECTION_MATRIX,proj,0);
-  gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX,model,0);
+  gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, proj,0);
+  gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, model,0);
   
-   double[] pos=new double[4];
+  double[] pos=new double[4];
 
   for (int j = 0; j < height; j++) {
-    
   for (int i = 0; i < width; i++) {
     
       // framebuffer has opposite vertical coord
@@ -300,20 +290,11 @@ int viewport[] = new int[4];
         
         float rawd = 0;
         
-           int ind1 = (height-j-1)*width+i;
-           rawd = fb.get(ind1);
-         
-
-         //float d = (-2*far*near/(rawd*(far-near) - (far+near)));
-         
-
+         int ind1 = (height-j-1)*width+i;
+         rawd = fb.get(ind1);
 
          glu.gluUnProject(i,height-j,rawd, model,0,proj,0,viewport,0,pos,0); 
          float d = (float)-pos[2];
-         
-         //if ((i == width/2) && (j > height/2)) {
-         //   output.println(rawd + ",\t" + d/scaleval + ",\t" + (float)height/(2.0*(j-height/2)));
-         //}
          
         //if (d < mind) mind = d;
         //if (d > maxd) maxd = d; 
@@ -323,8 +304,7 @@ int viewport[] = new int[4];
         if (d > fard) d = fard;
         if (d < neard) d = neard;
         
-        float distf=  1.0 - ((d-neard)/(fard-neard));
-        
+        float distf=  1.0 - ((d-neard)/(fard-neard));   
 
         tx.pixels[ind] = makecolor(distf); //color(distf*255); //   
     }
@@ -350,16 +330,12 @@ int viewport[] = new int[4];
 void draw() {
    //noLoop();
 
-    
-    
-    updatestate();
+   updatestate();
   
-  background(100,100,240);
+   background(100,100,240);
   
   
-    gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-  
-  
+   gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
     translate(width/2,height/2,cameraZ);
   
