@@ -45,8 +45,13 @@ void draw() {
 
         String[] header = split(raw, "\n");
 
+        if (header.length < 9) {
+         println("split header- quitting, TBD allow this later");
+         return; 
+        }
+
         int startind = 0;
-        for (int i = 0; i < (header.length) && (i < 9); i++) {
+        for (int i = 0; i < 9; i++) {
           println(header[i]);
           startind += header[i].length()+1;
         }
@@ -64,7 +69,7 @@ void draw() {
         // count = rem;   
 
         try {
-          output.write(byteBuffer2,totalcount,rem);
+          output.write(byteBuffer2);//,totalcount,rem);
           totalcount+=rem;
         } 
         catch (IOException e) {
@@ -74,7 +79,8 @@ void draw() {
       else {
 
         try {
-          output.write(byteBuffer,totalcount,count);
+         //println("count " + count + ", buffer len " + byteBuffer.length);
+          output.write(byteBuffer,0,count); //,totalcount,count);
           totalcount+=count;
         } 
         catch (IOException e) {
