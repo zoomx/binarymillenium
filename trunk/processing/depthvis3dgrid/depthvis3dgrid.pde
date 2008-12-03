@@ -10,8 +10,8 @@ import javax.media.opengl.glu.*;
 
 boolean firstperson = true;
 boolean savegrid   = false;
-boolean updategrid = true;
-boolean savevis = true;
+boolean updategrid = false;
+boolean savevis = false;
 boolean allowmove = true;
 
 PImage tx,tx2,txdiff;
@@ -29,8 +29,10 @@ int gridstats[][][];
 
 /// how many times bigger than a single grid to store one view the entire map should be
 final float gridmult = 2.0;
-final int ghgt = 40;
+final int ghgt = 80;
 
+final float vscale1 = 3.0;
+final float voffset = 1.0;
 
 /// derived values
 float cameraZ;
@@ -86,7 +88,7 @@ void setup() {
   
   if (firstperson) {
      cam_x = -4.3;
-     cam_y = -0.3;
+     cam_y = 0.0;
      cam_z = -1.3; 
      cam_rx = 0.0;
      cam_rz = PI/9;
@@ -187,8 +189,8 @@ void makegrid() {
     float yc = -(d * honegrid); //*ffract*0.8);
     float xc = (d * xf * wonegrid);   // (2*atan(angle/2)*height)
     
-    zc*= 3.0;
-    zc -= 1.0;
+    zc*= vscale1;
+    zc -= voffset;
     if (zc > 1.0) zc = 1.0;
     if (zc < 0.0) zc = 0.0;
     
@@ -308,7 +310,7 @@ void draw() {
   rotateY( cam_rz);
   translate(cam_x,cam_y,cam_z);
 
-  final float vscale = 160.0/ghgt;
+  final float vscale =   (3.0*160.0)/(vscale1*ghgt);
   if (true) {
   for (int i = 0; i < grid3d.length; i++) {
     float z = gridscale*(float)(i-grid3d.length/2);
@@ -317,7 +319,7 @@ void draw() {
        float x = gridscale*(float)(j-grid3d[i].length/2);
        
        for (int k = 0; k < grid3d[i][j].length; k++) {
-         float y = -vscale*gridscale*(float)(k-grid3d[i][j].length/2); //1.0/(float)ghgt* (float)grid3d.length/2.0*3.0/4.0;
+         float y = -0.1- vscale*gridscale*(float)(k-grid3d[i][j].length/2); //1.0/(float)ghgt* (float)grid3d.length/2.0*3.0/4.0;
          
          if (brightness(gridstats[i][j][k]) > 0) {
          pushMatrix();
@@ -341,6 +343,8 @@ void draw() {
   
   if (savevis) saveFrame("frames/grid3d_" + index + ".png");
   
+  float mse = 0.0;
+  
   loadPixels();
   for (int i = 0; i< height; i++) {
   for (int j = 0; j < width; j++) {
@@ -349,14 +353,23 @@ void draw() {
       color vish = pixels[pixind];
       color visc = tx2.pixels[pixind];  
       
-      int r = 128 + (int)((red(visc)  - red(vish))/2);
-      int g = 128 + (int)((green(visc)- green(vish))/2);
-      int b = 128 + (int)((blue(visc) - blue(vish))/2);
+      int rdiff = (int)((red(visc)  -   red(vish))/2);
+      int gdiff = (int)((green(visc)- green(vish))/2);
+      int bdiff = (int)((blue(visc) -  blue(vish))/2);
+      
+      mse += rdiff*rdiff;
+      
+      int r = 128 + rdiff;
+      int g = 128 + gdiff;
+      int b = 128 + bdiff;
                                       
       pixels[pixind] = color(r,g,b);
                                
   }}
   updatePixels();
+  
+  mse /= width*height*255;
+  println("mse = " + mse);
   
   if (savevis) saveFrame("frames/diff/diffgrid_" + index + ".png");
   //else saveFrame("frames/hgt#####.png");
