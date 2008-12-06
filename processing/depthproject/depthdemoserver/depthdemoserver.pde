@@ -21,7 +21,7 @@ boolean adddiff = false;
 boolean offlinerender = false;
 boolean nowsending = false;
 
-Server s;
+Server srv;
 
 PImage tx2,txdiff;
 
@@ -72,7 +72,7 @@ float cur_x=0.0, cur_y=0.0, cur_z=0.0, cur_r=0.0;
 
 void setup() {
 
-  s = new Server(this, 12345); // Start a simple server on a port
+  
   frameRate(0.25);
   
   size(640, 640, OPENGL); 
@@ -129,6 +129,8 @@ void setup() {
   loadgrid();
   
   }
+  
+  srv = new Server(this, 12345); // Start a simple server on a port
 }
 
 void getstoredstate() {
@@ -413,16 +415,20 @@ void draw() {
      
     }
     
-  }
+  } else {
   
-  String filename = "frames/diff/diffgrid_" + index + ".png";
+  String filename = "C:/Documents and Settings/lucasw/My Documents/own/processing/depthproject/depthdemoserver/frames/diff/diffgrid_" + index + ".png";
   PImage dg = loadImage(filename);
   image(dg,0,0);
   
   if (nowsending) {
-    sendimage(s, filename);
+    sendimage( filename);
     index++;
+    
+    nowsending = false;
    
   }  
+  }
+  
 }
 
