@@ -22,17 +22,13 @@ int h = 240;
 
 String imagebase = "C:/Documents and Settings/lucasw/My Documents/own/processing/depthclient/frames/rxim_";
 
-//byte[] imagebuffer = new byte[w*h*3];
-//byte[] rxbuffer = new byte[w*h*3];
-
 void setup() 
 {
   size(w, h);
   background(204);
-  stroke(0);
-  frameRate(1); // Slow it down a little
-  // Connect to the server's IP address and port
-  c = new Client(this, "127.0.0.1", 12345); // Replace with your server's IP and port
+  stroke(0);in
+  frameRate(1); 
+  c = new Client(this, "127.0.0.1", 12345); 
 }
 
 boolean rximage = false;

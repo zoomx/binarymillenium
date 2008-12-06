@@ -1,15 +1,5 @@
-/**
- * Shared Drawing Canvas (Server) 
- * by Alexander R. Galloway. 
- * 
- * A server that shares a drawing canvas between two computers. 
- * In order to open a socket connection, a server must select a 
- * port on which to listen for incoming clients and through which 
- * to communicate. Once the socket is established, a client may 
- * connect to the server and send or receive commands and data.
- * Get this program running and then start the Shared Drawing
- * Canvas (Client) program so see how they interact.
- */
+// binarymillenium 2008
+// licensed under the GNU GPL latest version
 
 
 import processing.net.*;
