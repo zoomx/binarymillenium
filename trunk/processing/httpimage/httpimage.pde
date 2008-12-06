@@ -28,7 +28,7 @@ void setup() {
 
   c.write("Host: my_domain_name.com\n\n"); // Be polite and say who we are
 
-    /// could parse header and look for image type from that, and 
+  /// could parse header and look for image type from that, and 
   /// generate file name from it.
   output = createOutput("output.jpg");
   //output = createWriter("output.gif");

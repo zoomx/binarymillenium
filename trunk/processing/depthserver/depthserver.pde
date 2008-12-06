@@ -13,6 +13,7 @@
 
 
 import processing.net.*;
+import java.io.*;
 
 Server s;
 Client c;
@@ -22,6 +23,8 @@ int data[];
 int w = 320;
 int h = 240;
 byte[] pixbytes = new byte[w*h*3];
+String imagebase = "C:/Documents and Settings/lucasw/My Documents/own/processing/depthvis3dgrid/frames/grid3d_";
+int index = 10000;
 
 void setup() 
 {
@@ -32,45 +35,62 @@ void setup()
   s = new Server(this, 12345); // Start a simple server on a port
 }
 
-boolean active = false;
+boolean sendimage = false;
+
 void keyPressed() 
 {
   if (key == 'a') {
-    active = true;
+    sendimage = true;
   }   
 }
 
-int count = 0;
-int framecount = 0;
+//int count = 0;
+//int framecount = 0;
 
 void draw() 
 {
-  if (mousePressed == true) {
-    // Draw our line
-    stroke(255);
-    line(pmouseX, pmouseY, mouseX, mouseY);
-    // Send mouse coords to other person
-    //s.write(pmouseX + " " + pmouseY + " " + mouseX + " " + mouseY + "\n");
-  }
-  count++;
   
-  if (count > 40) {
-  if ((s.clientCount > 0) && active) {
+  if ((s.clientCount > 0) && sendimage) {
     
-    println(framecount);
-    framecount++;
-    
-    loadPixels();
-
-    for (int i = 0; i < pixels.length  ; i++) {
-      pixbytes[i*3]   = (byte) (pixels[i] & 0xFF);
-      pixbytes[i*3+1] = (byte) (pixels[i] >> 8 & 0xFF);
-      pixbytes[i*3+2] = (byte) (pixels[i] >> 16 & 0xFF);
+    String filename = imagebase + index + ".png";
+    FileInputStream fstream;
+    //println(filename + " ");
+    try {
+      fstream = new FileInputStream(filename);
+    } catch(IOException e) {
+      System.err.println("Caught IOException: " 
+                        + e.getMessage());
+      return;
     }
-
+  
+   File imfile = new File(filename);
+   int len = (int)imfile.length();
+  
+   //println("server: index " + index + ", len " + len);
+   byte[] buffer = new byte[len];
+   
+   try {
+     fstream.read(buffer);
+   } catch(IOException e) {
+     System.err.println("Caught IOException: " 
+                        + e.getMessage());
+      return;
+   }
+   
+   index++;
+    
     s.write("IMST");
-    s.write(pixbytes);
+    s.write(len & 0xFF);
+    s.write((len >> 8) & 0xFF);
+    s.write((len >> 16) & 0xFF);
+    s.write((len >> 24) & 0xFF);
+     
+    s.write(buffer);
+    
+    println("server sent " + len + " + " + 8);
+    
+    sendimage = false;
   }
-  }
+  
 }
 
