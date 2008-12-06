@@ -73,7 +73,7 @@ float cur_x=0.0, cur_y=0.0, cur_z=0.0, cur_r=0.0;
 void setup() {
 
   
-  frameRate(0.25);
+  frameRate(1);
   
   size(640, 640, OPENGL); 
 
