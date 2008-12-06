@@ -14,6 +14,7 @@ boolean updategrid = true;
 boolean savevis = false;
 boolean allowmove = true;
 boolean showdiff = false;
+boolean adddiff = true;
 
 PImage tx2,txdiff;
 
@@ -309,6 +310,7 @@ void draw() {
   
   if (showdiff) {
   
+  
   tx2 = loadImage("../../depthbuffer/frames/vis/vis" + index + ".png");
 
   loadPixels();
@@ -339,6 +341,41 @@ void draw() {
   //println("mse = " + mse);
 
   if (savevis) saveFrame("frames/diff/diffgrid_" + index + ".png");
+  
+  } else if (adddiff) {
+    
+    //tx2 = loadImage("../../depthvis3dgrid/frames/diff/diffgrid_" + index + ".png");
+     tx2 = loadImage("frames/diff/diffgrid_" + index + ".png");
+     
+      loadPixels();
+  for (int i = 0; i< height; i++) {
+    for (int j = 0; j < width; j++) {
+
+      int pixind = i*tx2.width+j;
+      color vish = pixels[pixind];
+      color visc = tx2.pixels[pixind];  
+
+      
+
+      int rdiff = (int)((red(visc)  - 128)*2);
+      int gdiff = (int)((green(visc)- 128)*2);
+      int bdiff = (int)((blue(visc) - 128)*2);
+
+
+      //mse += rdiff*rdiff;
+
+      int r = (int)red(vish)+ rdiff;
+      int g = (int)green(vish)+gdiff;
+      int b = (int)blue(vish)+ bdiff;
+      
+     //  if (i == 0) println(rdiff + " " + gdiff + " " + bdiff + ", " + 
+     //                (int)red(visc) + ", " + (int)green(visc) + ", " + (int)blue(visc));
+
+      pixels[pixind] = color(r,g,b);
+
+    }
+  }
+  updatePixels();
   
   }
 
