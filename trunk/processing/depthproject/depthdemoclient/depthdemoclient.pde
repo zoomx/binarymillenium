@@ -249,6 +249,11 @@ void draw() {
   
   if (recvimage(c)) {
     
+    getstoredstate();
+    rxing = true;
+    
+  }
+    
   pushMatrix();
   translate(width/2,height/2,cameraZ);
 
@@ -352,9 +357,6 @@ void draw() {
 
   
     
-    getstoredstate();
-    rxing = true;
-  }
   
 }
 

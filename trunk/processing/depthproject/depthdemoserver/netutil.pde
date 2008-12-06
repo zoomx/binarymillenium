@@ -1,8 +1,8 @@
 
-void sendimage(Server s, String filename) 
+void sendimage( String filename) 
 {
   
-  if (s.clientCount > 0) {
+  if (srv.clientCount > 0) {
     
     
     FileInputStream fstream;
@@ -31,15 +31,15 @@ void sendimage(Server s, String filename)
    
    
    
-   index++;
+  // index++;
     
-    s.write("IMST");
-    s.write(len & 0xFF);
-    s.write((len >> 8) & 0xFF);
-    s.write((len >> 16) & 0xFF);
-    s.write((len >> 24) & 0xFF);
+    srv.write("IMST");
+    srv.write(len & 0xFF);
+    srv.write((len >> 8) & 0xFF);
+    srv.write((len >> 16) & 0xFF);
+    srv.write((len >> 24) & 0xFF);
      
-    s.write(buffer);
+    srv.write(buffer);
     
     println("server sent " + len + " + " + 8);
     

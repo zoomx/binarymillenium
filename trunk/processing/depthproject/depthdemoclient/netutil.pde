@@ -13,7 +13,7 @@ boolean recvimage(Client c)
   
   int num = c.available();
   if (num > 0) {
-    println("client: num " + num);
+   // println("client: num " + num);
 
     if ((rximage == false) && (num >= 8)) {
 
@@ -24,7 +24,7 @@ boolean recvimage(Client c)
       println(input); 
 
       if (input.equals("IMST")) {
-        index++; 
+        
         rximage = true;
         imind = 0;
         totalcount = 0;
@@ -36,9 +36,11 @@ boolean recvimage(Client c)
 
         print(len1 + ", len " + len2);
 
-        len = len1 + len2*256;//len3<<16 + len4<<24;
+        len = len1 + len2*256 + len3*256*256;//len3<<16 + len4<<24;
         rxfilename = "frames/rxim_" + index + ".png";
         output = createOutput(rxfilename);
+        
+        index++; 
 
         println("client: expecting " + len + " bytes");
 
@@ -47,17 +49,11 @@ boolean recvimage(Client c)
     } 
 
     if (rximage) {  
-      if (num > (len - totalcount)) {
+      if (num >= (len - totalcount)) {
         num = len-totalcount;
         rximage = false;
         println("client: finished rxing new image");
-        try {  
-          output.flush();
-          output.close();
-        } 
-        catch (IOException e) {
-          println("client: output flush and close failed");
-        }
+ 
         
         /// return true when we've saved a new image
         rv = true;   
@@ -77,6 +73,17 @@ boolean recvimage(Client c)
 
       //println("count " + count + ", num " + num);
       totalcount+=count;
+      
+      if (len == totalcount) {
+        //println("client flushing");
+              try {  
+          output.flush();
+          output.close();
+        } 
+        catch (IOException e) {
+          println("client: output flush and close failed");
+        } 
+      }
     }
   }
   
