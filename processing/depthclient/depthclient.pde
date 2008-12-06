@@ -10,6 +10,7 @@
 
 
 import processing.net.*;
+import java.io.*;
 
 Client c;
 String input = new String("1234");
@@ -18,8 +19,11 @@ int data[];
 int w = 320;
 int h = 240;
 
+
+String imagebase = "C:/Documents and Settings/lucasw/My Documents/own/processing/depthclient/frames/rxim_";
+
 //byte[] imagebuffer = new byte[w*h*3];
-byte[] rxbuffer = new byte[w*h*3];
+//byte[] rxbuffer = new byte[w*h*3];
 
 void setup() 
 {
@@ -34,54 +38,86 @@ void setup()
 boolean rximage = false;
 int imind = 0;
 
-int framecount = 0;
+int index = 10000;
+int totalcount = 0;
+OutputStream output;
+int len = 0;
 
 void draw() 
 { 
+
   int num = c.available();
   if (num > 0) {
+    println("num " + num);
 
-    if ((rximage == false) && (num >= 4)) {
-      
-      char data[] = {c.readChar(),c.readChar(),c.readChar(),c.readChar()};
+
+
+    if ((rximage == false) && (num >= 8)) {
+
+      char data[] = {
+        c.readChar(),c.readChar(),c.readChar(),c.readChar()      };
       input = new String(data);
 
+      println(input); 
+
       if (input.equals("IMST")) {
-         framecount++;
+        index++; 
         rximage = true;
         imind = 0;
-      }
+        totalcount = 0;
+
+        int len1 = (int) c.readChar() ;
+        int len2= (int) c.readChar() ;
+        int len3 = (int) c.readChar() ;
+        int len4 = (int) c.readChar() ;
+
+        print(len1 + ", len " + len2);
+
+        len = len1 + len2*256;//len3<<16 + len4<<24;
+        output = createOutput("frames/rxim_" + index + ".png");
+
+        println("expecting " + len + " bytes");
+
+        num -= 8;
+      }  
+
 
     } 
-    else {
-      loadPixels();
-      int count = c.readBytes(rxbuffer);
-      println(count + " " + framecount);
 
-      for (int i = 0; i < count; i++) {
-        if (i+imind >= rxbuffer.length) {
-          //println("too many bytes rxed " + (count + imind) );
-         
-          rximage = false;
+    if (rximage) {  
+      if (num > (len - totalcount)) {
+        num = len-totalcount;
+        rximage = false;
+        println("finished");
+        try {  
+          output.flush();
+          output.close();
         } 
-        else {
-          int pixind = (int) ((i+imind)/3);
-          int cind = (i+imind)%3;
-          if (cind == 0)
-            pixels[pixind] = (pixels[pixind] & 0xFFFFFF00) + rxbuffer[i]; 
-          if (cind == 1)
-            pixels[pixind] = (pixels[pixind] & 0xFFFF00FF) + rxbuffer[i]<<8;
-          if (cind == 2)
-            pixels[pixind] = (pixels[pixind] & 0xFF00FFFF) + rxbuffer[i]<<16;
+        catch (IOException e) {
+          println("output flush and close failed");
         }
+        
       }
-      
-      //if (count+imind)
 
-      imind += count;
-      updatePixels();
+      byte[] byteBuffer = new byte[num];
+      int count = c.readBytes(byteBuffer);
+
+      int written = 0;
+      try {
+        output.write(byteBuffer);//,totalcount,rem);
+
+      } 
+      catch (IOException e) {
+        println("output write failed");
+        return;
+      }  
+
+      println("count " + count + ", num " + num);
+      totalcount+=count;
     }
+
   }
 
 }
+
 
