@@ -7,14 +7,21 @@ import processing.opengl.*;
 import java.nio.*;
 import com.sun.opengl.util.*;  
 import javax.media.opengl.glu.*; 
+import processing.net.*;
 
 boolean firstperson = true;
 boolean savegrid   = false;
 boolean updategrid = true;
 boolean savevis = false;
-boolean allowmove = true;
+boolean allowmove = false;
 boolean showdiff = false;
-boolean adddiff = true;
+boolean adddiff = false;
+
+
+boolean offlinerender = false;
+boolean nowsending = false;
+
+Server s;
 
 PImage tx2,txdiff;
 
@@ -65,8 +72,13 @@ float cur_x=0.0, cur_y=0.0, cur_z=0.0, cur_r=0.0;
 
 void setup() {
 
+  s = new Server(this, 12345); // Start a simple server on a port
+  frameRate(0.25);
+  
   size(640, 640, OPENGL); 
 
+
+  if (offlinerender) {
   txdiff = createImage(width,height,RGB);
 
   cameraZ = (height/2.0) / tan(PI * fov / 360.0);
@@ -109,10 +121,14 @@ void setup() {
 
   perspective(angle, float(width)/float(height),near,far);
   //frameRate(1);
-  println(near + " " + far + ", " + wonegrid + " " + honegrid + ", gridscale " + gridscale);
+  println("server: " + near + " " + far + ", " + wonegrid + " " + honegrid + ", gridscale " + gridscale);
 
+
+  
   getstoredstate();
   loadgrid();
+  
+  }
 }
 
 void getstoredstate() {
@@ -162,7 +178,7 @@ void getstoredstate() {
         cam_rz= ro;   
       } 
 
-      println("new coords " + thisLine[0] + " " + xo + " " + yo + " " + degrees(ro) + ", " + cur_x + " " + cur_y);
+      //println("new coords " + thisLine[0] + " " + xo + " " + yo + " " + degrees(ro) + ", " + cur_x + " " + cur_y);
 
     }
   } 
@@ -174,6 +190,8 @@ void getstoredstate() {
 
 
 void loadgrid() {
+  
+  
   BufferedReader gridreader = createReader("grid_final.csv");
   
   int count = 0;
@@ -214,8 +232,10 @@ void loadgrid() {
   }
     
   }
+  
+  
 
-  println("finished " + count);
+  
 }
 
 
@@ -224,6 +244,11 @@ void loadgrid() {
 
 void keyPressed() {
 
+   if (key == 'u') {
+    nowsending = true;
+    println("server: now sending images");
+  }  
+  
   if (allowmove) {
 
     if (key =='a' ) cam_x -= mv;
@@ -242,6 +267,8 @@ void keyPressed() {
 
 
 void draw() {
+  
+  if (offlinerender) {
   pushMatrix();
   translate(width/2,height/2,cameraZ);
 
@@ -342,6 +369,7 @@ void draw() {
 
   if (savevis) saveFrame("frames/diff/diffgrid_" + index + ".png");
   
+  ////////////////////////////////////////////////////////////
   } else if (adddiff) {
     
     //tx2 = loadImage("../../depthvis3dgrid/frames/diff/diffgrid_" + index + ".png");
@@ -378,11 +406,23 @@ void draw() {
   updatePixels();
   
   }
-
-  if (updategrid) { 
-    index++;
-    getstoredstate();
-    //makegrid();
+  
+   if (updategrid) { 
+      index++;
+      getstoredstate();
+     
+    }
+    
   }
+  
+  String filename = "frames/diff/diffgrid_" + index + ".png";
+  PImage dg = loadImage(filename);
+  image(dg,0,0);
+  
+  if (nowsending) {
+    sendimage(s, filename);
+    index++;
+   
+  }  
 }
 

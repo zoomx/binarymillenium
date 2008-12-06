@@ -13,6 +13,7 @@ boolean savegrid   = false;
 boolean updategrid = false;
 boolean savevis = false;
 boolean allowmove = true;
+boolean showdiff = false;
 
 PImage tx,tx2,txdiff;
 
@@ -343,6 +344,7 @@ void draw() {
   
   if (savevis) saveFrame("frames/grid3d_" + index + ".png");
   
+  if (showdiff) {
   float mse = 0.0;
   
   loadPixels();
@@ -374,6 +376,7 @@ void draw() {
   if (savevis) saveFrame("frames/diff/diffgrid_" + index + ".png");
   //else saveFrame("frames/hgt#####.png");
 //noLoop();
+}
 
   if (savegrid) writegrid();
   if (updategrid) { 
