@@ -299,19 +299,19 @@ void draw() {
   
   
   if (true) {
-    //for (int i = 0; i < grid3d.length; i++) {
-    for (int i = grid3d.length/4; i < 3*grid3d.length/4; i++) {
+    for (int i = 0; i < grid3d.length; i++) {
+   // for (int i = grid3d.length/4; i < 3*grid3d.length/4; i++) {
       float z = gridscale*(float)(i-grid3d.length/2);
 
-      //for (int j = 0; j < grid3d[i].length; j++) {
-        for (int j = grid3d[i].length/4; j < 3*grid3d[i].length/4; j++) {
+      for (int j = 0; j < grid3d[i].length; j++) {
+        //for (int j = grid3d[i].length/4; j < 3*grid3d[i].length/4; j++) {
         float x = gridscale*(float)(j-grid3d[i].length/2);
 
         //for (int k = 0; k < grid3d[i][j].length; k++) {
           for (int k = 3*grid3d[i][j].length/8; k < grid3d[i][j].length; k++) {
           float y = -0.1- vscale*gridscale*(float)(k-grid3d[i][j].length/2); //1.0/(float)ghgt* (float)grid3d.length/2.0*3.0/4.0;
 
-          if (brightness(gridstats[i][j][k]) > 0) {
+          if (brightness(gridstats[i][j][k]) > 10) {
             pushMatrix();
             translate(x,y,z);
             noStroke();
@@ -340,7 +340,9 @@ void draw() {
   if (showdiff) {
   
   
-  tx2 = loadImage("../../depthbuffer/frames/vis/vis" + index + ".png");
+ tx2 = loadImage("../../depthbuffer/frames/vis/vis" + index + ".png");
+ // tx2 = loadImage("vis_320/vis" + index + ".jpg");
+ 
 
   loadPixels();
   for (int i = 0; i< height; i++) {
@@ -417,7 +419,8 @@ void draw() {
     
   } else {
   
-  String filename = "C:/Documents and Settings/lucasw/My Documents/own/processing/depthproject/depthdemoserver/frames/diff/diffgrid_" + index + ".png";
+  //String filename = "C:/Documents and Settings/lucasw/My Documents/own/processing/depthproject/depthdemoserver/frames_320/diff/diffgrid_" + index + ".png";
+  String filename = "C:/Users/lucasw/own/prog/googlecode/trunk/processing/depthproject/depthdemoserver/frames_640/diff/diffgrid_" + index + ".png";
   PImage dg = loadImage(filename);
   image(dg,0,0);
   
