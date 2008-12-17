@@ -10,12 +10,14 @@ String data;
 
 byte byteBuffer[]; 
 
+PImage rximageSmall;
+
 OutputStream output;
 //PrintWriter output;
 
 int im_counter =0;
 void setup() {
-  size(200, 200);
+  size(320, 240);
   background(50);
   fill(200);
 
@@ -24,7 +26,7 @@ getImage();
 
 void getImage() {
   
-  im_counter++;
+  //im_counter++;
    
   byteBuffer = new byte[20000];
   
@@ -150,7 +152,10 @@ void draw() {
     
     PImage rxim = loadImage("output" + im_counter + ".jpg");
     
-    image(rxim,0,0,width,height);
+    rximageSmall = createImage(width,height, RGB);
+    rximageSmall.copy(rxim,0,0,rxim.width,rxim.height, 0,0,width,height);
+    
+    image(rximageSmall,0,0);
     
     getImage();
   }
