@@ -12,16 +12,56 @@ byte byteBuffer[];
 
 PImage rximageSmall;
 
+PImage srcimageSmall;
+
 OutputStream output;
 //PrintWriter output;
 
-int im_counter =0;
+ArrayList uncomparedFiles;
+
+int im_counter = 0;
+
 void setup() {
   size(320, 240);
   background(50);
   fill(200);
+  
+  uncomparedFiles = new ArrayList();
+  
+  File dir = new File(sketchPath("") + "/src/");
+  String[] dirlist = dir.list();
+  for (int i = 0; i < dirlist.length; i++) {
+    //println(dirlist[i]);
+    uncomparedFiles.add(dirlist[i]);
+  }
+  
+  PImage im = getNewSrcImage();
+  if (im == null) {
+    noLoop();
+    return; 
+  }
+  srcimageSmall = createImage(width, height, RGB);
+  srcimageSmall.copy(im,0,0, im.width, im.height, 0,0, width,height); 
+  
+  getImage();
+}
 
-getImage();
+String newSrcImageName;
+
+/// get a random image
+PImage getNewSrcImage() {
+  if (uncomparedFiles.size() < 1) return null;
+  
+  int ind = (int)random(0, uncomparedFiles.size()-1);
+  
+  newSrcImageName = (String)uncomparedFiles.get(ind);
+  uncomparedFiles.remove(ind);
+  
+  PImage newSrcIm = loadImage(sketchPath("") + "/src/" + newSrcImageName);
+  
+  if (newSrcIm == null) return getNewSrcImage();
+  
+  return newSrcIm;
 }
 
 void getImage() {
@@ -67,7 +107,7 @@ void draw() {
 
   if (cl.available() > 0) { 
 
-    int count = cl.readBytes(byteBuffer); 
+    int bytescount = cl.readBytes(byteBuffer); 
 
     if (readingheader) {
       readingheader = false; 
@@ -92,7 +132,8 @@ void draw() {
           i+= header.length;
       }
 
-      int rem = count - startind;
+      int rem = bytescount - startind;
+      println(bytescount + " " + startind);
       byte byteBuffer2[] = new byte[rem];
       for (int i = 0; i < rem; i++) {
         byteBuffer2[i] = byteBuffer[i+startind];
@@ -116,8 +157,8 @@ void draw() {
 
       try {
         //println("count " + count + ", buffer len " + byteBuffer.length);
-        output.write(byteBuffer,0,count); //,totalcount,count);
-        totalcount+=count;
+        output.write(byteBuffer,0,bytescount); //,totalcount,count);
+        totalcount+=bytescount;
       } 
       catch (IOException e) {
         //println("output write failed");
@@ -155,13 +196,41 @@ void draw() {
     rximageSmall = createImage(width,height, RGB);
     rximageSmall.copy(rxim,0,0,rxim.width,rxim.height, 0,0,width,height);
     
-    image(rximageSmall,0,0);
+    
+    loadPixels();
+    for (int i = 0; i < height; i++) {
+      for (int j = 0; j < width; j++) {
+        //mirror reverse
+      pixels[i*width+width-j-1] = color(abs(brightness(rximageSmall.pixels[i*width+j]) - 
+                                            brightness(srcimageSmall.pixels[i*width+j]) ));
+    }}
+    updatePixels();
+    
+    
     
     getImage();
   }
 } 
 
+int rximagecounter = 0;
 
+void keyPressed() {
+  if (key == 'a') {
+     
+    /// TBD need to save fullsize image instead
+    rximageSmall.save(newSrcImageName + "approx.jpg");
+    rximagecounter++;
+    
+     PImage im = getNewSrcImage();
+     if (im == null) {
+       println("end of src images");
+       noLoop();
+       return; 
+     }
+     srcimageSmall = createImage(width, height, RGB);
+     srcimageSmall.copy(im,0,0, im.width, im.height, 0,0, width,height); 
+  } 
+}
 
 
 
