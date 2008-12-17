@@ -10,13 +10,19 @@ String data;
 
 byte byteBuffer[]; 
 
+/// thumbnail of the image just received
 PImage rximageSmall;
-
+/// thumbnail of the image that we want to match
 PImage srcimageSmall;
+/// base image that can be subtracted from src image
+/// the first file in the src directory should be the base image, make this
+/// more elegant later
+PImage srcBaseSmall;
 
+/// where the rxed image is written to
 OutputStream output;
-//PrintWriter output;
 
+/// list of src files that have not yet been matched
 ArrayList uncomparedFiles;
 
 int im_counter = 0;
@@ -35,31 +41,75 @@ void setup() {
     uncomparedFiles.add(dirlist[i]);
   }
   
-  PImage im = getNewSrcImage();
-  if (im == null) {
+  /// get the base image
+  PImage imbase = getNewSrcImage(0);
+  if (imbase == null) {
     noLoop();
     return; 
   }
-  srcimageSmall = createImage(width, height, RGB);
-  srcimageSmall.copy(im,0,0, im.width, im.height, 0,0, width,height); 
+  srcBaseSmall = createImage(width, height, RGB);
+  srcBaseSmall.copy(imbase,0,0, imbase.width, imbase.height, 0,0, width,height); 
+  
+  srcimageSmall = getNewSrcSmallAndSubtractBackground(srcBaseSmall);
   
   getImage();
 }
 
 String newSrcImageName;
 
+PImage getNewSrcSmallAndSubtractBackground(PImage base) {
+  /// get random image to start off with
+  PImage im = getNewSrcImage(-1);
+  if (im == null) {
+    noLoop();
+    return im; 
+  }
+  PImage small = createImage(width, height, RGB);
+  small.copy(im,0,0, im.width, im.height, 0,0, width,height); 
+  
+  return subtractBackground( base,  small);
+  
+}
+
+PImage subtractBackground(PImage base, PImage newim) {
+  PImage rv = createImage(newim.width, newim.height, RGB);
+  
+    for (int i= 0; i < newim.pixels.length; i++) {
+        float rdiff = abs(  red(base.pixels[i]) - 
+                        red(newim.pixels[i]) );
+                                            
+        float gdiff = abs( green(base.pixels[i]) - 
+                       green(newim.pixels[i]) );
+                                            
+        float bdiff = abs( blue(base.pixels[i]) - 
+                       blue(newim.pixels[i]) ); 
+                       
+    if ((rdiff > 10) || (gdiff > 10) || (bdiff > 10)) {
+        rv.pixels[i] = newim.pixels[i];
+    } else {
+        rv.pixels[i] = color(0);
+    }
+  }
+  
+  return rv;
+}
+
 /// get a random image
-PImage getNewSrcImage() {
+PImage getNewSrcImage(int ind) {
   if (uncomparedFiles.size() < 1) return null;
   
-  int ind = (int)random(0, uncomparedFiles.size()-1);
+  /// select a random image
+  if (ind < 0) {
+    ind = (int)random(0, uncomparedFiles.size()-1);
+  }  
+  /// TBD check for > size() condition
   
   newSrcImageName = (String)uncomparedFiles.get(ind);
   uncomparedFiles.remove(ind);
   
   PImage newSrcIm = loadImage(sketchPath("") + "/src/" + newSrcImageName);
   
-  if (newSrcIm == null) return getNewSrcImage();
+  if (newSrcIm == null) return getNewSrcImage(-1);
   
   return newSrcIm;
 }
@@ -73,7 +123,7 @@ void getImage() {
   //c = new Client(this, "processing.org", 80);
   //c.write("GET /img/processing.gif HTTP/1.1\n"); // Use the HTTP "GET" command to ask for a Web page
   
-  cl = new Client(this, "10.1.100.123", 80);
+  cl = new Client(this, "192.168.1.57", 80);
   cl.write("GET /now.jpg HTTP/1.1\r\n"); // Use the HTTP "GET" command to ask for a Web page
   cl.write("User-Agent: Wget/1.11.3\r\n"); 
   cl.write("Host: 10.1.38.123\r\n"); // Be polite and say who we are
@@ -125,7 +175,7 @@ void draw() {
         if ((substrings.length >1) && (substrings[0].equals("Content-Length:"))) {
           String len = substrings[1].substring(0,substrings[1].length()-1);
           expectedlength = Integer.parseInt(len);
-          println("expected length " + substrings[1] + " " + expectedlength);
+         // println("expected length " + substrings[1] + " " + expectedlength);
         }
 
         if (header[i].length() == 1) //(header[i].equals(" "))  
@@ -133,6 +183,8 @@ void draw() {
       }
 
       int rem = bytescount - startind;
+      
+      if (rem < 0) return;
       println(bytescount + " " + startind);
       byte byteBuffer2[] = new byte[rem];
       for (int i = 0; i < rem; i++) {
@@ -174,7 +226,7 @@ void draw() {
   else if ((received) && (!finished_rx)) {
 
 
-    println("finished");
+    //println("finished");
 
     try {
       output.flush();
@@ -184,7 +236,7 @@ void draw() {
       println("output flush and close failed");
     }
 
-    println("rxed image");
+    //println("rxed image");
     finished_rx = true;
     
     cl.stop();
@@ -196,17 +248,73 @@ void draw() {
     rximageSmall = createImage(width,height, RGB);
     rximageSmall.copy(rxim,0,0,rxim.width,rxim.height, 0,0,width,height);
     
+    PImage newim = subtractBackground( srcBaseSmall,  rximageSmall);
+        
+    float mse = 0.0;
+    int mseCount = 0;
     
     loadPixels();
+    
     for (int i = 0; i < height; i++) {
       for (int j = 0; j < width; j++) {
         //mirror reverse
-      pixels[i*width+width-j-1] = color(abs(brightness(rximageSmall.pixels[i*width+j]) - 
-                                            brightness(srcimageSmall.pixels[i*width+j]) ));
+        
+        int pixind = i*width+j;
+            
+        float diff = (brightness(newim.pixels[pixind]) - 
+                      brightness(srcimageSmall.pixels[pixind]) );
+                                                                                 
+        float rdiff = (red(newim.pixels[pixind]) - 
+                       red(srcimageSmall.pixels[pixind]) );
+                                            
+        float gdiff = (green(newim.pixels[pixind]) - 
+                       green(srcimageSmall.pixels[pixind]) );
+                                            
+        float bdiff = (blue(newim.pixels[pixind]) - 
+                       blue(srcimageSmall.pixels[pixind]) );
+        
+        int flippedpixind = i*width+width-j-1;
+        if ((newim.pixels[pixind] == color(0)) && (srcimageSmall.pixels[pixind] == color(0))) {
+          pixels[flippedpixind] = color(0);
+        } else  {
+          mse += diff*diff;
+          mseCount++;
+          
+          float nred   =   red(srcimageSmall.pixels[pixind]);
+          float ngreen = green(srcimageSmall.pixels[pixind]);
+          float nblue  =  blue(srcimageSmall.pixels[pixind]);
+         
+          if (rdiff > 0) nred   =  red(newim.pixels[pixind]);
+          if (gdiff > 0) ngreen =green(newim.pixels[pixind]);
+          if (bdiff > 0) nblue  = blue(newim.pixels[pixind]);
+          
+          if (newim.pixels[pixind] == color(0)) { 
+            ngreen *= 0.7;
+            nblue  *= 0.7;
+          }
+          if (srcimageSmall.pixels[pixind] == color(0)) { 
+            nblue *= 0.7;
+            nred  *= 0.7;
+          }
+          
+          pixels[flippedpixind] = color(nred,ngreen,nblue);
+          //color(128+rdiff/2,128+gdiff/2,128+bdiff/2);
+        } 
+
+//      if (diff > 0) pixels[i*width+width-j-1] = color(0.7*diff,diff,diff*0.7);
+//      else pixels[i*width+width-j-1] = color(-0.7*diff,-diff*0.66,-diff);
+      
+        
+        //pixels[i*width+width-j-1] = srcimageSmall.pixels[i*width+j];
+      
     }}
     updatePixels();
     
+    mse /= mseCount;
+    println("mse " + mse + ", " + mseCount);
     
+
+   
     
     getImage();
   }
@@ -221,14 +329,7 @@ void keyPressed() {
     rximageSmall.save(newSrcImageName + "approx.jpg");
     rximagecounter++;
     
-     PImage im = getNewSrcImage();
-     if (im == null) {
-       println("end of src images");
-       noLoop();
-       return; 
-     }
-     srcimageSmall = createImage(width, height, RGB);
-     srcimageSmall.copy(im,0,0, im.width, im.height, 0,0, width,height); 
+     srcimageSmall = getNewSrcSmallAndSubtractBackground(srcBaseSmall);
   } 
 }
 
