@@ -3,54 +3,69 @@
  * licensed under the gnu gpl 3 or later
  * 
  */
-
-
 import processing.net.*;
 
-Client c;
+Client cl;
 String data;
 
-byte byteBuffer[] = new byte[10000];
+byte byteBuffer[]; 
 
 OutputStream output;
 //PrintWriter output;
 
+int im_counter =0;
 void setup() {
   size(200, 200);
   background(50);
   fill(200);
 
-//c = new Client(this, "processing.org", 80);
+getImage();
+}
+
+void getImage() {
+  
+  im_counter++;
+   
+  byteBuffer = new byte[20000];
+  
+  //c = new Client(this, "processing.org", 80);
   //c.write("GET /img/processing.gif HTTP/1.1\n"); // Use the HTTP "GET" command to ask for a Web page
   
-  c = new Client(this, "10.1.100.123", 80);
-  c.write("GET /now.jpg HTTP/1.1\r\n"); // Use the HTTP "GET" command to ask for a Web page
-  c.write("User-Agent: Wget/1.11.3\r\n"); 
-  c.write("Host: 10.1.38.123\r\n"); // Be polite and say who we are
-  c.write("Accept: *//*\r\n"); 
-  c.write("Connection: Keep-Alive\r\n"); 
-   c.write("\r\n"); 
+  cl = new Client(this, "10.1.100.123", 80);
+  cl.write("GET /now.jpg HTTP/1.1\r\n"); // Use the HTTP "GET" command to ask for a Web page
+  cl.write("User-Agent: Wget/1.11.3\r\n"); 
+  cl.write("Host: 10.1.38.123\r\n"); // Be polite and say who we are
+  cl.write("Accept: *//*\r\n"); 
+  cl.write("Connection: Keep-Alive\r\n"); 
+  cl.write("\r\n"); 
    
   /// could parse header and look for image type from that, and 
   /// generate file name from it.
-  output = createOutput("output.jpg");
+  output = createOutput("output" + im_counter + ".jpg");
   //output = createWriter("output.gif");
+  
+ 
+  
+  finished_rx = false;
+  
+  received = false;
+  readingheader = true;
+  totalcount = 0;
+  expectedlength = 0;
 }
 
-boolean received = false;
+boolean finished_rx  = false; 
+boolean received     = false;
 boolean readingheader = true;
 int totalcount = 0;
 int expectedlength = 0;
 
-int ind = 0;
 
 void draw() {
 
-  if (c.available() > 0) { 
-    ind++;
-    println(ind);
+  if (cl.available() > 0) { 
 
-    int count = c.readBytes(byteBuffer); 
+    int count = cl.readBytes(byteBuffer); 
 
     if (readingheader) {
       readingheader = false; 
@@ -60,7 +75,7 @@ void draw() {
 
       int startind = 0;
       for (int i = 0; i < header.length; i++) {
-        println(header[i]);
+        //println(header[i]);
         startind += header[i].length()+1;
 
         String[] substrings = split(header[i], " ");
@@ -81,8 +96,8 @@ void draw() {
         byteBuffer2[i] = byteBuffer[i+startind];
       }
 
-      println("startind " + startind + ", count = " + count + 
-        ", remaining = " + rem + ", " + byteBuffer2.length);
+     // println("startind " + startind + ", count = " + count + 
+     //    ", remaining = " + rem + ", " + byteBuffer2.length);
 
       //byteBuffer = byteBuffer2;   
       // count = rem;   
@@ -103,17 +118,17 @@ void draw() {
         totalcount+=count;
       } 
       catch (IOException e) {
-        println("output write failed");
+        //println("output write failed");
       }  
 
     }
 
-    println(count + " " + totalcount);
+    //println(count + " " + totalcount);
     if (totalcount >= expectedlength) received = true;
 
 
   } 
-  else if (received) {
+  else if ((received) && (!finished_rx)) {
 
 
     println("finished");
@@ -126,9 +141,20 @@ void draw() {
       println("output flush and close failed");
     }
 
-    noLoop();
+    println("rxed image");
+    finished_rx = true;
+    
+    cl.stop();
+   
+  } else if (finished_rx) {
+    
+    PImage rxim = loadImage("output" + im_counter + ".jpg");
+    
+    image(rxim,0,0,width,height);
+    
+    getImage();
   }
-}
+} 
 
 
 
