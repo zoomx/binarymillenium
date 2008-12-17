@@ -20,14 +20,17 @@ void setup() {
   background(50);
   fill(200);
 
-
-  c = new Client(this, 
-  "processing.org", 
-  80);
-  c.write("GET /img/processing.gif HTTP/1.1\n"); // Use the HTTP "GET" command to ask for a Web page
-
-  c.write("Host: my_domain_name.com\n\n"); // Be polite and say who we are
-
+//c = new Client(this, "processing.org", 80);
+  //c.write("GET /img/processing.gif HTTP/1.1\n"); // Use the HTTP "GET" command to ask for a Web page
+  
+  c = new Client(this, "10.1.100.123", 80);
+  c.write("GET /now.jpg HTTP/1.1\r\n"); // Use the HTTP "GET" command to ask for a Web page
+  c.write("User-Agent: Wget/1.11.3\r\n"); 
+  c.write("Host: 10.1.38.123\r\n"); // Be polite and say who we are
+  c.write("Accept: *//*\r\n"); 
+  c.write("Connection: Keep-Alive\r\n"); 
+   c.write("\r\n"); 
+   
   /// could parse header and look for image type from that, and 
   /// generate file name from it.
   output = createOutput("output.jpg");
@@ -39,8 +42,13 @@ boolean readingheader = true;
 int totalcount = 0;
 int expectedlength = 0;
 
+int ind = 0;
+
 void draw() {
+
   if (c.available() > 0) { 
+    ind++;
+    println(ind);
 
     int count = c.readBytes(byteBuffer); 
 
