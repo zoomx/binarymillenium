@@ -8,9 +8,13 @@ import processing.net.*;
 Client cl;
 String data;
 
+int smallw = 320;
+int smallh = 240;
+
 byte byteBuffer[]; 
 
 /// thumbnail of the image just received
+PImage rximage;
 PImage rximageSmall;
 /// thumbnail of the image that we want to match
 PImage srcimageSmall;
@@ -28,7 +32,7 @@ ArrayList uncomparedFiles;
 int im_counter = 0;
 
 void setup() {
-  size(320, 240);
+  size(800, 600);
   background(50);
   fill(200);
   
@@ -47,8 +51,8 @@ void setup() {
     noLoop();
     return; 
   }
-  srcBaseSmall = createImage(width, height, RGB);
-  srcBaseSmall.copy(imbase,0,0, imbase.width, imbase.height, 0,0, width,height); 
+  srcBaseSmall = createImage(smallw, smallh, RGB);
+  srcBaseSmall.copy(imbase,0,0, imbase.width, imbase.height, 0,0, smallw,smallh); 
   
   srcimageSmall = getNewSrcSmallAndSubtractBackground(srcBaseSmall);
   
@@ -64,8 +68,8 @@ PImage getNewSrcSmallAndSubtractBackground(PImage base) {
     noLoop();
     return im; 
   }
-  PImage small = createImage(width, height, RGB);
-  small.copy(im,0,0, im.width, im.height, 0,0, width,height); 
+  PImage small = createImage(smallw, smallh, RGB);
+  small.copy(im,0,0, im.width, im.height, 0,0, smallw,smallh); 
   
   return subtractBackground( base,  small);
   
@@ -84,7 +88,7 @@ PImage subtractBackground(PImage base, PImage newim) {
         float bdiff = abs( blue(base.pixels[i]) - 
                        blue(newim.pixels[i]) ); 
                        
-    if ((rdiff > 10) || (gdiff > 10) || (bdiff > 10)) {
+    if ((rdiff > 20) || (gdiff > 20) || (bdiff > 20)) {
         rv.pixels[i] = newim.pixels[i];
     } else {
         rv.pixels[i] = color(0);
@@ -107,9 +111,11 @@ PImage getNewSrcImage(int ind) {
   newSrcImageName = (String)uncomparedFiles.get(ind);
   uncomparedFiles.remove(ind);
   
+  println("new src is " + newSrcImageName);
+  
   PImage newSrcIm = loadImage(sketchPath("") + "/src/" + newSrcImageName);
   
-  if (newSrcIm == null) return getNewSrcImage(-1);
+  if (newSrcIm == null) return getNewSrcImage(ind);
   
   return newSrcIm;
 }
@@ -123,13 +129,7 @@ void getImage() {
   //c = new Client(this, "processing.org", 80);
   //c.write("GET /img/processing.gif HTTP/1.1\n"); // Use the HTTP "GET" command to ask for a Web page
   
-  cl = new Client(this, "192.168.1.57", 80);
-  cl.write("GET /now.jpg HTTP/1.1\r\n"); // Use the HTTP "GET" command to ask for a Web page
-  cl.write("User-Agent: Wget/1.11.3\r\n"); 
-  cl.write("Host: 10.1.38.123\r\n"); // Be polite and say who we are
-  cl.write("Accept: *//*\r\n"); 
-  cl.write("Connection: Keep-Alive\r\n"); 
-  cl.write("\r\n"); 
+  startClient();
    
   /// could parse header and look for image type from that, and 
   /// generate file name from it.
@@ -152,12 +152,28 @@ boolean readingheader = true;
 int totalcount = 0;
 int expectedlength = 0;
 
+void startClient() {
+  cl = new Client(this, "192.168.2.57", 80);
+  cl.write("GET /now.jpg HTTP/1.1\r\n"); // Use the HTTP "GET" command to ask for a Web page
+  cl.write("User-Agent: Wget/1.11.3\r\n"); 
+  cl.write("Host: 192.168.2.123\r\n"); // Be polite and say who we are
+  cl.write("Accept: *//*\r\n"); 
+  cl.write("Connection: Keep-Alive\r\n"); 
+  cl.write("\r\n"); 
+}
 
 void draw() {
+  int clavail = 0;
 
-  if (cl.available() > 0) { 
+      clavail = cl.available();
 
-    int bytescount = cl.readBytes(byteBuffer); 
+ 
+  if (clavail > 0) { 
+   
+    int bytescount;
+
+      bytescount = cl.readBytes(byteBuffer); 
+
 
     if (readingheader) {
       readingheader = false; 
@@ -239,27 +255,33 @@ void draw() {
     //println("rxed image");
     finished_rx = true;
     
-    cl.stop();
+    //cl.stop();
    
   } else if (finished_rx) {
     
-    PImage rxim = loadImage("output" + im_counter + ".jpg");
+    //try {
+    rximage = loadImage("output" + im_counter + ".jpg");
     
-    rximageSmall = createImage(width,height, RGB);
-    rximageSmall.copy(rxim,0,0,rxim.width,rxim.height, 0,0,width,height);
+    
+    if (rximage == null) { getImage(); return; }
+    
+    rximageSmall = createImage(smallw,smallh, RGB);
+    rximageSmall.copy(rximage,0,0,rximage.width,rximage.height, 0,0,smallw,smallh);
     
     PImage newim = subtractBackground( srcBaseSmall,  rximageSmall);
         
     float mse = 0.0;
     int mseCount = 0;
     
-    loadPixels();
+    //loadPixels();
     
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
+    PImage outputimage = createImage(smallw,smallh, RGB);
+    
+    for (int i = 0; i < srcimageSmall.height; i++) {
+      for (int j = 0; j < srcimageSmall.width; j++) {
         //mirror reverse
         
-        int pixind = i*width+j;
+        int pixind = i*srcimageSmall.width+j;
             
         float diff = (brightness(newim.pixels[pixind]) - 
                       brightness(srcimageSmall.pixels[pixind]) );
@@ -273,9 +295,9 @@ void draw() {
         float bdiff = (blue(newim.pixels[pixind]) - 
                        blue(srcimageSmall.pixels[pixind]) );
         
-        int flippedpixind = i*width+width-j-1;
+        int flippedpixind = i*srcimageSmall.width+srcimageSmall.width-j-1;
         if ((newim.pixels[pixind] == color(0)) && (srcimageSmall.pixels[pixind] == color(0))) {
-          pixels[flippedpixind] = color(0);
+          outputimage.pixels[flippedpixind] = color(0);
         } else  {
           mse += diff*diff;
           mseCount++;
@@ -297,7 +319,7 @@ void draw() {
             nred  *= 0.7;
           }
           
-          pixels[flippedpixind] = color(nred,ngreen,nblue);
+          outputimage.pixels[flippedpixind] = color(nred,ngreen,nblue);
           //color(128+rdiff/2,128+gdiff/2,128+bdiff/2);
         } 
 
@@ -308,28 +330,39 @@ void draw() {
         //pixels[i*width+width-j-1] = srcimageSmall.pixels[i*width+j];
       
     }}
-    updatePixels();
+    //updatePixels();
+    
+    image(outputimage,0,0,width,height);
     
     mse /= mseCount;
     println("mse " + mse + ", " + mseCount);
     
+    if (mse < 1500) saveAndIncrement();
 
-   
-    
     getImage();
   }
 } 
 
 int rximagecounter = 0;
 
-void keyPressed() {
-  if (key == 'a') {
-     
+
+void saveAndIncrement() {
+  
+  if ((rximage != null) && (rximage.width > 0)) {
+    println("saving and incrementing");
     /// TBD need to save fullsize image instead
-    rximageSmall.save(newSrcImageName + "approx.jpg");
+ 
+    rximage.save(newSrcImageName + "approx.jpg");
     rximagecounter++;
     
-     srcimageSmall = getNewSrcSmallAndSubtractBackground(srcBaseSmall);
+  }
+    
+    srcimageSmall = getNewSrcSmallAndSubtractBackground(srcBaseSmall);  
+}
+
+void keyPressed() {
+  if (key == 'a') {
+     saveAndIncrement();
   } 
 }
 
