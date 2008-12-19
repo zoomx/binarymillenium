@@ -27,7 +27,9 @@ b(:,2) =  1 - (2*bpixel(:,2)/800 + (800-640)/800);
 % choose first depth arbitrarily
 b(1,3) = 2;
 
-b(2:4,3) = solveDepth(b)
+solveDepth2(b)
+b(2:4,3) = solveDepth2(b)
+
 
 
 figure(1),subplot(2,1,1);
@@ -46,8 +48,6 @@ rota(1,:) = get3dCoords(b(1,:),epos)';
 rota(2,:) = get3dCoords(b(2,:),epos)';
 rota(3,:) = get3dCoords(b(3,:),epos)';
 rota(4,:) = get3dCoords(b(4,:),epos)';
-
-rota
 
 
 % rota1 = b(1,:);
@@ -85,6 +85,7 @@ axis([-3, 3, -3, 3]);
 
 
 
+
 %% 
 function C = solveDepth(v)
 %az-dz= bz-cz
@@ -113,7 +114,65 @@ B = [1      -1      1;
 C = inv(B)*A;
 
 
+%% 
+function z= solveDepth2(v)
 
+% the other solveDepth doesn't work very well, need to force
+% contraint that the dot product of adjacent rect edges
+% needs to be zero
+
+% v1 = (a'-b')
+% v2 = (c'-b')
+% ax' = ax * az   etc.
+% dot(v1,v2) = 0
+% v1.z*v2.z = - ( v1.x*v2.x*v1.z*v2.z  + v1.y*v2.y*v1.z*v2.z  )
+% 1 = -(ax-bx)*(cx-bx)-(ay-by)*(cy-by)
+% 1 = -val
+% reduces to quadratic formula
+% (az*cz+val) =c 
+% -(az+cz) = b
+% 1 = a
+% how to solve for cz?
+
+ax = v(1,1);
+ay = v(1,2);
+bx = v(2,1);
+by = v(2,2);
+cx = v(3,1);
+cy = v(3,2);
+
+val = (ax-bx)*(cx-bx) + (ay-by)*(cy-by);
+
+az = v(1,3);
+
+% (az+cz)*(az+cz) > 4*(az*cz+val)
+% az^2 + cz^2 + 2*az*cz -4*az*cz +4*val > 0
+% cz^2 + cz*(-2*az) + 4*val = 0  for minimum cz
+a = 1;
+b = (-2*az);
+c = 4*val;
+
+% czmin > az, so choose the first
+czminp = (-b + sqrt(b.*b - 4*a*c))/(2*a);
+czminn = (-b - sqrt(b.*b - 4*a*c))/(2*a);
+
+cz = czminp;
+
+c = az*cz + val;
+b = -(az+cz);
+a = 1;
+% 
+% 
+bzp = (-b + sqrt(b.*b - 4*a*c))/(2*a);
+bzn = (-b - sqrt(b.*b - 4*a*c))/(2*a);
+
+% arbitrarily choose the smaller bz
+bz = bzn;
+
+%az-dz= bz-cz
+dz = az - bz + cz;
+
+z = [bz cz dz]
 
 %%
 function b = project(campos,epos)
