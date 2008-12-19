@@ -9,10 +9,10 @@ format compact;
 % camera position
 campos = [0, 0, 0]';
 % viewers position relative to display
-aleph = 97/180*pi;
+%aleph = 97/180*pi;
 % -1,-1 and 1,1 are the extents of the viewing surface
-ez = 1/tan(aleph/2)
-epos = [0, 0, ez]';
+%ez = 1/tan(aleph/2)
+%epos = [0, 0, ez]';
 
 % from baseletters.jpg, width is 800, height is 640
 bpixel = [301 61    0;
@@ -27,9 +27,22 @@ b(:,2) =  1 - (2*bpixel(:,2)/800 + (800-640)/800);
 % choose first depth arbitrarily
 b(1,3) = 2;
 
-solveDepth2(b)
-b(2:4,3) = solveDepth2(b)
+ax = b(1,1);
+ay = b(1,2);
+bx = b(2,1);
+by = b(2,2);
+cx = b(3,1);
+cy = b(3,2);
 
+% the dot product of the two edges of the rectangle has to be zero
+% meaning this equation has to determine ez
+% (ax*az-bx*bz)*(cx*cz-bx*bz) + (ay*az-by*bz)*(cy-by)
+val = ((ax-bx)*(cx-bx) + (ay-by)*(cy-by))
+ez = sqrt(1/val)
+epos = [0, 0, ez]';
+
+%b(2:4,3) = solveDepth(b)
+b(2:4,3) = solveDepth2(b,ez)
 
 
 figure(1),subplot(2,1,1);
@@ -115,24 +128,39 @@ C = inv(B)*A;
 
 
 %% 
-function z= solveDepth2(v)
+function z= solveDepth2(v,sz)
 
 % the other solveDepth doesn't work very well, need to force
 % contraint that the dot product of adjacent rect edges
 % needs to be zero
 
+% TBD make a the point at which everything else is centered, rather than b?
 % v1 = (a'-b')
 % v2 = (c'-b')
+% v1.x = a.x*a.z/sz - b.x*b.z/sz  = (a.x*a.z - b.x*b.z)/sz
+% v1.y = a.y*a.z/sz - b.y*b.z/sz  = (a.y*a.z - b.y*b.z)/sz
+% v1.x*v2.x = (a.x*a.z - b.x*b.z)*(c.x*c.z - b.x*b.z)/sz^2
 % ax' = ax * az   etc.
 % dot(v1,v2) = 0
-% v1.z*v2.z = - ( v1.x*v2.x*v1.z*v2.z  + v1.y*v2.y*v1.z*v2.z  )
-% 1 = -(ax-bx)*(cx-bx)-(ay-by)*(cy-by)
-% 1 = -val
-% reduces to quadratic formula
-% (az*cz+val) =c 
-% -(az+cz) = b
-% 1 = a
-% how to solve for cz?
+% (a.x*a.z - b.x*b.z)*(c.x*c.z - b.x*b.z)/sz^2 + 
+% (a.y*a.z - b.y*b.z)*(c.y*c.z - b.y*b.z)/sz^2 + 
+% (a.z - b.z)*(c.z - b.z) = 0
+
+% 1/sz^2 * ((a.x*a.z - b.x*b.z)*(c.x*c.z - b.x*b.z)  + 
+%           (a.y*a.z - b.y*b.z)*(c.y*c.z - b.y*b.z)) +
+%           (a.z - b.z)*(c.z - b.z) = 0
+
+% 1/sz^2 * ((a.x*a.z*c.x*c.z - b.x*b.z*c.x*c.z - b.x*b.z*a.x*a.z + b.x^2*b.z^2) +
+%           (a.y*a.z*c.y*c.z - b.y*b.z*c.y*c.z - b.y*b.z*a.y*a.z + b.y^2*b.z^2)
+%           (a.z*c.z - a.z*b.z - b.z*c.z + b.z*b.z) = 0
+
+% 1/sz^2 *   (a.z*c.z*(a.x*c.x + a.y*c.y + 1)
+%           - b.z*(b.x*(c.x*c.z + a.x*a.z) + b.y*(c.y*c.z + a.y*a.z) +a.z +c.z)
+%             b.z^2 * (b.x^2 + b.y^2 + 1)  = 0
+
+% 1/sz^2 *   (a.z*c.z*(a.x*c.x + a.y*c.y + 1)
+%           - b.z*(a.z( b.y*a.y + b.x*a.x + 1 ) + c.z*(b.y*c.y + b.x*c.x 1))
+%             b.z^2 * (b.x^2 + b.y^2 + 1)  = 0
 
 ax = v(1,1);
 ay = v(1,2);
@@ -141,38 +169,47 @@ by = v(2,2);
 cx = v(3,1);
 cy = v(3,2);
 
-val = (ax-bx)*(cx-bx) + (ay-by)*(cy-by);
-
 az = v(1,3);
 
-% (az+cz)*(az+cz) > 4*(az*cz+val)
-% az^2 + cz^2 + 2*az*cz -4*az*cz +4*val > 0
-% cz^2 + cz*(-2*az) + 4*val = 0  for minimum cz
-a = 1;
-b = (-2*az);
-c = 4*val;
+cz = [-10:1:-az]';
 
-% czmin > az, so choose the first
-czminp = (-b + sqrt(b.*b - 4*a*c))/(2*a);
-czminn = (-b - sqrt(b.*b - 4*a*c))/(2*a);
+% reduces to quadratic formula
+c = 1/sz^2 * (az*cz*(ax*cx + ay*cy + 1)) 
+b = -1/sz^2 * (az*( by*ay + bx*ax + 1 ) + cz*(by*cy + bx*cx + 1))
+a = (bx^2 + by^2 + 1)
+% how to solve for cz?
 
-cz = czminp;
+topqf = b.*b - 4*a*c
+topqf2 = (-b + sqrt(topqf))
 
-c = az*cz + val;
-b = -(az+cz);
-a = 1;
+% % (az+cz)*(az+cz) > 4*(az*cz+val)
+% % az^2 + cz^2 + 2*az*cz -4*az*cz +4*val > 0
+% % cz^2 + cz*(-2*az) + 4*val = 0  for minimum cz
+% a = 1;
+% b = (-2*az);
+% c = 4*val;
+% 
+% % czmin > az, so choose the first
+% czminp = (-b + sqrt(b.*b - 4*a*c))/(2*a);
+% czminn = (-b - sqrt(b.*b - 4*a*c))/(2*a);
+% 
+% cz = czminp;
+% 
+% c = az*cz + val;
+% b = -(az+cz);
+% a = 1;
 % 
 % 
-bzp = (-b + sqrt(b.*b - 4*a*c))/(2*a);
-bzn = (-b - sqrt(b.*b - 4*a*c))/(2*a);
+bzp = (-b + sqrt(b.*b - 4*a*c))/(2*a)
+bzn = (-b - sqrt(b.*b - 4*a*c))/(2*a)
 
 % arbitrarily choose the smaller bz
-bz = bzn;
+bz = bzp;
 
 %az-dz= bz-cz
 dz = az - bz + cz;
 
-z = [bz cz dz]
+z = [bz cz dz];
 
 %%
 function b = project(campos,epos)
