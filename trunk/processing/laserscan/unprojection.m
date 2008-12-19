@@ -12,7 +12,7 @@ campos = [0, 0, 0]';
 aleph = 97/180*pi;
 % -1,-1 and 1,1 are the extents of the viewing surface
 ez = 1/tan(aleph/2)
-epos = [0, 0, -ez]';
+epos = [0, 0, ez]';
 
 % from baseletters.jpg, width is 800, height is 640
 bpixel = [301 61    0;
@@ -30,7 +30,7 @@ b(1,3) = 2;
 b(2:4,3) = solveDepth(b)
 
 
-figure(1),
+figure(1),subplot(2,1,1);
 scatter(b(:,1), b(:,2));
 hold on;
 patch(b(:,1), b(:,2),'g');
@@ -49,6 +49,7 @@ rota(4,:) = get3dCoords(b(4,:),epos)';
 
 rota
 
+
 % rota1 = b(1,:);
 % rota2 = b(2,:);
 % rota3 = b(3,:);
@@ -60,35 +61,29 @@ vec1 = vec1/norm(vec1);
 vec2 = rota(1,:)-rota(2,:);
 vec2 = vec2/norm(vec2);
 rotnorm = cross(vec1,vec2)
+rotnrom = rotnorm/norm(rotnorm);
+vec2norm = cross(rotnrom,vec1);
 
+vec2
+vec2norm
 derivedrot1 = [vec1', vec2', rotnorm']
 
-% this is all unnecessary, already have the rotation 
-% matrix trivially
-if (0)
-nnorm = [0, 0, 1];
-angle = acos(dot(nnorm,rotnorm));
-degangle = angle/pi*180
 
-angleaxis = cross(nnorm,rotnorm);
-if (norm(angleaxis) < 1e-5)
-    angleaxis = [1 0 0];
-else 
-    angleaxis = angleaxis/norm(angleaxis)
-end
-x = angleaxis(1);
-y = angleaxis(2);
-z = angleaxis(3);
+% this makes  the depth of all the found points the same,
+% but the rectangle is skewed
+% maybe some earlier assumptions are flawed?
+% or more primary earlier assumption is to make the 
+% adjacent rectangle edges orthogonal?
+bcor = (derivedrot1'*rota')'
 
-% now construct a rotation matrix from the axis and angle
-sa = sin(angle);
-ca = cos(angle);
+subplot(2,1,2);
+scatter(bcor(:,1), bcor(:,2));
+hold on;
+patch(bcor(:,1), bcor(:,2),'g');
+hold off;
+axis([-3, 3, -3, 3]);
 
-derivedrot = [   
-    1 + (1-ca)*(x*x-1), -z*sa+(1-ca)*x*y,  	y*sa+(1-ca)*x*z;
-    z*sa+(1-ca)*x*y, 	1 + (1-ca)*(y*y-1), -x*sa+(1-ca)*y*z;
-    -y*sa+(1-ca)*x*z, 	x*sa+(1-ca)*y*z, 	1 + (1-ca)*(z*z-1)]
-end
+
 
 %% 
 function C = solveDepth(v)
