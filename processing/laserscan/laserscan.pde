@@ -1,45 +1,123 @@
-
-PImage base, depth, viz;
  
 int index = 1;
 
-ArrayList depthxy;
+
+ArrayList allDepths;  /// array of depthxy arrays
+ArrayList baseLines;
 
 void setup() {
   
-  depthxy = new ArrayList();
+   frameRate(2);
   
-   base = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
-   viz = createImage(base.width, base.height,RGB);
-   size(base.width, base.height);
+   
+  baseLines = new ArrayList();
+  allDepths = new ArrayList();
+   
+   PImage bi  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
+   PImage di = loadImage("fullsize/misc/misc" + (index+1000) + ".jpg");
+   findLaser(bi, di);
+   
+    size(bi.width, bi.height);
 }
 
-void draw() {
-  background(0);
-  
-   base  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
-   depth = loadImage("fullsize/misc/misc" + (index+1000) + ".jpg");
+void keyPressed() {
+  if (key == 'd') {
+   //index = index%6+1;
+    index = index+1;
+    if (index >8) index = 0;
+  }
+  if (key == 'a') {
+   //index = index%6+1;
+    index = index-1;
+    if (index < 0) index = 8;
+  }
+}
 
-viz.loadPixels();
-  int bcount = 0;
-  int dcount = 0;
+boolean findVector(Vector2f vec, ArrayList depths) {
+ 
+  for (int i = 0; i < depths.size(); i++) {
+     Vector2f dvec = (Vector2f) depths.get(i);
+     if ((vec.x == dvec.x) && (vec.y == dvec.y)) {
+       return true; 
+     }   
+  }  
+  return false;
+} 
+
+boolean isLaser(PImage tex, int pixind) {  
+  color col = tex.pixels[pixind];      
+  return ((green(col) > 210) && (blue(col) < 210) &&  (red(col) < 170));          
+}
+boolean isLaser2(PImage tex, int pixind) {  
+  color col = tex.pixels[pixind];      
+  return ((green(col) > 140) && (blue(col) < 240) &&  (red(col) < 210)) ;         
+}
+
+void checkAndAdd(ArrayList depthxy2, ArrayList depthxy, int nj, int ni, PImage di)
+{
+  Vector2f nvec = new Vector2f(nj,ni);
+  int pixind = ni*di.width+(nj);
+  if ((nj < di.width) && (ni < di.height) && isLaser2(di,pixind) && !findVector( nvec, depthxy)) { 
+    depthxy2.add(nvec);  
+    //dcount++;
+  } 
+}
+
+
+void secondarySearch(PImage di, ArrayList depthxy)
+{
+   ArrayList depthxy2 = new ArrayList();
+   /// secondary search, look for adjacent pixels
   
-  int xmin = width;
-  int xmax = 0;
-  int ymin = height;
-  int ymax = 0;
-  
-   for (int i = 0; i < base.height; i++) {
-   for (int j = 0; j < base.width; j++) {
-     
-      int pixind = i*base.width+j;
+   for (int k = 0; k < depthxy.size(); k++) {
+      Vector2f xy = (Vector2f) depthxy.get(k);
+      final int j = (int)xy.x;
+      final int i = (int)xy.y;
       
-      color col = base.pixels[pixind];
-      if ((green(col) > 200) &&
-          (blue(col) < 210) && 
-          (red(col) < 170)
-          )    {
-        viz.pixels[pixind] = color(0,0,255);
+      int pixind,nj,ni;
+      Vector2f nvec;
+
+      nj = j+1;
+      ni = i;
+      checkAndAdd(depthxy2, depthxy, nj, ni, di);
+      
+      nj = j-1;
+      ni = i;
+      checkAndAdd(depthxy2, depthxy, nj, ni, di);
+      
+      nj = j;
+      ni = i+1;
+      checkAndAdd(depthxy2, depthxy, nj, ni, di);
+      
+      nj = j;
+      ni = i-1;
+      checkAndAdd(depthxy2, depthxy, nj, ni, di);
+  }
+  
+   println(depthxy2.size());
+   
+   for (int k = 0; k < depthxy2.size(); k++) {
+       depthxy.add(depthxy2.get(k));
+   }  
+}
+
+void findLaser(PImage bi, PImage di) {
+   int bcount = 0;
+   int dcount = 0;
+  
+   int xmin = width;
+   int xmax = 0;
+   int ymin = height;
+   int ymax = 0;
+  
+   ArrayList depthxy = new ArrayList();
+  
+   for (int i = 0; i < bi.height; i++) {
+   for (int j = 0; j < bi.width; j++)  {
+     
+      int pixind = i*bi.width+j;
+      
+      if (isLaser(bi,pixind)) {
         bcount++;
         
         if (j < xmin) {
@@ -52,34 +130,43 @@ viz.loadPixels();
         }
       } 
       
-      col = depth.pixels[pixind]; 
-      if ((green(col) > 200) &&
-          (blue(col) < 210) && 
-          (red(col) < 170)
-          )    {
-        viz.pixels[pixind] = color(0,255,0);
+      if (isLaser(di,pixind)) {
         
-        depthxy.add(new Vector2f((float)j,(float)i));
-        
+        depthxy.add(new Vector2f((float)j,(float)i));  
         dcount++;
-      } 
-     
+      }
+           
    }}
    
-
-   viz.updatePixels();
-   
-   
-   println(index + " " + bcount + " " + dcount);
-   
-    //index = index%6+1;
-    index = index+1;
-    if (index >8) noLoop();
+    println(index + " " + bcount + " " + dcount);
+    
+   secondarySearch(di, depthxy);
+   secondarySearch(di, depthxy);
   
-   image(viz,0,0); 
+   baseLines.add(new Vector2f(xmin,ymin));
+   baseLines.add(new Vector2f(xmax,ymax));
    
+   allDepths.add(depthxy);
+      
+  
+}
+
+void draw() {
+  background(0);
+ 
+  PImage base  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
+  PImage depth = loadImage("fullsize/misc/misc" + (index+1000) + ".jpg");
+  
+  ArrayList depthxy = (ArrayList) allDepths.get(index-1);
+  
+  Vector2f lmin = (Vector2f) baseLines.get((index-1)*2);
+  Vector2f lmax = (Vector2f) baseLines.get((index-1)*2+1);  
+  
+  
+  image(depth,0,0);
+  
    stroke(255);
-   line(xmin,ymin,xmax,ymax);
+   line(lmin.x,lmin.y,lmax.x,lmax.y);
    
    /// guess at projection of normal line from surface
    float normx = -20;
@@ -90,14 +177,17 @@ viz.loadPixels();
       float x = xy.x;
       float y = xy.y;
   
+      stroke(250,0,250);
+      rect(x,y,1,1);
       
-      Vector2f intersectpoint = segIntersection(xmin,ymin,xmax,ymax,  x, y, x+normx*100, y+normy*100);
+      Vector2f intersectpoint = segIntersection(lmin.x,lmin.y,lmax.x,lmax.y,  x, y, x+normx*100, y+normy*100);
       
       if ((intersectpoint != null) && (dist(x,y,intersectpoint.x,intersectpoint.y) > 20.0)) {
         stroke(255,50,20);
-        line(x,y,intersectpoint.x,intersectpoint.y);
+         //line(x,y,intersectpoint.x,intersectpoint.y);
       }
    }
+
 }
 
 class Vector2f
@@ -105,6 +195,11 @@ class Vector2f
  float x;
 float y;
 
+ Vector2f(int nx,int ny) {
+    x = (float)nx;
+    y = (float)ny;
+  }
+  
   Vector2f(float nx,float ny) {
     x = nx;
     y = ny;
