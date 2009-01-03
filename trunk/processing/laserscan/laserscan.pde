@@ -12,12 +12,18 @@ void setup() {
    
   baseLines = new ArrayList();
   allDepths = new ArrayList();
+
+
+
+  for (index = 0; index <=9; index++) { 
+     PImage bi  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
+     PImage di = loadImage("fullsize/misc/misc" + (index+1000) + ".jpg");
+     findLaser(bi, di);
+  }
    
-   PImage bi  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
-   PImage di = loadImage("fullsize/misc/misc" + (index+1000) + ".jpg");
-   findLaser(bi, di);
-   
-    size(bi.width, bi.height);
+  index = 0;
+    PImage base  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
+  size(base.width, base.height);
 }
 
 void keyPressed() {
@@ -44,20 +50,44 @@ boolean findVector(Vector2f vec, ArrayList depths) {
   return false;
 } 
 
+boolean isLaser0(PImage tex, int pixind) 
+{
+    color col = tex.pixels[pixind];      
+  if ((green(col) > 210) && (blue(col) < 210) &&  (red(col) < 170)) return true;
+ 
+ return false; 
+}
+
 boolean isLaser(PImage tex, int pixind) {  
   color col = tex.pixels[pixind];      
-  return ((green(col) > 210) && (blue(col) < 210) &&  (red(col) < 170));          
+  
+  if ((green(col) > 210) && (blue(col) < 210) &&  (red(col) < 170)) return true;
+  
+  if ((green(col) > 100) && (green(col) < 120) &&
+      (blue(col) > 90)   && (blue(col) < 110) &&
+      (red(col) > 65)   && (red(col) < 85))  return true;
+  
+  if ((green(col) > 130) && (green(col) < 150) &&
+      (blue(col) > 110)   && (blue(col) < 130) &&
+      (red(col) > 80)   && (red(col) < 100))  return true;
+  
+  if ((green(col) > 145) && (green(col) < 155) &&
+      (blue(col) > 135)   && (blue(col) < 145) &&
+      (red(col) > 125)   && (red(col) < 135))  return true;
+      
+  return false;
 }
 boolean isLaser2(PImage tex, int pixind) {  
   color col = tex.pixels[pixind];      
-  return ((green(col) > 140) && (blue(col) < 240) &&  (red(col) < 210)) ;         
+  return ((green(col) > 140) && (blue(col) < 250) &&  (red(col) < 250)) ;         
 }
 
 void checkAndAdd(ArrayList depthxy2, ArrayList depthxy, int nj, int ni, PImage di)
 {
   Vector2f nvec = new Vector2f(nj,ni);
   int pixind = ni*di.width+(nj);
-  if ((nj < di.width) && (ni < di.height) && isLaser2(di,pixind) && !findVector( nvec, depthxy)) { 
+  if ((nj < di.width) && (ni < di.height) && (nj >= 0) && (ni >= 0) &&
+      isLaser2(di,pixind) && !findVector( nvec, depthxy)) { 
     depthxy2.add(nvec);  
     //dcount++;
   } 
@@ -117,7 +147,7 @@ void findLaser(PImage bi, PImage di) {
      
       int pixind = i*bi.width+j;
       
-      if (isLaser(bi,pixind)) {
+      if (isLaser0(bi,pixind)) {
         bcount++;
         
         if (j < xmin) {
@@ -157,10 +187,10 @@ void draw() {
   PImage base  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
   PImage depth = loadImage("fullsize/misc/misc" + (index+1000) + ".jpg");
   
-  ArrayList depthxy = (ArrayList) allDepths.get(index-1);
+  ArrayList depthxy = (ArrayList) allDepths.get(index);
   
-  Vector2f lmin = (Vector2f) baseLines.get((index-1)*2);
-  Vector2f lmax = (Vector2f) baseLines.get((index-1)*2+1);  
+  Vector2f lmin = (Vector2f) baseLines.get((index)*2);
+  Vector2f lmax = (Vector2f) baseLines.get((index)*2+1);  
   
   
   image(depth,0,0);
