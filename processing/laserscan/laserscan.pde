@@ -1,41 +1,58 @@
  
-int index = 1;
-
+int index = 0;
 
 ArrayList allDepths;  /// array of depthxy arrays
 ArrayList baseLines;
-
+ArrayList allBases = new ArrayList();
+   
+int minind = 1;
+   
+boolean showLines = true;
+boolean showBase = true;
+boolean showDepth = true;
+boolean showBaseIm = false;
+   
 void setup() {
   
-   frameRate(2);
-  
-   
+  frameRate(2);
+     
   baseLines = new ArrayList();
   allDepths = new ArrayList();
 
-
-
-  for (index = 0; index <=9; index++) { 
-     PImage bi  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
-     PImage di = loadImage("fullsize/misc/misc" + (index+1000) + ".jpg");
+  PImage base  = loadImage("fullsize/base/base" + 1001 + ".jpg"); 
+  size(base.width, base.height);
+  
+  for (int i = 0; i < 8; i++) { 
+     PImage bi = loadImage("fullsize/base/base" + (i+minind+1000) + ".jpg"); 
+     PImage di = loadImage("fullsize/misc/misc" + (i+minind+1000) + ".jpg");
      findLaser(bi, di);
   }
-   
-  index = 0;
-    PImage base  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
-  size(base.width, base.height);
+  
 }
 
 void keyPressed() {
   if (key == 'd') {
-   //index = index%6+1;
+    //index = index%6+1;
     index = index+1;
-    if (index >8) index = 0;
+    if (index >= allDepths.size()) index = 0;
   }
   if (key == 'a') {
-   //index = index%6+1;
+    //index = index%6+1;
     index = index-1;
     if (index < 0) index = 8;
+  }
+  
+  if (key == 'q') {   
+    showLines = !showLines;
+  }
+  if (key == 'w') {
+     showBase = !showBase;
+  }
+  if (key == 'e') {
+    showDepth = !showDepth;
+  }
+  if (key == 'r') {
+    showBaseIm = !showBaseIm;
   }
 }
 
@@ -52,10 +69,10 @@ boolean findVector(Vector2f vec, ArrayList depths) {
 
 boolean isLaser0(PImage tex, int pixind) 
 {
-    color col = tex.pixels[pixind];      
+  color col = tex.pixels[pixind];      
   if ((green(col) > 210) && (blue(col) < 210) &&  (red(col) < 170)) return true;
  
- return false; 
+  return false; 
 }
 
 boolean isLaser(PImage tex, int pixind) {  
@@ -140,6 +157,7 @@ void findLaser(PImage bi, PImage di) {
    int ymin = height;
    int ymax = 0;
   
+   ArrayList basexy = new ArrayList();
    ArrayList depthxy = new ArrayList();
   
    for (int i = 0; i < bi.height; i++) {
@@ -148,11 +166,14 @@ void findLaser(PImage bi, PImage di) {
       int pixind = i*bi.width+j;
       
       if (isLaser0(bi,pixind)) {
+        
+        basexy.add(new Vector2f(j,i));
         bcount++;
         
         if (j < xmin) {
            xmin = j;
            ymin = i; 
+          
         }
         if (j > xmax) {
            xmax = j;
@@ -162,7 +183,7 @@ void findLaser(PImage bi, PImage di) {
       
       if (isLaser(di,pixind)) {
         
-        depthxy.add(new Vector2f((float)j,(float)i));  
+        depthxy.add(new Vector2f(j,i));  
         dcount++;
       }
            
@@ -170,37 +191,49 @@ void findLaser(PImage bi, PImage di) {
    
     println(index + " " + bcount + " " + dcount);
     
-   secondarySearch(di, depthxy);
-   secondarySearch(di, depthxy);
+   //secondarySearch(di, depthxy);
+   //secondarySearch(di, depthxy);
   
    baseLines.add(new Vector2f(xmin,ymin));
    baseLines.add(new Vector2f(xmax,ymax));
    
+   allBases.add(basexy);
    allDepths.add(depthxy);
       
-  
 }
 
 void draw() {
   background(0);
  
-  PImage base  = loadImage("fullsize/base/base" + (index+1000) + ".jpg"); 
-  PImage depth = loadImage("fullsize/misc/misc" + (index+1000) + ".jpg");
+  PImage base  = loadImage("fullsize/base/base" + (index+minind+1000) + ".jpg"); 
+  PImage depth = loadImage("fullsize/misc/misc" + (index+minind+1000) + ".jpg");
   
   ArrayList depthxy = (ArrayList) allDepths.get(index);
-  
+  ArrayList basexy  = (ArrayList) allBases.get(index);
+   
   Vector2f lmin = (Vector2f) baseLines.get((index)*2);
   Vector2f lmax = (Vector2f) baseLines.get((index)*2+1);  
   
   
-  image(depth,0,0);
+  if (showBaseIm) image(depth,0,0);
+  else image(base,0,0);
   
    stroke(255);
-   line(lmin.x,lmin.y,lmax.x,lmax.y);
+   if(showBase) {
+     line(lmin.x,lmin.y,lmax.x,lmax.y);
+     rect(lmin.x,lmin.y,3,3);
+     rect(lmax.x,lmax.y,3,3);
+   }
    
    /// guess at projection of normal line from surface
    float normx = -20;
    float normy = -1;
+   
+   for (int i = 0; i < basexy.size(); i++) {
+      Vector2f xy = (Vector2f) basexy.get(i);
+      stroke(100,102,250);
+      if(showBase) rect(xy.x,xy.y,1,1);
+   }
    
    for (int i = 0; i < depthxy.size(); i++) {
       Vector2f xy = (Vector2f) depthxy.get(i);
@@ -208,17 +241,19 @@ void draw() {
       float y = xy.y;
   
       stroke(250,0,250);
-      rect(x,y,1,1);
+      if (showDepth) rect(x,y,1,1);
       
       Vector2f intersectpoint = segIntersection(lmin.x,lmin.y,lmax.x,lmax.y,  x, y, x+normx*100, y+normy*100);
       
       if ((intersectpoint != null) && (dist(x,y,intersectpoint.x,intersectpoint.y) > 20.0)) {
-        stroke(255,50,20);
-         //line(x,y,intersectpoint.x,intersectpoint.y);
+        stroke(255,250,20);
+        if (showLines) line(x,y,intersectpoint.x,intersectpoint.y);
       }
    }
 
 }
+
+/////////////////////////////////////////////////////////////////
 
 class Vector2f
 {
