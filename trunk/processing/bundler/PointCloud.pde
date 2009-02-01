@@ -27,7 +27,7 @@ public class VBPointCloud {
   PApplet p;
   GL gl; 
   PGraphicsOpenGL pgl;
-  public float pointSize = 1.5f;
+  public float pointSize = 5.0f;
   FloatBuffer pos, col;
 
   public VBPointCloud(PApplet p) {
@@ -78,8 +78,13 @@ float inc;
         gl.glEnable(GL.GL_POINT_SMOOTH);
     gl.glDisable(GL.GL_DEPTH_TEST);
     gl.glEnable(GL.GL_BLEND);
-    gl.glBlendFunc(GL.GL_DST_ALPHA, GL.GL_SRC_ALPHA);
-    //gl.glBlendFunc(GL.GL_SRC_ALPHA,GL.GL_ONE); 
+    //
+    
+    if (blendtype) {
+    } else {
+      //gl.glBlendFunc(GL.GL_DST_ALPHA, GL.GL_SRC_ALPHA);
+      gl.glBlendFunc(GL.GL_SRC_ALPHA,GL.GL_ONE); 
+    }
     
     gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
     gl.glEnableClientState(GL.GL_COLOR_ARRAY);
