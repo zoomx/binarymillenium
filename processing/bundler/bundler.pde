@@ -34,11 +34,13 @@
 import processing.opengl.*;
 //import java.util.*
  
-int len = 20000;
+int len = 400000;
  
 VBPointCloud cloud;
 
 boolean saveImages = false;
+
+boolean blendtype = true;
 
 class PC {
   
@@ -51,6 +53,55 @@ class PC {
      points = new float[len * 3];
      colors = new float[len * 4]; 
   }
+  
+  int numpoints;
+}
+
+class hist {
+  
+   float[] bins;
+   float mx;
+   float mn;
+  
+   hist(int numbins, float mx, float mn, float[] points, int numpoints, int stride, int offset) {
+      bins = new float[numbins];
+      this.mx = mx;
+      this.mn = mn; 
+      
+      float stepsize = (mx - mn)/(numbins-1);      
+      
+      for (int i = 0; i< numpoints; i++) {
+         
+         float x = points[i*stride+offset];
+         
+         int binnum = (int)((x-mn)/stepsize);
+         
+         if (binnum < 0) binnum = 0;
+         
+         
+         if (binnum >= bins.length) binnum = bins.length - 1;
+         
+         bins[binnum] +=  1.0/(float)numpoints;
+        
+      }
+   }
+   
+   void print()
+   {
+      for (int i = 0; i< bins.length; i++) {
+        println("bin " + i + ": " + bins[i]);
+       
+      } 
+   }
+}
+
+void gethists(PC thePC)
+{
+    hist xhist = new hist(20, 1900, -4200, thePC.points, thePC.numpoints, 3, 0);
+    
+    println("xhist");
+    xhist.print();
+  
 }
 
 PC rv;
@@ -58,7 +109,7 @@ BufferedReader reader;
 
 void setup(){
   //frameRate(SZ);
-  size(640,480, OPENGL);
+  size(1280,720, OPENGL);
   //size(1280,720, OPENGL);
   cloud = new VBPointCloud(this);
  
@@ -73,36 +124,46 @@ void setup(){
 }
 
 void update() {
-   
-  //reader = createReader("mesaverde.csv");
-  // reader = createReader("sphinx.csv");
-  // reader = createReader("flower.csv");
-   
-   
+
    rv = new PC(len);
    
-   int start;
+   int start = 0;
    
-  /*
-   reader = createReader("points001.ply");
-   start = loadPoints(len,0);
-   reader = createReader("points004.ply");
-   start = loadPoints(len,start);
-   reader = createReader("points006.ply");
-   start = loadPoints(len,start);
-   reader = createReader("points008.ply");
-   start = loadPoints(len,start);
-   reader = createReader("points009.ply");
-   start = loadPoints(len,start);
-   */
-   
-   reader = createReader("ply/flower/points001.ply");
-   start = loadPoints(len,0);
-   reader = createReader("ply/flower/points003.ply");
-   start = loadPoints(len,start);
-   reader = createReader("ply/flower/points004.ply");
-   start = loadPoints(len,start);  
+   String end = ".ply";
 
+   String base = "ply/car/bundle/points";
+   
+   reader = createReader(base + "001" + end);   start = loadPoints(len,start);
+   reader = createReader(base + "004" + end);   start = loadPoints(len,start);
+   reader = createReader(base + "005" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "007" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "009" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "010" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "012" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "014" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "016" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "019" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "022" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "024" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "025" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "027" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "033" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "035" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "040" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "047" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "051" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "060" + end);   start = loadPoints(len,start); 
+   reader = createReader(base + "063" + end);   start = loadPoints(len,start);
+   reader = createReader(base + "070" + end);   start = loadPoints(len,start);
+   reader = createReader(base + "074" + end);   start = loadPoints(len,start);
+   reader = createReader(base + "076" + end);   start = loadPoints(len,start);
+   reader = createReader(base + "080" + end);   start = loadPoints(len,start);
+   reader = createReader(base + "084" + end);   start = loadPoints(len,start);
+   reader = createReader(base + "085" + end);   start = loadPoints(len,start);
+ 
+  println(xmin + "," + ymin + "," + zmin + ",\t" + xmax + "," +ymax + "," + zmax);
+   
+   gethists(rv);
    
    cloud.loadFloats(rv.points,rv.colors); 
 }
@@ -113,7 +174,8 @@ void draw(){
  // fill(color(1,1,1,20));
  //rect(0,0,width,height);
   
-  center();
+
+   center();
   rotations();
  
 
@@ -121,7 +183,7 @@ void draw(){
   cloud.draw();
   
   if (saveImages) {
-    saveFrame("frames/unit_46_velodyne_full_monterey_pc_######.jpg");  
+    saveFrame("frames/bundler_car_######.png");  
   }
 }
 
@@ -129,6 +191,13 @@ void draw(){
 int counter = 0;
 
 int numpoints = 0;
+
+float xmin = 1000;
+float ymin = 1000;
+float zmin = 1000;
+float xmax = -1000;
+float ymax = -1000;
+float zmax = -1000;
 
 int loadPoints(int len, int start) {
     
@@ -145,20 +214,33 @@ int loadPoints(int len, int start) {
     if ( header_ended) {
     String[] thisLine = split(newline, " ");
     
-    rv.points[i * 3]     = new Float(thisLine[0]).floatValue()*100;
-    rv.points[i * 3 + 1] = new Float(thisLine[1]).floatValue()*100;
-    rv.points[i * 3 + 2] = new Float(thisLine[2]).floatValue()*100;
-
+    float x = new Float(thisLine[0]).floatValue()*10;
+    float y = new Float(thisLine[1]).floatValue()*10;
+    float z = new Float(thisLine[2]).floatValue()*10;
+    
+    rv.points[i * 3]     = x;
+    rv.points[i * 3 + 1] = y;
+    rv.points[i * 3 + 2] = z;
+    
+    if (x < xmin) xmin = x;
+    if (y < ymin) ymin = y;
+    if (z < zmin) zmin = z;
+    
+    if (x > xmax) xmax = x;
+    if (y > ymax) ymax = y;
+    if (z > zmax) zmax = z;
+    
 // 3 5 4 looks almost right
     rv.colors[i*4]   = new Float(thisLine[3]).floatValue() / 255.0;
     rv.colors[i*4+1] = new Float(thisLine[4]).floatValue() / 255.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
     rv.colors[i*4+2] = new Float(thisLine[5]).floatValue() / 255.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
-    rv.colors[i*4+3] = 0.7;
+    rv.colors[i*4+3] = 0.05;
      
      numpoints = i;
+      rv.numpoints = numpoints;
     } else {
       
-       println(newline); 
+       //println(newline); 
        
        if (match(newline,"end_header") != null) {
           header_ended = true;
@@ -174,6 +256,8 @@ int loadPoints(int len, int start) {
   }
 
   println(numpoints);
+  
+ 
   
   return numpoints;
 }

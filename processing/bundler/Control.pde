@@ -16,34 +16,48 @@
 
 // Enable the mouse rotation and up and down arrow zooming
 
-float x_off;
+/// prerotation offset
+float x_off = -0;
 float y_off;
-float z_off;
+float z_off = -350; //360
 
-float rX = -60.2;
-float rZ = -96.86;
-float vX,vZ;
+/// post rotation offset
+float x_off2 = -470;
+float y_off2 = -322;
+float z_off2 = 0;
+
+float rX = -58;
+float rZ = 218;
+float vX = 0.0;
+float vZ = 0;//0.25;
 
 
 void rotations(){
   rX+=vX;
   rZ+=vZ;
   vX*=.95;
+  
+ 
   vZ*=.95;
 
  // if (rX >0 ) { vX = -vX*0.5; rX = 0; }
   //if (rX < -95 ) { vX = -vX*0.5; /*rX = -92;*/ }
  
+     
 
   if(mousePressed){
     vX+=(mouseY-pmouseY)*.01;
     vZ+=(mouseX-pmouseX)*.01;
     
-     //println(rX + " " + vX);
+     //println(rX + " " + rZ + " " + x_off + " " + y_off + " " + z_off);
   }
 
   rotateX( radians(-rX) );  
   rotateZ( radians(- rZ) );  
+  
+  rotateX( radians(75) );
+  
+  translate(x_off2 + width/2, y_off2 + height/2, z_off2);  
 }
 
 
@@ -87,9 +101,27 @@ void keyPressed(){
   }
   if(key == 'w'){
     z_off += 10;
+    
+    
   }
   if(key == 's'){
     z_off -= 8;
+    
+    
+  }
+  
+  if (key == 'r') {
+    cloud.pointSize *= 1.03;
+  }
+  
+  if (key == 'f') {
+    cloud.pointSize *= 0.98;
+    
+    if (cloud.pointSize < 0.5)
+      cloud.pointSize = 0.5;
+  }
+  if (key == 'v') {
+     blendtype = !blendtype; 
   }
   
  // print(rX + " " + rZ + ", " + x_off + " " + y_off + " " + z_off + ", " + zoomScaleTarget + "\n");
