@@ -72,15 +72,11 @@ class hist {
       
       for (int i = 0; i< numpoints; i++) {
          
-         float x = points[i*stride+offset];
-         
-         int binnum = (int)((x-mn)/stepsize);
-         
+         float x = points[i*stride+offset]; 
+         int binnum = (int)((x-mn)/stepsize);   
          if (binnum < 0) binnum = 0;
-         
-         
-         if (binnum >= bins.length) binnum = bins.length - 1;
-         
+           
+         if (binnum >= bins.length) binnum = bins.length - 1;   
          bins[binnum] +=  1.0/(float)numpoints;
         
       }
@@ -108,6 +104,8 @@ PC rv;
 BufferedReader reader;
 
 void setup(){
+  
+  
   //frameRate(SZ);
   size(1280,720, OPENGL);
   //size(1280,720, OPENGL);
@@ -115,7 +113,7 @@ void setup(){
  
   //frustum(-width/2, width/2, -height/2, height/2, 0.1, 200.0);
 
-
+background(0);
 // println("Loaded: " + raw.length + " points");
  update();
  
@@ -126,58 +124,42 @@ void setup(){
 void update() {
 
    rv = new PC(len);
-   
    int start = 0;
    
    String end = ".ply";
-
-   String base = "ply/car/bundle/points";
+   String base = "ply/mlk/bundle/points";
+   String indices[] = new String[0];
    
-   reader = createReader(base + "001" + end);   start = loadPoints(len,start);
-   reader = createReader(base + "004" + end);   start = loadPoints(len,start);
-   reader = createReader(base + "005" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "007" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "009" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "010" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "012" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "014" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "016" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "019" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "022" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "024" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "025" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "027" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "033" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "035" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "040" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "047" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "051" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "060" + end);   start = loadPoints(len,start); 
-   reader = createReader(base + "063" + end);   start = loadPoints(len,start);
-   reader = createReader(base + "070" + end);   start = loadPoints(len,start);
-   reader = createReader(base + "074" + end);   start = loadPoints(len,start);
-   reader = createReader(base + "076" + end);   start = loadPoints(len,start);
-   reader = createReader(base + "080" + end);   start = loadPoints(len,start);
-   reader = createReader(base + "084" + end);   start = loadPoints(len,start);
-   reader = createReader(base + "085" + end);   start = loadPoints(len,start);
+   /// there seems to be drift across the plys,
+   /// like for the mlk set 130 to 165 is conistent, but blends to a different at 1 -75
+//   for (Integer i = 1000 + 130; i<= 1000 + 165/*163*/; i++) {
+    //for (Integer i = 1000 + 1; i<= 1000 + 75/*163*/; i++) 
+   
+    {
+      // String num = i.toString();
+       //reader = createReader(base + num.substring(1) + end);  
+       
+ //      reader = createReader("ply/mlk/bundle/points162.ply");  
+       reader = createReader("ply/car/bundle/points084.ply");  
+       
+       if (reader != null) { 
+         start = loadPoints(len,start);
+       }
+   }
  
-  println(xmin + "," + ymin + "," + zmin + ",\t" + xmax + "," +ymax + "," + zmax);
-   
+   println(xmin + "," + ymin + "," + zmin + ",\t" + xmax + "," + ymax + "," + zmax); 
    gethists(rv);
-   
    cloud.loadFloats(rv.points,rv.colors); 
 }
 
 void draw(){
 
-  background(color(0,0,0,10));
- // fill(color(1,1,1,20));
- //rect(0,0,width,height);
+  background(color(0));
+  //fill(color(0,0,0,15));
+  //rect(0,0,width,height);
   
-
    center();
-  rotations();
- 
+   rotations();
 
   stroke(225,250,175,90);
   cloud.draw();
@@ -214,9 +196,9 @@ int loadPoints(int len, int start) {
     if ( header_ended) {
     String[] thisLine = split(newline, " ");
     
-    float x = new Float(thisLine[0]).floatValue()*10;
-    float y = new Float(thisLine[1]).floatValue()*10;
-    float z = new Float(thisLine[2]).floatValue()*10;
+    float x = new Float(thisLine[0]).floatValue()*100;
+    float y = new Float(thisLine[1]).floatValue()*100;
+    float z = new Float(thisLine[2]).floatValue()*100;
     
     rv.points[i * 3]     = x;
     rv.points[i * 3 + 1] = y;
@@ -234,7 +216,7 @@ int loadPoints(int len, int start) {
     rv.colors[i*4]   = new Float(thisLine[3]).floatValue() / 255.0;
     rv.colors[i*4+1] = new Float(thisLine[4]).floatValue() / 255.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
     rv.colors[i*4+2] = new Float(thisLine[5]).floatValue() / 255.0;//abs( new Float(thisLine[0]).floatValue() )/32.0;
-    rv.colors[i*4+3] = 0.05;
+    rv.colors[i*4+3] = 1.0;
      
      numpoints = i;
       rv.numpoints = numpoints;
