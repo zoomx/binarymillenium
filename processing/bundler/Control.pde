@@ -17,14 +17,14 @@
 // Enable the mouse rotation and up and down arrow zooming
 
 /// prerotation offset
-float x_off = -0;
-float y_off;
-float z_off = -350; //360
+float x_off = 0;
+float y_off = 0;
+float z_off = 0;
 
 /// post rotation offset
-float x_off2 = -470;
-float y_off2 = -322;
-float z_off2 = 0;
+float x_off2 = -668;
+float y_off2 = -278;
+float z_off2 = 1340; //360
 
 float rX = -58;
 float rZ = 218;
@@ -36,14 +36,9 @@ void rotations(){
   rX+=vX;
   rZ+=vZ;
   vX*=.95;
-  
- 
   vZ*=.95;
-
- // if (rX >0 ) { vX = -vX*0.5; rX = 0; }
+  //if (rX >0 ) { vX = -vX*0.5; rX = 0; }
   //if (rX < -95 ) { vX = -vX*0.5; /*rX = -92;*/ }
- 
-     
 
   if(mousePressed){
     vX+=(mouseY-pmouseY)*.01;
@@ -57,7 +52,7 @@ void rotations(){
   
   rotateX( radians(75) );
   
-  translate(x_off2 + width/2, y_off2 + height/2, z_off2);  
+   translate(x_off2 + width/2, y_off2 + height/2, z_off2); 
 }
 
 
@@ -65,8 +60,9 @@ void rotations(){
 
 float pl = 0;
 void center(){
-  translate(x_off + width/2, y_off + height/2, z_off);  
   
+  
+  translate(x_off + width/2, y_off + height/2, z_off);  
   if(false){
   pl += 0.002;
   float inc= (noise(pl)-0.5)*0.005;
@@ -124,7 +120,7 @@ void keyPressed(){
      blendtype = !blendtype; 
   }
   
- // print(rX + " " + rZ + ", " + x_off + " " + y_off + " " + z_off + ", " + zoomScaleTarget + "\n");
+  print(rX + " " + rZ + ", " + x_off + " " + y_off + " " + z_off + ", " + "\n");
  
  if (false) { 
       if(keyCode == RIGHT){
