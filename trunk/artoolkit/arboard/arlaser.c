@@ -2,7 +2,7 @@
  * binarymillenium 2008-2009
  *
  *
- * Offered under the latest version of the GNU GPL
+ * Licensed under the latest version of the GNU GPL
  *
  *
  */
@@ -14,10 +14,8 @@
 #include <stdlib.h>
 #ifndef __APPLE__
 #include <GL/gl.h>
-#include <GL/glut.h>
 #else
 #include <OpenGL/gl.h>
-#include <GLUT/glut.h>
 #endif
 #include <AR/gsub.h>
 #include <AR/video.h>
@@ -28,7 +26,7 @@
 
 #include <math.h>
 
-void findMarkers(ARUint8* dataPtr, int patt_id); 
+void findMarkers(ARUint8* dataPtr); 
 ARUint8* loadImage(char* filename);
 int             xsize, ysize;
 
@@ -51,18 +49,22 @@ int main(int argc, char **argv)
     char           *cparam_name    = "../calib_camera2/newparam.dat";
     ARParam         cparam;
 
-    char           *patt_name      = "patt.hiro";
-    int             patt_id;
 
     char* cur_filename;
     
+
+    if (argc < 2) {
+        fprintf(stderr,"provide a jpeg file name\n");
+        return;
+    }
+
     int one = 1;
-    glutInit(&one,argv);
+    //glutInit(&one,argv);
+
 
     cur_filename = argv[1];
 
     fprintf(stderr,"%d %s,\n", argc, cur_filename);
-    fprintf(stdout,"%s,\t",cur_filename);
 
     /// make this get an image with curl
 	dataPtr	    = loadImage(cur_filename);
@@ -79,10 +81,26 @@ int main(int argc, char **argv)
     //fprintf(stderr,"*** Camera Parameter ***\n");
     //arParamDisp( &cparam );
 
-    if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
+    int patt_id;
+    if( (patt_id=arLoadPatt("patt.hiro")) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
         exit(0);
     }
+    fprintf(stderr,"patt.hiro %d\n", patt_id);
+
+    if( (patt_id=arLoadPatt("patt.sample1")) < 0 ) {
+        fprintf(stderr,"pattern load error !!\n");
+        exit(0);
+    }
+    fprintf(stderr,"patt.sample1 %d\n", patt_id);
+
+
+    if( (patt_id=arLoadPatt("patt.sample2")) < 0 ) {
+        fprintf(stderr,"pattern load error !!\n");
+        exit(0);
+    }
+    fprintf(stderr,"patt.sample2 %d\n", patt_id);
+
 
 #if 0
 	fprintf(stderr,"xysize %d %d\n\
@@ -100,14 +118,15 @@ mat\n \
 #endif
 
     /* open the graphics window */
-    argInit( &cparam, 1.0, 0, 0, 0, 0 );
+    //argInit( &cparam, 1.0, 0, 0, 0, 0 );
 
-	findMarkers(dataPtr,patt_id);
+    fprintf(stdout,"%s,\t\n",cur_filename);
+	findMarkers(dataPtr);
 
     argCleanup();
 }
 
-void findMarkers(ARUint8* dataPtr, int patt_id) 
+void findMarkers(ARUint8* dataPtr) 
 {
     ARMarkerInfo    *marker_info;
     int             marker_num;
@@ -121,47 +140,64 @@ void findMarkers(ARUint8* dataPtr, int patt_id)
         exit(0);
     }
 
-    printf("%d markers_found \n", marker_num);
+    fprintf(stderr,"%d markers_found \n", marker_num);
 
+/*
     // check for object visibility 
     k = -1;
-    for ( j = 0; j < marker_num; j++ ) {
         if ( patt_id == marker_info[j].id ) {
             if( k == -1 ) k = j;
             else if( marker_info[k].cf < marker_info[j].cf ) k = j;
         }
     }
-  	
-    if( k == -1 ) {
-		//fprintf(stderr,"no visible objects\n");
-      
-	   int i;
-		for (i = 0; i < 12; i++) {
-				fprintf(stdout, "0,\t");	
-		}
-		fprintf(stdout,"\n");
+  */	
     
-    } else {
+    for ( k = 0; k < marker_num; k++ ) {
+  
+        fprintf(stdout,"%d,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t\n",
+            marker_info[k].area, marker_info[k].id, marker_info[k].cf, 
+            marker_info[k].pos[0], marker_info[k].pos[1], 
+            marker_info[k].vertex[0][0], marker_info[k].vertex[0][1]);
+        
+        
+        if (0) {
         double          patt_trans[3][4];
         double          patt_width     = 80.0;
         double          patt_center[2] = {0.0, 0.0};
-		/* get the transformation between the marker and the real camera */
+        /* get the transformation between the marker and the real camera */
 		arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
 
 		/// what is patt_center, it seems to be zeros
 		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
-		
+	
 		int i;
 		for (j = 0; j < 3; j++) {
 		for (i = 0; i < 4; i++) {
 				fprintf(stdout, "%f,\t", patt_trans[j][i]);	
 			}
-			printf("\t");
+			fprintf(stdout,"\t");
 		}
 		fprintf(stdout,"\n");
+        }
 	}
 }
 
+
+
+
+#define ThrowWandException(wand) \
+{ \
+  char \
+      *description; \
+       \
+         ExceptionType \
+             severity; \
+              \
+                description=MagickGetException(wand,&severity); \
+                  (void) fprintf(stderr,"%s %s %lu %s\n",GetMagickModule(),description); \
+                    description=(char *) MagickRelinquishMemory(description); \
+                      exit(-1); \
+                      }
 
 ARUint8* loadImage(char* filename)
 {
@@ -172,13 +208,16 @@ ARUint8* loadImage(char* filename)
 
 	MagickWandGenesis();
 	magick_wand=NewMagickWand(); 
-	
+    if( magick_wand == NULL) {
+        fprintf(stderr, "bad magickwand\n");
+    }
 
 	MagickBooleanType status=MagickReadImage(magick_wand,filename);
 	if (status == MagickFalse) {
-		fprintf(stderr, "%s cant be read\n", filename);
-		return; //(1);
-		//ThrowWandException(magick_wand);
+		//fprintf(stderr, "%s can't be read\n", filename);
+		//exit(1);
+        //return; //(1);
+		ThrowWandException(magick_wand);
 	}
 
 	image = GetImageFromMagickWand(magick_wand);
