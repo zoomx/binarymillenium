@@ -46,17 +46,18 @@ int main(int argc, char **argv)
 
     int             count = 0;
 
-    char           *cparam_name    = "../calib_camera2/newparam.dat";
+   // char           *cparam_name    = "../calib_camera2/newparam.dat";
     ARParam         cparam;
 
-
+    char path[100];
+    char cparam_name[100];
     char* cur_filename;
-    
-
+   
     if (argc < 2) {
         fprintf(stderr,"provide a jpeg file name\n");
         return;
     }
+    
 
     int one = 1;
     //glutInit(&one,argv);
@@ -64,15 +65,25 @@ int main(int argc, char **argv)
 
     cur_filename = argv[1];
 
+    if (argc > 2) {
+        sprintf(path,"%s", argv[2]);
+    } else {
+        sprintf(path, "");
+    }
+
     fprintf(stderr,"%d %s,\n", argc, cur_filename);
 
     /// make this get an image with curl
 	dataPtr	    = loadImage(cur_filename);
 
 	ARParam  wparam;
-	
+
+    sprintf(cparam_name,"%s%s",path,"camera_para.dat");
+    //fprintf(stderr,"%s\n", cparam_name);
+
     /* set the initial camera parameters */
     if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
+    //if( arParamLoad("camera_para.dat", 1, &wparam) < 0 ) {
         fprintf(stderr,"Camera parameter load error !!\n");
         exit(0);
     }
@@ -82,24 +93,26 @@ int main(int argc, char **argv)
     //arParamDisp( &cparam );
 
     int patt_id;
-    if( (patt_id=arLoadPatt("patt.hiro")) < 0 ) {
+    char buffer[100];
+    
+    sprintf(buffer,"%spatt.hiro",path);
+    if( (patt_id=arLoadPatt(buffer)) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
         exit(0);
     }
-    fprintf(stderr,"patt.hiro %d\n", patt_id);
 
-    if( (patt_id=arLoadPatt("patt.sample1")) < 0 ) {
+    sprintf(buffer,"%spatt.sample1",path);
+    if( (patt_id=arLoadPatt(buffer)) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
         exit(0);
     }
-    fprintf(stderr,"patt.sample1 %d\n", patt_id);
 
-
-    if( (patt_id=arLoadPatt("patt.sample2")) < 0 ) {
+    sprintf(buffer,"%spatt.sample2",path);
+    if( (patt_id=arLoadPatt(buffer)) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
         exit(0);
     }
-    fprintf(stderr,"patt.sample2 %d\n", patt_id);
+   // fprintf(stderr,"patt.sample2 %d\n", patt_id);
 
 
 #if 0
@@ -120,7 +133,7 @@ mat\n \
     /* open the graphics window */
     //argInit( &cparam, 1.0, 0, 0, 0, 0 );
 
-    fprintf(stdout,"%s,\t\n",cur_filename);
+    printf("%s,\t\n",cur_filename);
 	findMarkers(dataPtr);
 
     argCleanup();
@@ -154,12 +167,13 @@ void findMarkers(ARUint8* dataPtr)
     
     for ( k = 0; k < marker_num; k++ ) {
   
-        fprintf(stdout,"%d,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t\n",
+        printf("%d,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t",
             marker_info[k].area, marker_info[k].id, marker_info[k].cf, 
             marker_info[k].pos[0], marker_info[k].pos[1], 
             marker_info[k].vertex[0][0], marker_info[k].vertex[0][1]);
         
-        
+       
+        /// print rotation matrix
         if (0) {
         double          patt_trans[3][4];
         double          patt_width     = 80.0;
@@ -173,12 +187,12 @@ void findMarkers(ARUint8* dataPtr)
 		int i;
 		for (j = 0; j < 3; j++) {
 		for (i = 0; i < 4; i++) {
-				fprintf(stdout, "%f,\t", patt_trans[j][i]);	
+				printf("%f,\t", patt_trans[j][i]);	
 			}
-			fprintf(stdout,"\t");
+			printf("\t");
 		}
-		fprintf(stdout,"\n");
         }
+		printf("\n");
 	}
 }
 
