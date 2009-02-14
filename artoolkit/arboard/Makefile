@@ -10,7 +10,7 @@ BIN_DIR=.
 
 EXEC=arlaser
 
-LDFLAG=-L/usr/X11R6/lib -L$(LIB_DIR) -L/home/lucasw/other/install/lib
+LDFLAG= -L/home/lucasw/other/install/lib -L/usr/X11R6/lib -L$(LIB_DIR) 
 LIBS= -lMagick++ -lARgsub -lARvideo -lAR -lglut -lGLU -lGL -lXi -lXmu -lX11 -lm
 CFLAG= -O -I/usr/X11R6/include -g -I$(INC_DIR) -I$(IMDIR)
 
