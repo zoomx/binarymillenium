@@ -167,10 +167,10 @@ void findMarkers(ARUint8* dataPtr)
     
     for ( k = 0; k < marker_num; k++ ) {
   
-        printf("%d,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t",
-            marker_info[k].area, marker_info[k].id, marker_info[k].cf, 
-            marker_info[k].pos[0], marker_info[k].pos[1], 
-            marker_info[k].vertex[0][0], marker_info[k].vertex[0][1]);
+        printf("%g,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t",
+            (float)marker_info[k].area/(float)(xsize*ysize), marker_info[k].id, marker_info[k].cf, 
+            marker_info[k].pos[0]/(float)xsize,         marker_info[k].pos[1]/(float)(ysize), 
+            marker_info[k].vertex[0][0]/(float)xsize,   marker_info[k].vertex[0][1]/(float)(ysize));
         
        
         /// print rotation matrix
