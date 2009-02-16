@@ -1,6 +1,17 @@
 
 
-float[] marker_info = {};
+class MarkerInfo {
+  float cf;
+  int id;
+  float area;
+  float x;
+  float y;
+  float x1;
+  float y1;
+  
+}
+
+MarkerInfo[] markerInfos = new MarkerInfo[0];
 boolean have_info = false;
 
 void setup() {
@@ -64,11 +75,24 @@ BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream())
 
 String cmdout;
 
+markerInfos = new MarkerInfo[0];
+
 try {
  while ((cmdout = in.readLine()) != null) {
       float[] temp = float(split(cmdout, ','));
       if (temp.length == 8) {
-        marker_info = temp; 
+        
+        MarkerInfo tempmi = new MarkerInfo();
+        
+        tempmi.area = temp[0];
+        tempmi.id = int(temp[1]);
+        tempmi.cf = temp[2];
+        tempmi.x  = temp[3];
+        tempmi.y  = temp[4];
+        tempmi.x1 = temp[5];
+        
+        markerInfos = (MarkerInfo[])append(markerInfos, tempmi);
+         
         have_info = true;
       }
     }
@@ -91,7 +115,7 @@ if (true) {
 }
 
 
-for (int i = 0; i < marker_info.length-1; i++) {
+for (int i = 0; i < markerInfos.length-1; i++) {
   //print(marker_info[i] + "\t");
 }
 //print("\n");
@@ -104,12 +128,21 @@ for (int i = 0; i < marker_info.length-1; i++) {
 
 void draw() {
   
+  fill(0,10);
+  rect(0,0,width,height);
+  
   getImage();
+  noStroke();
   
   if (have_info) {
 
-    fill(255);
-    rect(width*marker_info[3], height*marker_info[4],10,10);
+    
+    for (int i = 0; i < markerInfos.length; i++) {
+      if (markerInfos[i].cf > 0.4) { 
+      fill(255, markerInfos[i].cf*255,255,markerInfos[i].cf*255);      
+      rect(width*markerInfos[i].x, height*markerInfos[i].y,10,10);
+      }
+    }
   }
 
 }
