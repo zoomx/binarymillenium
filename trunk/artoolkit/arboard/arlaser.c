@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     cur_filename = argv[1];
 
     if (argc > 2) {
-        sprintf(path,"%s", argv[2]);
+        sprintf(path,"%s/", argv[2]);
     } else {
         sprintf(path, "");
     }
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	ARParam  wparam;
 
     sprintf(cparam_name,"%s%s",path,"camera_para.dat");
-    //fprintf(stderr,"%s\n", cparam_name);
+    fprintf(stderr,"%s\n", cparam_name);
 
     /* set the initial camera parameters */
     if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
