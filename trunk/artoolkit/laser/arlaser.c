@@ -1,4 +1,5 @@
 /**
+    ARParam         cparam;
  * binarymillenium 2008
  *
  *
@@ -44,7 +45,8 @@ int             count = 0;
 char           *cparam_name    = "../calib_camera2/newparam.dat";
 ARParam         cparam;
 
-char           *patt_name      = "patt.hiro";
+//char           *patt_name      = "patt.hiro";
+char           *patt_name      = "patt.sample1";
 int             patt_id;
 double          patt_width     = 80.0;
 double          patt_center[2] = {0.0, 0.0};
@@ -278,6 +280,7 @@ void findMarkers(void)
 
 		/// what is patt_center, it seems to be zeros
 		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
+	    fprintf(stdout,"%g,\t%g,\n", marker_info[k].pos[0], marker_info[k].pos[1]);
 		
 		int i;
 		for (j = 0; j < 3; j++) {
@@ -362,7 +365,7 @@ static void draw( void )
 	/// the position of the laser in the block is below the fiducial
 	glTranslatef( 0.0, 0.0, 0.0 );
 	glBegin(GL_LINES);
-	glVertex3f(0.0,-100.0,0.0);
+	glVertex3f(0.0,0.0,0.0);
 	glVertex3f(0.0,900.0,0.0);
 	
 	glEnd();

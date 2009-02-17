@@ -30,6 +30,7 @@ void findMarkers(ARUint8* dataPtr);
 ARUint8* loadImage(char* filename);
 int             xsize, ysize;
 
+   ARParam         cparam;
 
 int main(int argc, char **argv)
 {
@@ -47,7 +48,6 @@ int main(int argc, char **argv)
     int             count = 0;
 
    // char           *cparam_name    = "../calib_camera2/newparam.dat";
-    ARParam         cparam;
 
     char path[100];
     char cparam_name[100];
@@ -166,12 +166,21 @@ void findMarkers(ARUint8* dataPtr)
   */	
     
     for ( k = 0; k < marker_num; k++ ) {
-  
+
+        if (1) {
+        double ox,oy;
+        arParamIdeal2Observ(cparam.dist_factor ,  marker_info[k].pos[0], marker_info[k].pos[1], &ox, &oy);
+
+
         printf("%g,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t",
             (float)marker_info[k].area/(float)(xsize*ysize), marker_info[k].id, marker_info[k].cf, 
-            marker_info[k].pos[0]/(float)xsize,         marker_info[k].pos[1]/(float)(ysize), 
-            marker_info[k].vertex[0][0]/(float)xsize,   marker_info[k].vertex[0][1]/(float)(ysize));
-        
+           // marker_info[k].pos[0]/(float)xsize,         marker_info[k].pos[1]/(float)(ysize), 
+            ox,         oy, 
+           // marker_info[k].pos[0],         marker_info[k].pos[1], 
+           // marker_info[k].vertex[0][0]/(float)xsize,   marker_info[k].vertex[0][1]/(float)(ysize));
+            marker_info[k].vertex[0][0],   marker_info[k].vertex[0][1]
+            );
+        }
        
         /// print rotation matrix
         if (0) {

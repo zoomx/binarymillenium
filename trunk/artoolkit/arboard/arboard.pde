@@ -23,7 +23,7 @@ class MarkerInfo {
   int oldCount;
 }
 
-final int numParticles = 800;
+final int numParticles = 1200;
 
 float t = 0.0;
  float div = 30.0;
@@ -167,7 +167,6 @@ class particle {
 };
 
 
-
 MarkerInfo[] markerInfos = new MarkerInfo[0];
 
 final int numMarkers = 3;
@@ -214,7 +213,7 @@ void printOutput(Process p) {
  if (true) {
  try {
  while ((cmdout = in.readLine()) != null) {
-      println(cmdout);
+     println(cmdout);
     }
   }
 catch(IOException e) {
@@ -271,6 +270,8 @@ markerInfos = new MarkerInfo[0];
 
 try {
  while ((cmdout = in.readLine()) != null) {
+   
+   //println(cmdout);
       float[] temp = float(split(cmdout, ','));
       if (temp.length == 8) {
         
@@ -282,6 +283,12 @@ try {
         tempmi.x  = temp[3];
         tempmi.y  = temp[4];
         tempmi.x1 = temp[5];
+        tempmi.y1 = temp[6];
+        
+        //for (int i = 0; i < temp.length; i++) {
+        //   print(temp[i] + " ");
+        //}
+        println("");
         
         markerInfos = (MarkerInfo[])append(markerInfos, tempmi);
          
@@ -314,7 +321,9 @@ for (int i = 0; i < markerInfos.length-1; i++) {
 
 }
 
-/////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 
 
 int newCounter = 0;
@@ -325,17 +334,30 @@ void draw() {
   rect(0,0,width,height);
   
   newCounter++;
-  if (newCounter > 5) {
+  if (newCounter > 4) {
     
   getImage();
   newCounter = 0;
   }
+  
+  PImage bg = loadImage(sketchPath("") + "/images/test2/test" + ind + ".jpg");
+ // image(bg,0,0);
+  
   //noStroke();
+  
+  for (int i = 0; i < dbInfos.length; i++) {
+   dbInfos[i].count++;
+  }
   
   if (have_info) {
 
     
     for (int i = 0; i < markerInfos.length; i++) {
+      
+      
+              
+          
+       
       if (markerInfos[i].cf > 0.4 ){// && markerInfos[i].id >= 0 ) { 
         
         int newId = markerInfos[i].id;
@@ -345,8 +367,8 @@ void draw() {
           dbInfos[newId].oldx = dbInfos[newId].x;
           dbInfos[newId].oldy = dbInfos[newId].y;  
           
-          dbInfos[newId].x = markerInfos[i].x; 
-          dbInfos[newId].y = markerInfos[i].y;
+          dbInfos[newId].x = markerInfos[i].x/bg.width; 
+          dbInfos[newId].y = markerInfos[i].y/bg.height;
           
           if (dbInfos[newId].count > 0) 
             dbInfos[newId].oldCount = dbInfos[newId].count;
@@ -365,6 +387,7 @@ void draw() {
   
   
   t+= 0.001;
+  
   
   
   for (int i = 1; i < dbInfos.length; i++) {
@@ -398,16 +421,13 @@ void draw() {
                  
                }
                
-               particles[randParticleInd].sz = (1.0-f)*(1.0-f)*(1.0-f) * 13;
+               particles[randParticleInd].sz = (1.0-f)*(1.0-f)*(1.0-f) * 20;
                particles[randParticleInd].lateral = !particles[randParticleInd].lateral;
                particles[randParticleInd].rev = !particles[randParticleInd].rev;
                
             }
           }
-        } else {
-           dbInfos[i].count++;    
-          
-        }
+        } 
         
    
      }
@@ -448,8 +468,7 @@ void draw() {
     */
   }
   
-  
-  
+if (true) {
   for (int i = 0; i< numParticles; i++) {
      particles[i].update();
      particles[i].draw();
@@ -460,21 +479,36 @@ void draw() {
      particles[i].update();
       particles[i].draw();
       
-   //ps[i].test_respawn();
-
- 
- 
+   //ps[i].test_respawn(); 
+  }
   }
   
   
-    
+   
   for (int i = 1; i < dbInfos.length; i++) {
   fill(255,20);
-         //rect(dbInfos[i].x*width, dbInfos[i].y*height, 10,10);
-        println(i + "  " + dbInfos[i].x + " " + dbInfos[i].y );
+        if (dbInfos[i].count == 0) {
+          fill(255,0,0);
+        } else {
+           fill(0,255,0); 
+        }
+        //rect(dbInfos[i].x*width, (dbInfos[i].y)*height, 10,10);
+        //rect(dbInfos[i].x, (dbInfos[i].y), 10,10);
+       // println(i + "  " + dbInfos[i].x + " " + dbInfos[i].y );
   }
+  
     
-  saveFrame("splotch#####.png");
+    /*  
+  for (int i = 0; i < markerInfos.length; i++) {
+  fill(255,255);
+
+        //rect(dbInfos[i].x*width, (dbInfos[i].y)*height, 10,10);
+        rect(markerInfos[i].x, (markerInfos[i].y), 10,10);
+        println(markerInfos[i].id + "  " + markerInfos[i].x + " " + markerInfos[i].y );
+  }
+  */
+    
+  saveFrame("frames/splotch#####.png");
 
 }
   
