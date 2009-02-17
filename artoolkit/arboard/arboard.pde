@@ -1,4 +1,5 @@
 
+boolean use_saved = true;
 
  boolean use_texture = false;
  boolean tree_like = true;
@@ -22,15 +23,16 @@ class MarkerInfo {
   int oldCount;
 }
 
-final int numParticles = 200;
+final int numParticles = 800;
 
 float t = 0.0;
  float div = 30.0;
 
 class particle {
   
-  
+  boolean rev = false;
    
+  float sz = 10;
   float x;
   float y;  
   
@@ -45,7 +47,7 @@ class particle {
   
   float x_seed;
  
-  final float mv = 20.0;
+  final float mv = 40.0;
   
   static final float max_counter = 150;
   
@@ -54,7 +56,9 @@ class particle {
     stroke(c);
       fill(c);
       
-      line(x,y,old_x,old_y);
+     // line(x,y,old_x,old_y);
+     
+     rect(x,y,sz,sz);
    //rect(x,y,2,2);  
   }
   
@@ -82,8 +86,9 @@ class particle {
     old_x = x;
     old_y = y;
 
-     float a = mv*(noise(x/div,y/div,t) - 0.5);
-     float b = mv*(noise(width + x/div,y/div,t) - 0.5);   
+    float r = rev ? -1.0 : 1.0;
+     float a = r*mv*(noise(x/div,y/div,t) - 0.5);
+     float b = r*mv*(noise(width + x/div,y/div,t) - 0.5);   
     x += lateral ? a : -b;
     y += lateral ? b : a;
   }
@@ -135,7 +140,8 @@ class particle {
       float b = random(255);
       //if (random(1) > 0.9)c1 = 0;
       
-      c = color(c1,g,lateral? b : 255-b, 45+random(35));
+     // c = color(c1,g,lateral? b : 255-b, 45+random(35));
+     c = color(255,255,255,60);
       if (use_texture)  c = color(c1,g,b,10+random(90));
          
   }
@@ -174,7 +180,7 @@ boolean have_info = false;
 
 void setup() {
   
-  size(800,800);
+  size(1280,720);
   
   for (int i = 0; i< dbInfos.length; i++) {
     
@@ -235,6 +241,7 @@ catch(IOException e) {
 
 ////////////////////////////////////////////////////////////
 
+int ind = 1000;
 void getImage() {
  /* String cmdCurl[] = {"curl", "http://192.168.1.57/now.jpg > " + 
                                 sketchPath("") +"images/test.jpg"};
@@ -243,9 +250,18 @@ void getImage() {
  printOutput(p);
  */
  
- String cmd[] = {sketchPath("") + "run.sh", sketchPath("")};
- Process p = exec(cmd);
-
+ 
+ Process p;
+ if (use_saved) {
+   ind++;
+   String cmd[] = {sketchPath("") + "run2.sh", sketchPath(""), "" +ind};
+   
+   if (ind == 200) noLoop();
+   p = exec(cmd);
+ } else { 
+   String cmd[] = {sketchPath("") + "run.sh", sketchPath("")};
+    p = exec(cmd);
+ }
 
 BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream())); 
 
@@ -305,11 +321,11 @@ int newCounter = 0;
 
 void draw() {
   
-  fill(0,20);
+  fill(0,55);
   rect(0,0,width,height);
   
   newCounter++;
-  if (newCounter > 2) {
+  if (newCounter > 5) {
     
   getImage();
   newCounter = 0;
@@ -348,7 +364,7 @@ void draw() {
   }
   
   
-  t+= 0.008;
+  t+= 0.001;
   
   
   for (int i = 1; i < dbInfos.length; i++) {
@@ -358,17 +374,34 @@ void draw() {
         if (dbInfos[i].count == 0) {
           if (dbInfos[j].count == 0) {
             /// restart a bunch of particles
-            for (int k = 0; k < numParticles/50; k++) {
+            for (int k = 0; k < numParticles/15; k++) {
                float f = random(0.0,1.0);
                
-               f *= f;
+               //f *= f;
            
                float newx = dbInfos[i].x + (dbInfos[j].x - dbInfos[i].x)*f ;
                float newy = dbInfos[i].y + (dbInfos[j].y - dbInfos[i].y)*f;
                
                int randParticleInd = int(random(0,numParticles-1));
-               particles[randParticleInd].x = newx*width + random(-15.0,15.0);
-               particles[randParticleInd].y = newy*height  + random(-15.0,15.0);
+               float range = 30.0;
+               particles[randParticleInd].x = newx*width + random(-range,range);
+               particles[randParticleInd].y = newy*height  + random(-range,range);
+               
+               if (i == 1) {
+                  if (random(0.0,1.0) > 0.3) particles[randParticleInd].c = color(255,0,0,70);
+                  else particles[randParticleInd].c = color(0,0,0,90);
+                 
+               } else {
+                 if (random(0.0,1.0) > 0.3)
+                  particles[randParticleInd].c = color(255,255,255,70);
+                  else particles[randParticleInd].c = color(0,0,0,90);
+                 
+               }
+               
+               particles[randParticleInd].sz = (1.0-f)*(1.0-f)*(1.0-f) * 13;
+               particles[randParticleInd].lateral = !particles[randParticleInd].lateral;
+               particles[randParticleInd].rev = !particles[randParticleInd].rev;
+               
             }
           }
         } else {
@@ -437,10 +470,11 @@ void draw() {
     
   for (int i = 1; i < dbInfos.length; i++) {
   fill(255,20);
-         rect(dbInfos[i].x*width, dbInfos[i].y*height, 10,10);
+         //rect(dbInfos[i].x*width, dbInfos[i].y*height, 10,10);
         println(i + "  " + dbInfos[i].x + " " + dbInfos[i].y );
   }
     
+  saveFrame("splotch#####.png");
 
 }
   
