@@ -1,5 +1,10 @@
 
 
+ boolean use_texture = false;
+ boolean tree_like = true;
+boolean use_lateral =false;
+boolean all_lateral = false;
+
 class MarkerInfo {
   float cf;
   int id;
@@ -17,37 +22,173 @@ class MarkerInfo {
   int oldCount;
 }
 
+final int numParticles = 200;
+
+float t = 0.0;
+ float div = 30.0;
+
 class particle {
+  
+  
+   
+  float x;
+  float y;  
+  
+  float old_x;
+  float old_y;
+  
+  int counter;
+  
+  boolean lateral;
+  
+  color c;
+  
+  float x_seed;
  
-float x;
-float y;
+  final float mv = 20.0;
+  
+  static final float max_counter = 150;
+  
+  ///////////////////////////////////
+  void draw() {
+    stroke(c);
+      fill(c);
+      
+      line(x,y,old_x,old_y);
+   //rect(x,y,2,2);  
+  }
+  
+  void update() {
+    
+    
+    
+    counter++;
+    
+    if (false) {
+    if (counter > max_counter) {
+      /*if (tree_like) {
+        final float ext = width/2;
+        x+= random(-ext,ext);
+        y+= random(-ext,ext);
+        counter = 0;
+      } else */{
+        new_pos();
+      }
+        
+    }
+    
+    }
+    
+    old_x = x;
+    old_y = y;
 
-float vx;
-float vy;
+     float a = mv*(noise(x/div,y/div,t) - 0.5);
+     float b = mv*(noise(width + x/div,y/div,t) - 0.5);   
+    x += lateral ? a : -b;
+    y += lateral ? b : a;
+  }
+  
+  void new_pos() {
+   
+        //if (random(1) > 0.5) lateral = true;
+        if (use_lateral) lateral = !lateral;
+       else {
+       if (all_lateral) lateral = true;
+        else lateral = false;
+       }
+        counter = 0;
+          
+          
+         if (tree_like) {
+           /*
+            x = random(width); //x_seed +random(width/20);
+             y = height; 
+             */
+             x = random(width);
+             y = random(height);
+           
+         } else {
+           int sel = (int)(random(4)%4);    
+         
+       
+          if (sel == 0) {
+             x = random(width);
+             y = 0;    
+          } else if (sel == 1) {
+             x = random(width);
+             y = height;    
+          } else if (sel == 2) {
+             x = 0;
+             y = random(height);
+          } else if (sel == 3) {
+            x = width;
+            y = random(height);
+          }
+          
+         }
+          
+          old_x = x;
+          old_y = y;
+          
+               float c1 = x/width*255;
+      float g = y/height*255;
+      float b = random(255);
+      //if (random(1) > 0.9)c1 = 0;
+      
+      c = color(c1,g,lateral? b : 255-b, 45+random(35));
+      if (use_texture)  c = color(c1,g,b,10+random(90));
+         
+  }
+  
+  particle() {
+    
+    x_seed = width/4 + random(width/2);
+     new_pos();
+     
+ 
+  }
+  
+  void test_respawn() {
+    final float f = 0.1;
+    if ((x > width*(1.0+f))  || (x < -width*f) || 
+        (y > height*(1.0+f)) || (y < -height*f) ) {
+          
+          new_pos();
 
-float ax;
-float ay;
-}
+        }  
+  }
+  
+};
+
+
 
 MarkerInfo[] markerInfos = new MarkerInfo[0];
 
 final int numMarkers = 3;
 MarkerInfo[] dbInfos = new MarkerInfo[numMarkers];
-particle[] particles = new particle[numMarkers];
+
+
+particle[] particles = new particle[numParticles];
 
 boolean have_info = false;
 
 void setup() {
   
-  size(400,400);
+  size(800,800);
   
   for (int i = 0; i< dbInfos.length; i++) {
     
-    particles[i] = new particle();
-    particles[i].x = width/2;
-    particles[i].y = height/2;  
+ 
     
     dbInfos[i] = new MarkerInfo();
+  }
+  
+  for (int i = 0; i< particles.length; i++) {
+     particles[i] = new particle();  
+
+    particles[i].x = width/2;
+    particles[i].y = height/2; 
+     //ps[i].counter = (int)random(particle.max_counter);
   }
   
  getImage();
@@ -160,13 +301,19 @@ for (int i = 0; i < markerInfos.length-1; i++) {
 /////////////////////////////////
 
 
+int newCounter = 0;
 
 void draw() {
   
-  fill(0,1);
+  fill(0,20);
   rect(0,0,width,height);
   
+  newCounter++;
+  if (newCounter > 2) {
+    
   getImage();
+  newCounter = 0;
+  }
   //noStroke();
   
   if (have_info) {
@@ -200,14 +347,46 @@ void draw() {
     }
   }
   
-  for (int i = 0; i < dbInfos.length; i++) {
+  
+  t+= 0.008;
+  
+  
+  for (int i = 1; i < dbInfos.length; i++) {
+    
+     for (int j = 1; j < dbInfos.length; j++) {
+         
+        if (dbInfos[i].count == 0) {
+          if (dbInfos[j].count == 0) {
+            /// restart a bunch of particles
+            for (int k = 0; k < numParticles/50; k++) {
+               float f = random(0.0,1.0);
+               
+               f *= f;
+           
+               float newx = dbInfos[i].x + (dbInfos[j].x - dbInfos[i].x)*f ;
+               float newy = dbInfos[i].y + (dbInfos[j].y - dbInfos[i].y)*f;
+               
+               int randParticleInd = int(random(0,numParticles-1));
+               particles[randParticleInd].x = newx*width + random(-15.0,15.0);
+               particles[randParticleInd].y = newy*height  + random(-15.0,15.0);
+            }
+          }
+        } else {
+           dbInfos[i].count++;    
+          
+        }
+        
+   
+     }
+     
+     
+    /*
       if (dbInfos[i].count == 0) {
          particles[i].vx = 200.0*(dbInfos[i].x - dbInfos[i].oldx)/dbInfos[i].oldCount; 
          particles[i].vy = 200.0*(dbInfos[i].y - dbInfos[i].oldy)/dbInfos[i].oldCount; 
-     
       } else {
         dbInfos[i].count++;
-      }
+      } 
      
     // strokeWidth(3);
      stroke((float)i/(float)dbInfos.length*255,150,150);
@@ -232,8 +411,36 @@ void draw() {
     if (particles[i].y < 0) particles[i].vy = abs(particles[i].vy*0.8); 
     
     println(i + ", " + particles[i].x + " " + particles[i].y);
+    
+    */
   }
   
+  
+  
+  for (int i = 0; i< numParticles; i++) {
+     particles[i].update();
+     particles[i].draw();
+     particles[i].update();
+      particles[i].draw();
+     particles[i].update();
+     particles[i].draw();
+     particles[i].update();
+      particles[i].draw();
+      
+   //ps[i].test_respawn();
+
+ 
+ 
+  }
+  
+  
+    
+  for (int i = 1; i < dbInfos.length; i++) {
+  fill(255,20);
+         rect(dbInfos[i].x*width, dbInfos[i].y*height, 10,10);
+        println(i + "  " + dbInfos[i].x + " " + dbInfos[i].y );
+  }
+    
 
 }
   
