@@ -6,6 +6,16 @@ boolean use_saved = true;
 boolean use_lateral =false;
 boolean all_lateral = false;
 
+final int COUNT_DIV = 10;
+int ind = 1000;
+ float range = 5.0;
+
+
+final int numParticles = 1200;
+
+float t = 0.0;
+ float div = 30.0;
+
 class MarkerInfo {
   float cf;
   int id;
@@ -23,10 +33,6 @@ class MarkerInfo {
   int oldCount;
 }
 
-final int numParticles = 1200;
-
-float t = 0.0;
- float div = 30.0;
 
 class particle {
   
@@ -47,18 +53,32 @@ class particle {
   
   float x_seed;
  
-  final float mv = 40.0;
+  final float mv = 10.0;
   
   static final float max_counter = 150;
   
   ///////////////////////////////////
   void draw() {
-    stroke(c);
+    
+   // if (lateral) {
+     if (sz >25) {
+      stroke(0,50); } else {
+      stroke(c);
+      } 
+   // else {
+   //   stroke(255);
+   // }
       fill(c);
       
-     // line(x,y,old_x,old_y);
-     
      rect(x,y,sz,sz);
+   // line(x,y,old_x,old_y);
+  //  rect(x,y,abs( x-old_x), abs(y-old_y));
+    
+   // int randp = int(noise(x,y,t)*numParticles-1);// int(random(0,numParticles-1));
+    
+   // line(x,y,particles[randp].x,particles[randp].y);
+     
+     
    //rect(x,y,2,2);  
   }
   
@@ -141,7 +161,7 @@ class particle {
       //if (random(1) > 0.9)c1 = 0;
       
      // c = color(c1,g,lateral? b : 255-b, 45+random(35));
-     c = color(255,255,255,60);
+     c = color(0,0,0,0);
       if (use_texture)  c = color(c1,g,b,10+random(90));
          
   }
@@ -169,7 +189,7 @@ class particle {
 
 MarkerInfo[] markerInfos = new MarkerInfo[0];
 
-final int numMarkers = 3;
+final int numMarkers = 4;
 MarkerInfo[] dbInfos = new MarkerInfo[numMarkers];
 
 
@@ -180,6 +200,7 @@ boolean have_info = false;
 void setup() {
   
   size(1280,720);
+  //size(400,400);
   
   for (int i = 0; i< dbInfos.length; i++) {
     
@@ -199,7 +220,7 @@ void setup() {
  getImage();
 
 
-background(0);
+background(255);
 
 }
 
@@ -240,7 +261,7 @@ catch(IOException e) {
 
 ////////////////////////////////////////////////////////////
 
-int ind = 1000;
+
 void getImage() {
  /* String cmdCurl[] = {"curl", "http://192.168.1.57/now.jpg > " + 
                                 sketchPath("") +"images/test.jpg"};
@@ -330,18 +351,19 @@ int newCounter = 0;
 
 void draw() {
   
-  fill(0,55);
+  //background(0);
+  fill(255,150);
   rect(0,0,width,height);
   
   newCounter++;
-  if (newCounter > 4) {
+  if (newCounter > COUNT_DIV) {
     
   getImage();
   newCounter = 0;
   }
   
-  PImage bg = loadImage(sketchPath("") + "/images/test2/test" + ind + ".jpg");
- // image(bg,0,0);
+  PImage bg = loadImage(sketchPath("") + "/images/test3/test" + ind + ".jpg");
+  //image(bg,0,0,width,height);
   
   //noStroke();
   
@@ -370,6 +392,9 @@ void draw() {
           dbInfos[newId].x = markerInfos[i].x/bg.width; 
           dbInfos[newId].y = markerInfos[i].y/bg.height;
           
+          dbInfos[newId].x1 = markerInfos[i].x1/bg.width; 
+          dbInfos[newId].y1 = markerInfos[i].y1/bg.height;
+          
           if (dbInfos[newId].count > 0) 
             dbInfos[newId].oldCount = dbInfos[newId].count;
           else 
@@ -390,9 +415,15 @@ void draw() {
   
   
   
-  for (int i = 1; i < dbInfos.length; i++) {
+  for (int i = 0; i < dbInfos.length; i++) {
     
-     for (int j = 1; j < dbInfos.length; j++) {
+     float angle = atan2(dbInfos[i].x1-dbInfos[i].x,
+                         dbInfos[i].y1-dbInfos[i].y);
+     angle = (angle+PI)/(2*PI);
+     println(angle);
+               
+               
+     for (int j = 0; j < dbInfos.length; j++) {
          
         if (dbInfos[i].count == 0) {
           if (dbInfos[j].count == 0) {
@@ -402,26 +433,27 @@ void draw() {
                
                //f *= f;
            
-               float newx = dbInfos[i].x + (dbInfos[j].x - dbInfos[i].x)*f ;
+               float newx = dbInfos[i].x + (dbInfos[j].x - dbInfos[i].x)*f;
                float newy = dbInfos[i].y + (dbInfos[j].y - dbInfos[i].y)*f;
                
                int randParticleInd = int(random(0,numParticles-1));
-               float range = 30.0;
-               particles[randParticleInd].x = newx*width + random(-range,range);
-               particles[randParticleInd].y = newy*height  + random(-range,range);
+              
+               particles[randParticleInd].x = newx*width  + random(-range,range);
+               particles[randParticleInd].y = newy*height + random(-range,range);
                
-               if (i == 1) {
-                  if (random(0.0,1.0) > 0.3) particles[randParticleInd].c = color(255,0,0,70);
-                  else particles[randParticleInd].c = color(0,0,0,90);
-                 
-               } else {
-                 if (random(0.0,1.0) > 0.3)
-                  particles[randParticleInd].c = color(255,255,255,70);
-                  else particles[randParticleInd].c = color(0,0,0,90);
-                 
-               }
+               float cf = (float)i/(float)dbInfos.length;
                
-               particles[randParticleInd].sz = (1.0-f)*(1.0-f)*(1.0-f) * 20;
+               
+ 
+               
+               if (random(0.0,1.0) > 0.1)
+                 particles[randParticleInd].c = color(cf*255, (1.0-cf)*255, 255*angle,30);
+               else 
+                 particles[randParticleInd].c = color(0,0,0,30);
+                 
+               
+               
+               particles[randParticleInd].sz = (1.0-f)*(1.0-f)*(1.0-f) * 30;
                particles[randParticleInd].lateral = !particles[randParticleInd].lateral;
                particles[randParticleInd].rev = !particles[randParticleInd].rev;
                
@@ -485,8 +517,9 @@ if (true) {
   
   
    
+   if (false) {
   for (int i = 1; i < dbInfos.length; i++) {
-  fill(255,20);
+        fill(255,20);
         if (dbInfos[i].count == 0) {
           fill(255,0,0);
         } else {
@@ -496,15 +529,25 @@ if (true) {
         //rect(dbInfos[i].x, (dbInfos[i].y), 10,10);
        // println(i + "  " + dbInfos[i].x + " " + dbInfos[i].y );
   }
+   }
   
     
-    /*  
+    
+    /*
   for (int i = 0; i < markerInfos.length; i++) {
   fill(255,255);
 
         //rect(dbInfos[i].x*width, (dbInfos[i].y)*height, 10,10);
         rect(markerInfos[i].x, (markerInfos[i].y), 10,10);
         println(markerInfos[i].id + "  " + markerInfos[i].x + " " + markerInfos[i].y );
+  }
+  
+    for (int i = 0; i < dbInfos.length; i++) {
+  fill(255,255);
+
+        //rect(dbInfos[i].x*width, (dbInfos[i].y)*height, 10,10);
+        rect(dbInfos[i].x, (dbInfos[i].y), 10,10);
+        println(dbInfos[i].id + "  " + dbInfos[i].x + " " + dbInfos[i].y );
   }
   */
     
