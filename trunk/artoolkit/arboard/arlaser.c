@@ -100,19 +100,29 @@ int main(int argc, char **argv)
         fprintf(stderr,"pattern load error !!\n");
         exit(0);
     }
+   fprintf(stderr,"patt.hiro %d\n", patt_id);
 
     sprintf(buffer,"%spatt.sample1",path);
     if( (patt_id=arLoadPatt(buffer)) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
         exit(0);
     }
+   fprintf(stderr,"patt.sample1 %d\n", patt_id);
 
     sprintf(buffer,"%spatt.sample2",path);
     if( (patt_id=arLoadPatt(buffer)) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
         exit(0);
     }
-   // fprintf(stderr,"patt.sample2 %d\n", patt_id);
+   fprintf(stderr,"patt.sample2 %d\n", patt_id);
+
+
+    sprintf(buffer,"%spatt.kanji",path);
+    if( (patt_id=arLoadPatt(buffer)) < 0 ) {
+        fprintf(stderr,"pattern load error !!\n");
+        exit(0);
+    }
+   fprintf(stderr,"patt.kanji %d\n", patt_id);
 
 
 #if 0
@@ -185,6 +195,7 @@ void findMarkers(ARUint8* dataPtr)
         /// print rotation matrix
         if (0) {
         double          patt_trans[3][4];
+		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
         double          patt_width     = 80.0;
         double          patt_center[2] = {0.0, 0.0};
         /* get the transformation between the marker and the real camera */
