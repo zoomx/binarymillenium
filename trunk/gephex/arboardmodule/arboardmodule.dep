@@ -1,0 +1,26 @@
+# Microsoft Developer Studio erstellte Abhängigkeitsdatei, einbezogen von arboardmodule.mak
+
+.\arboardmodule.c : \
+	"..\..\..\engine\src\engine\dllmodule.h"\
+	"..\..\..\types\src\numbertype\numbertype.h"\
+	"..\..\..\types\src\positiontype\positiontype.h"\
+	"..\..\..\util\include\basic_types.h"\
+	".\arboardmodule.h"\
+	
+
+.\arboardmodule_auto.c : \
+	"..\..\..\engine\src\engine\dllmodule.h"\
+	"..\..\..\engine\src\engine\dllutils.h"\
+	"..\..\..\types\src\numbertype\numbertype.h"\
+	"..\..\..\types\src\positiontype\positiontype.h"\
+	"..\..\..\util\include\basic_types.h"\
+	".\arboardmodule.h"\
+	".\arboardmodule.xpm"\
+	
+
+!IF  "$(CFG)" == "arboardmodule - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "arboardmodule - Win32 Debug"
+
+!ENDIF 
+
