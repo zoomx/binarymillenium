@@ -1,7 +1,7 @@
 arboardmodule_auto.lo: arboardmodule_auto.c arboardmodule.h \
   ../../../engine/src/engine/dllmodule.h \
-  ../../../types/src/numbertype/numbertype.h /usr/include/stdlib.h \
-  /usr/include/features.h /usr/include/sys/cdefs.h \
+  ../../../types/src/framebuffertype/framebuffertype.h \
+  /usr/include/stdlib.h /usr/include/features.h /usr/include/sys/cdefs.h \
   /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
   /usr/include/gnu/stubs-32.h \
   /usr/lib/gcc/i486-linux-gnu/4.3.2/include/stddef.h \
@@ -11,27 +11,28 @@ arboardmodule_auto.lo: arboardmodule_auto.c arboardmodule.h \
   /usr/include/bits/select.h /usr/include/bits/sigset.h \
   /usr/include/bits/time.h /usr/include/sys/sysmacros.h \
   /usr/include/bits/pthreadtypes.h /usr/include/alloca.h \
-  /usr/include/bits/stdlib.h /usr/include/stdio.h /usr/include/libio.h \
-  /usr/include/_G_config.h /usr/include/wchar.h \
-  /usr/lib/gcc/i486-linux-gnu/4.3.2/include/stdarg.h \
-  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
-  /usr/include/bits/stdio.h /usr/include/bits/stdio2.h \
-  /usr/include/string.h /usr/include/bits/string.h \
-  /usr/include/bits/string2.h /usr/include/bits/string3.h \
+  /usr/include/bits/stdlib.h /usr/include/string.h \
+  /usr/include/bits/string.h /usr/include/bits/string2.h \
+  /usr/include/bits/string3.h /usr/include/assert.h \
   ../../../util/include/basic_types.h \
   /usr/lib/gcc/i486-linux-gnu/4.3.2/include-fixed/limits.h \
   /usr/lib/gcc/i486-linux-gnu/4.3.2/include-fixed/syslimits.h \
   /usr/include/limits.h /usr/include/bits/posix1_lim.h \
   /usr/include/bits/local_lim.h /usr/include/linux/limits.h \
   /usr/include/bits/posix2_lim.h /usr/include/stdint.h \
-  /usr/include/bits/wchar.h ../../../engine/src/engine/dllutils.h \
-  arboardmodule.xpm
+  /usr/include/bits/wchar.h ../../../config.h \
+  ../../../types/src/numbertype/numbertype.h /usr/include/stdio.h \
+  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
+  /usr/lib/gcc/i486-linux-gnu/4.3.2/include/stdarg.h \
+  /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
+  /usr/include/bits/stdio.h /usr/include/bits/stdio2.h \
+  ../../../engine/src/engine/dllutils.h arboardmodule.xpm
 
 arboardmodule.h:
 
 ../../../engine/src/engine/dllmodule.h:
 
-../../../types/src/numbertype/numbertype.h:
+../../../types/src/framebuffertype/framebuffertype.h:
 
 /usr/include/stdlib.h:
 
@@ -75,24 +76,6 @@ arboardmodule.h:
 
 /usr/include/bits/stdlib.h:
 
-/usr/include/stdio.h:
-
-/usr/include/libio.h:
-
-/usr/include/_G_config.h:
-
-/usr/include/wchar.h:
-
-/usr/lib/gcc/i486-linux-gnu/4.3.2/include/stdarg.h:
-
-/usr/include/bits/stdio_lim.h:
-
-/usr/include/bits/sys_errlist.h:
-
-/usr/include/bits/stdio.h:
-
-/usr/include/bits/stdio2.h:
-
 /usr/include/string.h:
 
 /usr/include/bits/string.h:
@@ -100,6 +83,8 @@ arboardmodule.h:
 /usr/include/bits/string2.h:
 
 /usr/include/bits/string3.h:
+
+/usr/include/assert.h:
 
 ../../../util/include/basic_types.h:
 
@@ -120,6 +105,28 @@ arboardmodule.h:
 /usr/include/stdint.h:
 
 /usr/include/bits/wchar.h:
+
+../../../config.h:
+
+../../../types/src/numbertype/numbertype.h:
+
+/usr/include/stdio.h:
+
+/usr/include/libio.h:
+
+/usr/include/_G_config.h:
+
+/usr/include/wchar.h:
+
+/usr/lib/gcc/i486-linux-gnu/4.3.2/include/stdarg.h:
+
+/usr/include/bits/stdio_lim.h:
+
+/usr/include/bits/sys_errlist.h:
+
+/usr/include/bits/stdio.h:
+
+/usr/include/bits/stdio2.h:
 
 ../../../engine/src/engine/dllutils.h:
 

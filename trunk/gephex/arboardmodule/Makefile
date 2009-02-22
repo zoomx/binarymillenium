@@ -262,7 +262,8 @@ arboardmodule_la_LDFLAGS = -module -avoid-version
 INCLUDES = -I ./../../../engine/src/engine \
 		-I ./../../../util/include \
 		-I ./../../../types/src/numbertype \
-		-I ./../../../types/src/positiontype 
+		-I ./../../../types/src/framebuffertype \
+		-I /home/lucasw/other/sw/ARToolKit/include
 
 DISTCLEANFILES = arboardmodule.h arboardmodule_auto.c
 EXTRA_DIST = arboardmodule.dsp arboardmodule.mak arboardmodule.dep

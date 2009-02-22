@@ -15,11 +15,14 @@ static void logger(int level, const char* msg)
 }
 
 const char* getSpec(void) {
- return "mod_spec { name=[mod_pos2num] number_of_inputs=[0] number_of_outputs=[6] deterministic=[true] }";
+ return "mod_spec { name=[mod_pos2num] number_of_inputs=[1] number_of_outputs=[6] deterministic=[false] }";
 }
 const char* getInputSpec(int index) {
  switch(index) {
-  }
+   case 0:
+    return "input_spec { type=typ_FrameBufferType id=1 const=true strong_dependency=true  } ";
+  break;
+ }
  return 0;
 }
 const char* getOutputSpec(int index) {
@@ -79,6 +82,9 @@ int setInput(void* instance,int index,void* typePointer)
 {
  InstancePtr inst = (InstancePtr) instance;
  switch(index) {
+  case 0:
+   inst->in_1 = (FrameBufferType *) typePointer;
+  break;
  } //switch(index) 
  return 1;
 }
@@ -110,7 +116,7 @@ int setOutput(void* instance,int index, void* typePointer)
 
 int getInfo(char* buf,int bufLen)
 {
-  static const char* INFO = "info { name=[ArMarkers to X,Y,Rotation] group=[Position] inputs=[0] outputs=[6 X-Position-1 Y-Position-1 R-Position-1 X-Position-2 Y-Position-2 R-Position-2 ] type=xpm } ";
+  static const char* INFO = "info { name=[ArMarkers to X,Y,Rotation] group=[Position] inputs=[1 video_in ] outputs=[6 X-Position-1 Y-Position-1 R-Position-1 X-Position-2 Y-Position-2 R-Position-2 ] type=xpm } ";
   char* tmpBuf;
   int reqLen = 1 + strlen(INFO) + getSizeOfXPM(arboardmodule_xpm);
   if (buf != 0 && reqLen <= bufLen)
