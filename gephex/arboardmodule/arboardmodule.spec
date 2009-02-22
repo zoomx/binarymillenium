@@ -3,7 +3,7 @@
 mod_pos2num
 {
     name          = ArMarkers to X,Y,Rotation
-    deterministic = true
+    deterministic = false
     group         = Position
     xpm           = arboardmodule.xpm
     author        = binarymillenium
@@ -12,6 +12,13 @@ mod_pos2num
 
 inputs
 {
+    1
+    {
+        name = video_in
+        type = typ_FrameBufferType
+        const= true
+        strong_dependency = true
+    }
 }
 
 outputs
