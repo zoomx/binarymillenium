@@ -1,6 +1,6 @@
 #
 
-mod_pos2num
+mod_arboard
 {
     name          = ArMarkers to X,Y,Rotation
     deterministic = false
