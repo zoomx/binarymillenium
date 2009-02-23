@@ -11,11 +11,11 @@ static log2T s_log_function = 0;
 static void logger(int level, const char* msg)
 {
    if (s_log_function)
-      s_log_function(level, "mod_pos2num", msg);
+      s_log_function(level, "mod_arboard", msg);
 }
 
 const char* getSpec(void) {
- return "mod_spec { name=[mod_pos2num] number_of_inputs=[1] number_of_outputs=[6] deterministic=[false] }";
+ return "mod_spec { name=[mod_arboard] number_of_inputs=[1] number_of_outputs=[6] deterministic=[false] }";
 }
 const char* getInputSpec(int index) {
  switch(index) {

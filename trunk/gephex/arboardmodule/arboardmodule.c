@@ -65,34 +65,30 @@ MyInstance* construct()
 
 
     /* set the initial camera parameters */
-    if( arParamLoad("camera_para.dat", 1, &(my->wparam) ) < 0 ) {
+    if( arParamLoad("/home/lucasw/other/sw/ARToolKit/bin/Data/camera_para.dat", 1, &(my->wparam) ) < 0 ) {
         fprintf(stderr,"Camera parameter load error !!\n");
         //exit(0);
     }
 
         int patt_id;
     
-    if( (patt_id=arLoadPatt("patt.hiro")) < 0 ) {
+    if( (patt_id=arLoadPatt("/home/lucasw/other/sw/ARToolKit/bin/Data/patt.hiro")) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
-        exit(0);
     }
    //fprintf(stderr,"patt.hiro %d\n", patt_id);
 
-    if( (patt_id=arLoadPatt("patt.sample1")) < 0 ) {
+    if( (patt_id=arLoadPatt("/home/lucasw/other/sw/ARToolKit/bin/Data/patt.sample1")) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
-        exit(0);
     }
    //fprintf(stderr,"patt.sample1 %d\n", patt_id);
 
-    if( (patt_id=arLoadPatt("patt.sample2")) < 0 ) {
+    if( (patt_id=arLoadPatt("/home/lucasw/other/sw/ARToolKit/bin/Data/patt.sample2")) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
-        exit(0);
     }
    //fprintf(stderr,"patt.sample2 %d\n", patt_id);
 
-    if( (patt_id=arLoadPatt("patt.kanji")) < 0 ) {
+    if( (patt_id=arLoadPatt("/home/lucasw/other/sw/ARToolKit/bin/Data/patt.kanji")) < 0 ) {
         fprintf(stderr,"pattern load error !!\n");
-        exit(0);
     }
     //fprintf(stderr,"patt.kanji %d\n", patt_id);
 
@@ -112,17 +108,34 @@ void update(void* instance)
     InstancePtr inst = (InstancePtr) instance;
    
     ARParam         cparam;
+    int xsize = inst->in_1->xsize;
+    int ysize = inst->in_1->ysize;
     /// TBD only do this when change in size is detected
-    arParamChangeSize( & (inst->my->wparam), inst->in_1->xsize, inst->in_1->ysize, &cparam );
+    arParamChangeSize( & (inst->my->wparam), xsize, ysize, &cparam );
     arInitCparam( &cparam );
     //arParamDisp( &cparam );
 
+    ARUint8 *dataPtr;// = (ARUint8*) inst->in_1->framebuffer;
+    dataPtr = malloc(sizeof(ARUint8) * 3 * ysize * xsize);
+    ARUint8 *tmp = dataPtr;
+
+    int* src = (int*)inst->in_1->framebuffer;
     
+    int x;
+    int y;
+    for (y =0; y < ysize; y++) {
+    for (x =0; x < xsize; x++) {
+        
+        unsigned char* tmpc = (unsigned char*)(src); 
+        tmp[0] = tmpc[0];   
+        tmp[1] = tmpc[1];   
+        tmp[2] = tmpc[2];
+        tmp+=3;
+        src++;
+    }}
 
-    ARUint8 *dataPtr = (ARUint8*) inst->in_1->framebuffer;
-
-    findMarkers(dataPtr, cparam, inst, inst->my->xsize, inst->my->ysize);
-
+    findMarkers(dataPtr, cparam, inst, xsize, ysize);
+    free(dataPtr);
 }
 
 
@@ -136,11 +149,11 @@ void findMarkers(ARUint8* dataPtr, ARParam cparam, InstancePtr inst,int xsize, i
     // detect the markers in the video frame 
     int rv = arDetectMarker(dataPtr, thresh, &marker_info, &marker_num);
     if (rv < 0) {
-        fprintf(stderr,"arDetectMarker failed\n");
-        exit(0);
+       // fprintf(stderr,"arDetectMarker failed\n");
+       // exit(0);
     }
 
-    fprintf(stderr,"%d markers_found \n", marker_num);
+    //fprintf(stderr,"%d markers_found \n", marker_num);
 
 /*
     // check for object visibility 
@@ -158,9 +171,8 @@ void findMarkers(ARUint8* dataPtr, ARParam cparam, InstancePtr inst,int xsize, i
         double ox,oy;
         arParamIdeal2Observ(cparam.dist_factor ,  marker_info[k].pos[0], marker_info[k].pos[1], &ox, &oy);
 
-
-        /*
-         printf("%g,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t",
+#if 0
+         printf("%g,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t\n",
             (float)marker_info[k].area/(float)(xsize*ysize), marker_info[k].id, marker_info[k].cf, 
            // marker_info[k].pos[0]/(float)xsize,         marker_info[k].pos[1]/(float)(ysize), 
             ox,         oy, 
@@ -168,8 +180,7 @@ void findMarkers(ARUint8* dataPtr, ARParam cparam, InstancePtr inst,int xsize, i
            // marker_info[k].vertex[0][0]/(float)xsize,   marker_info[k].vertex[0][1]/(float)(ysize));
             marker_info[k].vertex[0][0],   marker_info[k].vertex[0][1]
             );
-        */
-
+#endif
             if (marker_info[k].id == 0) {
                 inst->out_x1->number = marker_info[k].pos[0]/(float)xsize;
                 inst->out_y1->number = marker_info[k].pos[1]/(float)ysize;
@@ -184,7 +195,7 @@ void findMarkers(ARUint8* dataPtr, ARParam cparam, InstancePtr inst,int xsize, i
         }
        
         /// print rotation matrix
-        if (0) {
+        #if 0
         double          patt_trans[3][4];
 		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
         double          patt_width     = 80.0;
@@ -204,6 +215,7 @@ void findMarkers(ARUint8* dataPtr, ARParam cparam, InstancePtr inst,int xsize, i
 		}
         }
 		printf("\n");
+        #endif
 	}
 }
 

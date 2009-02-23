@@ -1,0 +1,123 @@
+<graph>
+<id>IDSTARTartoolkitENDID</id>
+<name>artoolkit</name>
+<data>
+</data>
+<nodes>
+<node> <id>1</id> <type>mod_frbinmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>10 75</buf> </dataitem>
+</data>
+</node>
+<node> <id>2</id> <type>mod_arboard</type>
+<data>
+<dataitem> <key>0</key> <buf>181 33</buf> </dataitem>
+</data>
+</node>
+<node> <id>3</id> <type>mod_rotozoommodule</type>
+<data>
+<dataitem> <key>0</key> <buf>67 32</buf> </dataitem>
+</data>
+</node>
+<node> <id>5</id> <type>mod_frboutmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>412 29</buf> </dataitem>
+</data>
+</node>
+<node> <id>8</id> <type>mod_imgarithmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>305 62</buf> </dataitem>
+</data>
+</node>
+</nodes>
+<connections>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>2</node_id> <plug_id>1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>1</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>3</node_id> <plug_id>texture</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>8</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>5</node_id> <plug_id>in</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>2</node_id> <plug_id>x1</plug_id> </from>
+<to> <node_id>8</node_id> <plug_id>amount</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>3</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>8</node_id> <plug_id>input1</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>1</node_id> <plug_id>result</plug_id> </from>
+<to> <node_id>8</node_id> <plug_id>input2</plug_id> </to>
+</connect>
+</connections>
+<snapshots>
+<snapshot> <id>IDSTARTartoolkitENDID</id> <name>default</name>
+<values>
+<value><plug> <node_id>1</node_id> <plug_id>fileName</plug_id> </plug>
+<buf>/home/lucasw/patt.jpg~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>flush</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>frame</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>x_size</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>y_size</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>cache</plug_id> </plug>
+<buf>no~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>zoom</plug_id> </plug>
+<buf>1.4~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>rot</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>disp</plug_id> </plug>
+<buf>0.482456 0.529412~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>texture</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>background</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>copy_background</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>3</node_id> <plug_id>routine</plug_id> </plug>
+<buf>mirror~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>in</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>options</plug_id> </plug>
+<buf>2~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>xsize</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>ysize</plug_id> </plug>
+<buf>480~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>brightness</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>contrast</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>gamma</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>monitor</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>driver</plug_id> </plug>
+<buf>default~00</buf></value>
+<value><plug> <node_id>5</node_id> <plug_id>server</plug_id> </plug>
+<buf>default~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>amount</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>input1</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>input2</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>mmx</plug_id> </plug>
+<buf>yes~00</buf></value>
+<value><plug> <node_id>8</node_id> <plug_id>op</plug_id> </plug>
+<buf>[x + c*y]~00</buf></value>
+</values>
+</snapshot>
+</snapshots>
+</graph>
