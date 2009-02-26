@@ -27,7 +27,7 @@
 #include <math.h>
 
 void findMarkers(ARUint8* dataPtr); 
-ARUint8* loadImage(char* filename);
+ARUint8* loadImage(char* filename, int *xsize, int *ysize);
 int             xsize, ysize;
 
    ARParam         cparam;
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
     fprintf(stderr,"%d %s,\n", argc, cur_filename);
 
     /// make this get an image with curl
-	dataPtr	    = loadImage(cur_filename);
+	dataPtr	    = loadImage(cur_filename,&xsize,&ysize);
 
 	ARParam  wparam;
 
@@ -218,76 +218,4 @@ void findMarkers(ARUint8* dataPtr)
 
 
 
-
-#define ThrowWandException(wand) \
-{ \
-  char \
-      *description; \
-       \
-         ExceptionType \
-             severity; \
-              \
-                description=MagickGetException(wand,&severity); \
-                  (void) fprintf(stderr,"%s %s %lu %s\n",GetMagickModule(),description); \
-                    description=(char *) MagickRelinquishMemory(description); \
-                      exit(-1); \
-                      }
-
-ARUint8* loadImage(char* filename)
-{
-	ARUint8 *dptr;
-	
-	Image *image;
-	MagickWand* magick_wand;
-
-	MagickWandGenesis();
-	magick_wand=NewMagickWand(); 
-    if( magick_wand == NULL) {
-        fprintf(stderr, "bad magickwand\n");
-    }
-
-	MagickBooleanType status=MagickReadImage(magick_wand,filename);
-	if (status == MagickFalse) {
-		//fprintf(stderr, "%s can't be read\n", filename);
-		//exit(1);
-        //return; //(1);
-		ThrowWandException(magick_wand);
-	}
-
-	image = GetImageFromMagickWand(magick_wand);
-
-	//ContrastImage(image,MagickTrue); 
-	//EnhanceImage(image,&image->exception); 
-
-	int index;
-
-	xsize = image->columns;
-	ysize = image->rows;
-		
-	dptr = malloc(sizeof(ARUint8) * 3 * image->rows * xsize);
-	int y;
-	index = 0;
-	for (y=0; y < (long) image->rows; y++)
-	{
-		const PixelPacket *p = AcquireImagePixels(image,0,y,xsize,1,&image->exception);
-		if (p == (const PixelPacket *) NULL)
-			break;
-		int x;
-		for (x=0; x < (long) xsize; x++)
-		{
-			/// convert to ARUint8 dptr
-			/// probably a faster way to give the data straight over
-			/// in BGR format
-			dptr[index*3+2]   = p->red/256;
-			dptr[index*3+1] = p->green/256;
-			dptr[index*3] = p->blue/256;
-			
-			//fprintf(stderr,"%d, %d, %d\t%d\t%d\n", x, y, p->red/256, p->green/256, p->blue/256);
-			p++;
-			index++;
-		}
-	}
-
-	return dptr;
-}
 
