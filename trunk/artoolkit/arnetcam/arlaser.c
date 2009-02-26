@@ -25,6 +25,7 @@
 #include <wand/MagickWand.h>
 
 #include <math.h>
+//#include <math.h>
 
 #include <curl/curl.h>
 
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
 
     CURL *curl_handle;
     FILE *curl_file;
-    curl_file = fopen("test.txt","w");
+    curl_file = fopen("images/test.jpg","w");
 
     curl_handle = curl_easy_init();
 
@@ -75,7 +76,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "curl_easy_init failed");
         exit(0);
     }
-    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://google.com");
+    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://binarymillenium.googlecode.com/svn/trunk/artoolkit/arnetcam/images/arboard1angle.jpg");
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data); 
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, curl_file); 
 
@@ -84,11 +85,7 @@ int main(int argc, char **argv)
     rv = curl_easy_perform(curl_handle);
     printf("%d\n", rv);
     
-    if (argc < 2) {
-        fprintf(stderr,"provide a jpeg file name\n");
-        return;
-    }
-    cur_filename = argv[1];
+    cur_filename = "images/test.jpg";
 
     if (argc > 2) {
         sprintf(path,"%s/", argv[2]);
@@ -206,14 +203,15 @@ void findMarkers(ARUint8* dataPtr)
         double ox,oy;
         arParamIdeal2Observ(cparam.dist_factor ,  marker_info[k].pos[0], marker_info[k].pos[1], &ox, &oy);
 
+        float rot = atan2(  marker_info[k].vertex[0][1] - marker_info[k].pos[1] , 
+                            marker_info[k].vertex[0][0] - marker_info[k].pos[0] );
 
-        printf("%g,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t",
-            (float)marker_info[k].area/(float)(xsize*ysize), marker_info[k].id, marker_info[k].cf, 
-           // marker_info[k].pos[0]/(float)xsize,         marker_info[k].pos[1]/(float)(ysize), 
-            ox,         oy, 
-           // marker_info[k].pos[0],         marker_info[k].pos[1], 
-           // marker_info[k].vertex[0][0]/(float)xsize,   marker_info[k].vertex[0][1]/(float)(ysize));
-            marker_info[k].vertex[0][0],   marker_info[k].vertex[0][1]
+        printf("%g,\t%g,\t%d,\t%g,\t%g,\t%g,",
+            (float)marker_info[k].area/(float)(xsize*ysize), marker_info[k].cf, 
+            marker_info[k].id, 
+            ox/(float)xsize,  oy/(float)(ysize), 
+           // ox,         oy, 
+            rot
             );
         }
        
