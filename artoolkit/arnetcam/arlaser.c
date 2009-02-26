@@ -7,6 +7,16 @@
  *
  */
 
+#include <stdio.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <errno.h>
+#include <time.h>
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -22,6 +32,7 @@
 #include <AR/param.h>
 #include <AR/ar.h>
 
+
 #include <wand/MagickWand.h>
 
 #include <math.h>
@@ -29,7 +40,16 @@
 
 #include <curl/curl.h>
 
-void findMarkers(ARUint8* dataPtr); 
+struct send_marker_info {
+    int id;
+    float area;
+    float cf;
+    float x;
+    float y;
+    float rot;
+};
+
+void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host ); 
 ARUint8* loadImage(char* filename, int *xsize, int *ysize);
 int             xsize, ysize;
 
@@ -43,6 +63,25 @@ size_t write_data(void *buffer, size_t size, size_t nmemb, void *file) {
 int main(int argc, char **argv)
 {
     ARUint8 *dataPtr;
+
+    int sock;
+    struct sockaddr_in host;
+    unsigned int echolen, clientlen;
+    int received = 0;
+
+    if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+        fprintf(stderr,"Failed to create socket\n");
+        perror("socket");
+        return -1;
+    }
+
+    /// the port where the modified net ctrl is sent to flightgear
+    memset(&host, 0, sizeof(host));       /* Clear struct */
+    host.sin_family = AF_INET;                  /* Internet/IP */
+    host.sin_addr.s_addr = inet_addr("127.0.0.1");  /* IP address */
+    host.sin_port = htons(5600);       /* server port */
+
+    bind(sock, (struct sockaddr*)&host, sizeof(host));
 
     //
     // Camera configuration.
@@ -166,12 +205,12 @@ mat\n \
     //argInit( &cparam, 1.0, 0, 0, 0, 0 );
 
     printf("%s,\t\n",cur_filename);
-	findMarkers(dataPtr);
+	findMarkers(dataPtr,sock, &host);
 
     argCleanup();
 }
 
-void findMarkers(ARUint8* dataPtr) 
+void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host) 
 {
     ARMarkerInfo    *marker_info;
     int             marker_num;
@@ -199,22 +238,32 @@ void findMarkers(ARUint8* dataPtr)
     
     for ( k = 0; k < marker_num; k++ ) {
 
-        if (1) {
         double ox,oy;
         arParamIdeal2Observ(cparam.dist_factor ,  marker_info[k].pos[0], marker_info[k].pos[1], &ox, &oy);
 
         float rot = atan2(  marker_info[k].vertex[0][1] - marker_info[k].pos[1] , 
                             marker_info[k].vertex[0][0] - marker_info[k].pos[0] );
 
-        printf("%g,\t%g,\t%d,\t%g,\t%g,\t%g,",
-            (float)marker_info[k].area/(float)(xsize*ysize), marker_info[k].cf, 
-            marker_info[k].id, 
-            ox/(float)xsize,  oy/(float)(ysize), 
-           // ox,         oy, 
-            rot
-            );
-        }
-       
+        //char buffer[100];
+
+        struct send_marker_info to_send;
+
+        to_send.area = (float)marker_info[k].area/(float)(xsize*ysize);
+        to_send.cf = marker_info[k].cf;
+        to_send.x = ox/(float)xsize;
+        to_send.y = oy/(float)ysize;
+        to_send.rot = rot;
+        
+        int received = sendto(sock, (void*) &to_send, sizeof(to_send), 0,
+                (struct sockaddr *) host, sizeof(*host));
+
+        if (received <0) {
+            perror("sendto");
+        } 
+
+        printf("%d sent\n", received);
+
+
         /// print rotation matrix
         if (0) {
         double          patt_trans[3][4];

@@ -1,4 +1,6 @@
 
+import processing.net.*;
+
 boolean use_saved = true;
 
  boolean use_texture = false;
@@ -6,12 +8,14 @@ boolean use_saved = true;
 boolean use_lateral =false;
 boolean all_lateral = false;
 
+
+
 final int COUNT_DIV = 10;
 int ind = 1000;
  float range = 5.0;
 
 
-final int numParticles = 1200;
+final int numParticles = 20;
 
 float t = 0.0;
  float div = 30.0;
@@ -185,7 +189,7 @@ class particle {
   }
   
 };
-
+/////////////////////////////////////////////////
 
 MarkerInfo[] markerInfos = new MarkerInfo[0];
 
@@ -197,10 +201,14 @@ particle[] particles = new particle[numParticles];
 
 boolean have_info = false;
 
+Client cli;
+
 void setup() {
   
-  size(1280,720);
-  //size(400,400);
+  cli = new Client(this, "127.0.0.1", 5601);
+  
+  //size(1280,720);
+  size(400,400);
   
   for (int i = 0; i< dbInfos.length; i++) {
     
@@ -217,7 +225,7 @@ void setup() {
      //ps[i].counter = (int)random(particle.max_counter);
   }
   
- getImage();
+
 
 
 background(255);
@@ -225,124 +233,6 @@ background(255);
 }
 
 ////////////////////////////////////////////////////
-
-void printOutput(Process p) {
-   
- BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream())); 
- String cmdout;
- 
- if (true) {
- try {
- while ((cmdout = in.readLine()) != null) {
-     println(cmdout);
-    }
-  }
-catch(IOException e) {
-   e.printStackTrace(); 
-  }
- }
-    
-if (true) {
-in = new BufferedReader(new InputStreamReader(p.getErrorStream())); 
-
-
-try {
- while ((cmdout = in.readLine()) != null) {
-      println(cmdout);
-    }
-}
-catch(IOException e) {
-   e.printStackTrace(); 
-}
-  
-}
-
-}
-
-////////////////////////////////////////////////////////////
-
-
-void getImage() {
- /* String cmdCurl[] = {"curl", "http://192.168.1.57/now.jpg > " + 
-                                sketchPath("") +"images/test.jpg"};
- Process p = exec(cmdCurl);
- 
- printOutput(p);
- */
- 
- 
- Process p;
- if (use_saved) {
-   ind++;
-   String cmd[] = {sketchPath("") + "run2.sh", sketchPath(""), "" +ind};
-   
-   if (ind == 200) noLoop();
-   p = exec(cmd);
- } else { 
-   String cmd[] = {sketchPath("") + "run.sh", sketchPath("")};
-    p = exec(cmd);
- }
-
-BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream())); 
-
-String cmdout;
-
-markerInfos = new MarkerInfo[0];
-
-try {
- while ((cmdout = in.readLine()) != null) {
-   
-   //println(cmdout);
-      float[] temp = float(split(cmdout, ','));
-      if (temp.length == 8) {
-        
-        MarkerInfo tempmi = new MarkerInfo();
-        
-        tempmi.area = temp[0];
-        tempmi.id = int(temp[1]);
-        tempmi.cf = temp[2];
-        tempmi.x  = temp[3];
-        tempmi.y  = temp[4];
-        tempmi.x1 = temp[5];
-        tempmi.y1 = temp[6];
-        
-        //for (int i = 0; i < temp.length; i++) {
-        //   print(temp[i] + " ");
-        //}
-        println("");
-        
-        markerInfos = (MarkerInfo[])append(markerInfos, tempmi);
-         
-        have_info = true;
-      }
-    }
-}
-catch(IOException e) {
-   e.printStackTrace(); 
-}
-    
-if (true) {
-  in = new BufferedReader(new InputStreamReader(p.getErrorStream())); 
-
-  try {
-    while ((cmdout = in.readLine()) != null) {
-      println(cmdout);
-    }
-  }
-  catch(IOException e) {
-    e.printStackTrace(); 
-  }
-}
-
-
-for (int i = 0; i < markerInfos.length-1; i++) {
-  //print(marker_info[i] + "\t");
-}
-//print("\n");
-
-}
-
-/////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////
 
@@ -351,6 +241,11 @@ int newCounter = 0;
 
 void draw() {
   
+    int num = cli.available();
+  if (num > 0) {
+    println("client: num " + num);
+  }
+  
   //background(0);
   fill(255,150);
   rect(0,0,width,height);
@@ -358,13 +253,11 @@ void draw() {
   newCounter++;
   if (newCounter > COUNT_DIV) {
     
-  getImage();
+
   newCounter = 0;
   }
   
-  PImage bg = loadImage(sketchPath("") + "/images/test3/test" + ind + ".jpg");
-  //image(bg,0,0,width,height);
-  
+
   //noStroke();
   
   for (int i = 0; i < dbInfos.length; i++) {
@@ -376,8 +269,6 @@ void draw() {
     
     for (int i = 0; i < markerInfos.length; i++) {
       
-      
-              
           
        
       if (markerInfos[i].cf > 0.4 ){// && markerInfos[i].id >= 0 ) { 
@@ -389,11 +280,11 @@ void draw() {
           dbInfos[newId].oldx = dbInfos[newId].x;
           dbInfos[newId].oldy = dbInfos[newId].y;  
           
-          dbInfos[newId].x = markerInfos[i].x/bg.width; 
-          dbInfos[newId].y = markerInfos[i].y/bg.height;
+          dbInfos[newId].x = markerInfos[i].x; 
+          dbInfos[newId].y = markerInfos[i].y;
           
-          dbInfos[newId].x1 = markerInfos[i].x1/bg.width; 
-          dbInfos[newId].y1 = markerInfos[i].y1/bg.height;
+          dbInfos[newId].x1 = markerInfos[i].x1; 
+          dbInfos[newId].y1 = markerInfos[i].y1;
           
           if (dbInfos[newId].count > 0) 
             dbInfos[newId].oldCount = dbInfos[newId].count;
@@ -420,7 +311,7 @@ void draw() {
      float angle = atan2(dbInfos[i].x1-dbInfos[i].x,
                          dbInfos[i].y1-dbInfos[i].y);
      angle = (angle+PI)/(2*PI);
-     println(angle);
+     //println(angle);
                
                
      for (int j = 0; j < dbInfos.length; j++) {
@@ -465,51 +356,19 @@ void draw() {
      }
      
      
-    /*
-      if (dbInfos[i].count == 0) {
-         particles[i].vx = 200.0*(dbInfos[i].x - dbInfos[i].oldx)/dbInfos[i].oldCount; 
-         particles[i].vy = 200.0*(dbInfos[i].y - dbInfos[i].oldy)/dbInfos[i].oldCount; 
-      } else {
-        dbInfos[i].count++;
-      } 
-     
-    // strokeWidth(3);
-     stroke((float)i/(float)dbInfos.length*255,150,150);
-     
-     line(particles[i].x, particles[i].y,
-     particles[i].x+ particles[i].vx, particles[i].y + particles[i].vy);
-    
-     
-     particles[i].x += particles[i].vx;
-     particles[i].y += particles[i].vy;
-    
-    if (particles[i].x > width) {
-        particles[i].x -= width;
-        //particles[i].vx = -abs(particles[i].vx*0.8); 
-    }
-    if (particles[i].y > height) {
-      particles[i].y -= height;
-      //particles[i].vy = -abs(particles[i].vy*0.8); 
-    }
-    
-    if (particles[i].x < 0) particles[i].vx = abs(particles[i].vx*0.8); 
-    if (particles[i].y < 0) particles[i].vy = abs(particles[i].vy*0.8); 
-    
-    println(i + ", " + particles[i].x + " " + particles[i].y);
-    
-    */
+ 
   }
   
 if (true) {
   for (int i = 0; i< numParticles; i++) {
      particles[i].update();
      particles[i].draw();
-     particles[i].update();
+   /*  particles[i].update();
       particles[i].draw();
      particles[i].update();
      particles[i].draw();
      particles[i].update();
-      particles[i].draw();
+      particles[i].draw();*/
       
    //ps[i].test_respawn(); 
   }
@@ -533,25 +392,9 @@ if (true) {
   
     
     
-    /*
-  for (int i = 0; i < markerInfos.length; i++) {
-  fill(255,255);
 
-        //rect(dbInfos[i].x*width, (dbInfos[i].y)*height, 10,10);
-        rect(markerInfos[i].x, (markerInfos[i].y), 10,10);
-        println(markerInfos[i].id + "  " + markerInfos[i].x + " " + markerInfos[i].y );
-  }
-  
-    for (int i = 0; i < dbInfos.length; i++) {
-  fill(255,255);
-
-        //rect(dbInfos[i].x*width, (dbInfos[i].y)*height, 10,10);
-        rect(dbInfos[i].x, (dbInfos[i].y), 10,10);
-        println(dbInfos[i].id + "  " + dbInfos[i].x + " " + dbInfos[i].y );
-  }
-  */
     
-  saveFrame("frames/splotch#####.png");
+ // saveFrame("frames/splotch#####.png");
 
 }
   
