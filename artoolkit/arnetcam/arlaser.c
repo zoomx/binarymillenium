@@ -115,7 +115,8 @@ int main(int argc, char **argv)
         fprintf(stderr, "curl_easy_init failed");
         exit(0);
     }
-    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://binarymillenium.googlecode.com/svn/trunk/artoolkit/arnetcam/images/arboard1angle.jpg");
+    //curl_easy_setopt(curl_handle, CURLOPT_URL, "http://binarymillenium.googlecode.com/svn/trunk/artoolkit/arnetcam/images/arboard1angle.jpg");
+    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://192.168.1.57/now.jpg");
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data); 
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, curl_file); 
 
@@ -247,7 +248,8 @@ void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host)
         //char buffer[100];
 
         struct send_marker_info to_send;
-
+        
+        to_send.id = marker_info[k].id;
         to_send.area = (float)marker_info[k].area/(float)(xsize*ysize);
         to_send.cf = marker_info[k].cf;
         to_send.x = ox/(float)xsize;
@@ -261,7 +263,7 @@ void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host)
             perror("sendto");
         } 
 
-        printf("%d sent\n", received);
+        printf("%d, %d sent\n", to_send.id, received);
 
 
         /// print rotation matrix
