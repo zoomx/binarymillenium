@@ -24,10 +24,13 @@ class missile {
     
     if (timer <=0) {
       
+      image(blast,x-15,y-15,30,30);
        for (int i = 0; i < allShips.length; i++) {
          
          if (dist(x,y, allShips[i].x, allShips[i].y )  < 40) {
            allShips[i].crashing = true; 
+           
+           
          }
        }
       
@@ -66,6 +69,16 @@ class launcher {
   void update(int targetX, int targetY) {
     angle = atan2(targetY-y, targetX-x);
     
+    /*
+    if (angle > 2*PI*0.9) {
+      
+      // angle = 2*PI*0.9; 
+    } else if (angle < PI*0.1) {
+      
+      // angle = PI*0.1; 
+    }
+    */
+    
     timer--;
   }
   
@@ -74,9 +87,19 @@ class launcher {
     pushMatrix();
     translate(x,y);
     
+    pushMatrix();
+    float sc = 3;
+      //image(launcherIm2, 0,-10,launcherIm2.width*sc, launcherIm2.height*sc);
+    
     rotate(angle);
     
-    rect(0,0,15,3);
+    //rect(0,0,15,3);
+    
+    
+    image(launcherIm, -launcherIm.width*sc/4.0, -launcherIm.height*sc/2.0,launcherIm.width*sc, launcherIm.height*sc);
+        popMatrix();
+    
+    image(launcherIm2, -launcherIm2.width*sc/2.0, -20 ,launcherIm2.width*sc, launcherIm2.height*sc);
     
     popMatrix();
     
@@ -84,6 +107,7 @@ class launcher {
   }
 };
 
+///////////////////////////////////////
 class ship {
   
   PImage gfc;
@@ -124,7 +148,7 @@ class ship {
       x = -3*gfc.width;
     }
     
-    if (!crashing && (y > (height - 4*gfc.height))) {
+    if (!crashing && (y > (height - 90))) {
        
        vy = -abs(vy); 
       
@@ -146,10 +170,16 @@ class ship {
    if (active) {
     float sc = 5;
     image(gfc,x- gfc.width*sc/2,y - gfc.height*sc/2, gfc.width*sc,gfc.height*sc);
+    
+    if (crashing) {
+      image(blast,x- gfc.width*sc/2,y - gfc.height*sc/2, gfc.width*sc,gfc.height*sc);
+    }
    }
   }
   
 }
+
+//////////////////////////////////////////////////////////
 
 ship allShips[];
 
@@ -158,18 +188,23 @@ launcher allLaunchers[];
 missile allMissiles[];
 
 PImage bgtex;
+PImage blast;
+PImage launcherIm;
+PImage launcherIm2;
 float posx; 
 
 void updateBgtex() {
  
   posx += 0.4;
   
-  
-
  for (int j = 0; j < bgtex.height; j++) {
  for (int i = 0; i < bgtex.width; i++) {
     
     int pixind = j*bgtex.width+i;
+    
+    if ( j > (bgtex.height -noise( (i+posx*2)*0.1 )*20 ) ) {
+       bgtex.pixels[pixind] = color(15,185,15); 
+    } else {
     
     float f = noise((i+posx)*0.1, j*0.3, t*0.0);
     if (f > 0.65)
@@ -181,6 +216,7 @@ void updateBgtex() {
    else
      bgtex.pixels[pixind] = color(100,100,255);
     
+    }
     
   }} 
   
@@ -192,7 +228,12 @@ void setup() {
   frameRate(30);
   size(800,600,OPENGL);
   
-  bgtex = createImage((int)(width/10),(int)(height/10),RGB);
+  blast = loadImage("blast.png");
+  
+  launcherIm = loadImage("launcher.png");
+  launcherIm2 = loadImage("launcher2.png");
+  
+  bgtex = createImage((int)(width/15),(int)(height/15),RGB);
   
   allShips = new ship[20];
   
@@ -211,7 +252,7 @@ void setup() {
      allLaunchers[i] = new launcher();
     
      allLaunchers[i].x = random(0,width);
-     allLaunchers[i].y = random(height-height/10,height);
+     allLaunchers[i].y = height -5;//random(height-height/10,height);
      
      allLaunchers[i].angle = random(0,2*PI);
        
