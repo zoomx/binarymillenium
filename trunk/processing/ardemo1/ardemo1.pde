@@ -5,8 +5,11 @@
  import javax.media.opengl.*;
 
 
-int vtwidth = 80;
-float vt[][][] = new float[vtwidth][vtwidth][3];
+int vtWidth = 60;
+
+boolean feedbackImage = false;
+boolean perturbMode = false;
+boolean redblockMode = true;
 
 PImage baseImage;
 PImage fbImage = createImage(100,100, RGB);
@@ -14,28 +17,163 @@ PImage fbImage = createImage(100,100, RGB);
 float rotx = 0;//PI/4;
 float roty = 0;//PI/4;
 
-GL gl;
+float roffsetv = 0;
+float roffset = 0;
+
+int baseX = 2;
+int baseY = 2;
+
+float radius = 0.3; 
+float radiusv = 0.0; 
+
+int xdupe = 2;
+int ydupe = 2;
+
+
+//GL gl;
+
+
+class block {
+  
+ float x;
+float y;
+float z;
+  
+  color col;
+  
+  void draw() {
+    
+    float tx,ty,tz;
+    float angle = x/(float)width*2*PI;
+    
+   // tx = (radius*1.5+z)*cos(angle+roffset);
+   // ty = y;
+   // tz = (radius*1.5+z)*sin(angle+roffset);  
+  
+    pushMatrix();
+    
+    fill(col);
+    rotateY(angle);
+    translate(radius*1.5*92,0,0);
+    rotateY(PI/2);
+    float d = 20.0;
+    rect(0,y,d,d);
+    
+    popMatrix();  
+    
+  }
+}
+
+final int NUM_BLOCKS = 10;
+block allBlocks[];
+
+class Prx {
+  
+  float x;
+  float y;
+  float z;
+  
+  float vx;
+  float vy;
+  float vz;
+  
+  float fz;
+  
+  
+  /// transformed coords
+  float tx;
+  float ty;
+  float tz;
+  
+  void update(float angle) {
+   
+   vz += fz;
+   fz = 0;
+   
+   z += vz;
+   
+   vz *= 0.99;
+    
+   
+
+   
+   tx = (radius+z) *cos(angle+roffset);
+   ty = y;
+   tz = (radius+z) *sin(angle+roffset);
+   
+    
+  }
+  
+};
+
+Prx vt[][] = new Prx[vtWidth][vtWidth];
+
+void particlesUpdate() {
+ 
+ for (int i = 0; i < vtWidth; i++) {
+  for (int j = 0; j< vtWidth; j++) {
+    
+    int il = i-1;
+    if (il < 0) il += vtWidth; 
+    int ir = i+1;
+    if (ir > vtWidth -1) ir -= vtWidth;
+    
+    int jl = j-1;
+    if (jl < 0) jl += vtWidth;
+    int jr = j+1;
+    if (jr > vtWidth -1) jr -= vtWidth;
+    
+    vt[i][j].fz += ((vt[il][j].z - vt[i][j].z) +
+                    (vt[ir][j].z - vt[i][j].z) + 
+                    (vt[i][jl].z - vt[i][j].z) +
+                    (vt[i][jr].z - vt[i][j].z)) * 0.01;
+    
+  }} 
+  
+  
+   for (int i = 0; i < vtWidth; i++) {
+  for (int j = 0; j< vtWidth; j++) {
+    
+    vt[i][j].update(2*PI*i/(vtWidth-1));
+  }}
+}
+
+
 
 void setup() {
   
-   for (int i = 0; i < vtwidth; i++) {
-   for (int j = 0;j < vtwidth; j++) {  
-     vt[i][j][0] = (float)i/(float)(vtwidth-1) - 0.5;
-     vt[i][j][1] = (float)j/(float)(vtwidth-1) - 0.5;
-     vt[i][j][2] = 0.0;
+  allBlocks = new block[NUM_BLOCKS];
+  
+  for (int i = 0; i < allBlocks.length; i++) {
+    allBlocks[i] = new block();  
+    
+    allBlocks[i].x = (int)(random(0,width/20))*20;
+    allBlocks[i].y = (int)(random(0,height/20))*20-height/2;
+    
+    allBlocks[i].col = color(255,0,0);
+  }
+  
+   for (int i = 0; i < vtWidth; i++) {
+   for (int j = 0;j < vtWidth; j++) { 
+      
+     vt[i][j] = new Prx();
+     
+     vt[i][j].x = (float)i/(float)(vtWidth-1) - 0.5;
+     vt[i][j].y = (float)j/(float)(vtWidth-1) - 0.5;
+     vt[i][j].z = 0.0;
   }}
   
   textureMode(NORMALIZED);
    
   fbImage = loadImage("bm.jpg");
-  baseImage = createImage(100,100,  RGB);
+  baseImage = createImage(width,height,  RGB);
   baseImage.copy(fbImage, 0,0,fbImage.width, fbImage.height, 0,0, baseImage.width, baseImage.height);
  
   //size(baseImage.width,baseImage.height, OPENGL); 
-  size(600,600, OPENGL); 
+  size(800,600, P3D); // texture feedback is way faster in p3d than opengl 
 
-  PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;  // g may change
-  gl = pgl.gl; 
+ // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;  // g may change
+ // gl = pgl.gl; 
   
  
  /*
@@ -54,47 +192,116 @@ void setup() {
 int srcX = 0;
 int srcY = 0;
 
-float distance = 440;
+float distance = 410;
 
-/*
+
+
+ boolean rotateMode = false;
+
 void mouseDragged() {
   
-  if (mouseButton == LEFT) {
+  
+  if (perturbMode) {
+    
+   if ( (mouseButton == RIGHT)) {
+     srcX = mouseX;
+     srcY = mouseY;
+   }
+   
+    if (lightMode) {
+      lx += (pmouseX - mouseX)*0.5;
+      ly += (mouseY - pmouseY)*0.5;
+    } else {
+    int x = (vtWidth-1)*mouseX/width;
+    int y = (vtWidth-1)*mouseY/width;
+    
+    if ((x >=0) && (y >=0) && (x< vtWidth) && ( y < vtWidth)) {
+      
+      if (mouseButton == RIGHT) {
+        vt[x][y].fz += 0.008;
+      }
+      if (mouseButton == LEFT) {
+        vt[x][y].fz -= 0.006;
+      }
+    }
+    
+  } 
+  
+  } else  if (rotateMode) {
+    if (mouseButton == LEFT) {
   float rate = 0.003;
   rotx += (pmouseY-mouseY) * rate;
   roty += (mouseX-pmouseX) * rate;
   
-  } else {
+    } else {
     distance += (pmouseY-mouseY) * 1;
+    }
+  
+  } else {
+    
+    baseY += (mouseY-pmouseY) * 0.2;
+    
+    baseX += (mouseX-pmouseX) * 0.2;
+    
   }
 }
 
-*/
 
 
+boolean lightMode = false;
+float lx,ly;
+
+void keyPressed() {
+  
+    if (key == 'p') {
+     perturbMode = !perturbMode; 
+      
+    }
+  
+   if (key == 'r') {
+     rotateMode = !rotateMode; 
+    
+  }
+  if (key == 'f') {
+     feedbackImage = !feedbackImage; 
+    
+  }
+   if (key == 'l') {
+     
+    lightMode = !lightMode; 
+   }
+   
+ if (key == 'a') {
+    roffsetv += PI/2000;
+ } 
+  
+ if (key == 'd') {
+    roffsetv -= PI/1910;
+ } 
+ 
+ if (key == 'j') {
+   radiusv += 0.0001;
+ }
+ 
+ if (key == 'l') {
+   radiusv -= 0.00008;
+ }
+ 
+}
 
 void draw() { 
   
-   if (mousePressed && (mouseButton == RIGHT)) {
-     srcX = mouseX;
-     srcY = mouseY;
-   }
+  radius += radiusv;
+  radiusv *= 0.99;
+  roffset += roffsetv;
+   roffsetv *= 0.999;
   
-  if (mousePressed) { 
-    int x = (vtwidth-1)*mouseX/width;
-    int y = (vtwidth-1)*mouseY/width;
-    
-    if ((x< vtwidth) && ( y < vtwidth)) {
-      
-      if (mouseButton == RIGHT) {
-        vt[x][y][2] = vt[x][y][2] + 0.004;
-      }
-      if (mouseButton == LEFT) {
-        vt[x][y][2] = vt[x][y][2] - 0.004;
-      }
-    }
-  } 
+  background(0);
   
+  
+  
+  
+  particlesUpdate();
    
   /*
   fbImage.copy(baseImage,srcX,srcY,fbImage.width, fbImage.height, 0,0, fbImage.width, fbImage.height);
@@ -105,29 +312,45 @@ void draw() {
      baseImage.blend(fbImage,0,0,fbImage.width, fbImage.height, mouseX-fbImage.width,mouseY-fbImage.height, fbImage.width, fbImage.height, BLEND);
   
   }
+I*/
 
-  image(baseImage,0,0,width,height);
-  */
-  
   background(255);
+  image(baseImage,-baseX,-baseY,width+baseX*2,height+baseY*2);
+  
+  
+  
  
   //image(baseImage,0,0,width,height);
   
-   gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+  // gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
    
-   noStroke();
+  noStroke();
   translate(width/2.0, height/2.0, distance);
-  rotateX(rotx);
+  
+  ambientLight(220, 220, 220);
+  pointLight(150, 150, 150, // Color
+             lx, ly, 0); // Position
+  
+   rotateX(rotx);
   rotateY(roty);
-  scale(90);
+  pushMatrix();
+ 
+  scale(100);
   // texture repeating doesn't work in processing?
   TexturedCube(baseImage,1,1); // 10,10);// width/baseImage.width, height/baseImage.height);
+  popMatrix();
+ 
   
+  for (int i = 0; i < allBlocks.length; i++) {
+    allBlocks[i].draw();  
+  }
  
  
- if (false) { 
+ if (feedbackImage) { 
   loadPixels();
   
+  
+  if (false) {
   /// copy full image
   
   int dx = width/baseImage.width;
@@ -157,7 +380,9 @@ void draw() {
   }}
 }
   
-  //arraycopy(pixels,baseImage.pixels); // too slow at high res
+  } else {
+    arraycopy(pixels,baseImage.pixels); // too slow at high res
+  }
   baseImage.updatePixels();
   
 }
@@ -166,7 +391,11 @@ void draw() {
 }
 
 
+/////////////////////////////////////////////////////////////////////
+
 void TexturedCube(PImage tex,int tx, int ty) {
+  
+  fill(255);
   beginShape(QUADS);
   texture(tex);
 //  gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);  
@@ -183,12 +412,25 @@ void TexturedCube(PImage tex,int tx, int ty) {
   
   //stroke(255,255,255);
   
-  for (int i = 0; i < vtwidth-1; i++) {
-  for (int j = 0; j < vtwidth-1; j++) {  
-     vertex(vt[i]  [j]  [0], vt[i]  [j]  [1],  vt[i]  [j]  [2] ,     (float)i/(float)(vtwidth-1),      (float)j/(float)(vtwidth-1) );
-     vertex(vt[i+1][j]  [0], vt[i+1][j]  [1],  vt[i+1][j]  [2] , (float)(i+1)/(float)(vtwidth-1),      (float)j/(float)(vtwidth-1) );
-     vertex(vt[i+1][j+1][0], vt[i+1][j+1][1],  vt[i+1][j+1][2] , (float)(i+1)/(float)(vtwidth-1),  (float)(j+1)/(float)(vtwidth-1) );
-     vertex(vt[i]  [j+1][0], vt[i]  [j+1][1],  vt[i]  [j+1][2] ,     (float)i/(float)(vtwidth-1),  (float)(j+1)/(float)(vtwidth-1) );
+  
+  for (int i = 0; i < vtWidth-1; i++) {
+  for (int j = 0; j < vtWidth-1; j++) {  
+    
+    if (i < vtWidth/2) {
+     vertex(vt[i]  [j].tx, vt[i]  [j].ty,  vt[i]  [j].tz ,       (float)i/(float)(vtWidth/2-1),      (float)j/(float)(vtWidth-1) );
+     vertex(vt[i+1][j].tx, vt[i+1][j].ty,  vt[i+1][j].tz ,       (float)(i+1)/(float)(vtWidth/2-1),      (float)j/(float)(vtWidth-1) );
+     vertex(vt[i+1][j+1].tx, vt[i+1][j+1].ty,  vt[i+1][j+1].tz , (float)(i+1)/(float)(vtWidth/2-1),  (float)(j+1)/(float)(vtWidth-1) );
+     vertex(vt[i]  [j+1].tx, vt[i]  [j+1].ty,  vt[i]  [j+1].tz , (float)i/(float)(vtWidth/2-1),  (float)(j+1)/(float)(vtWidth-1) );
+     
+    } else {
+     /// draw reversed 
+     vertex(vt[i]  [j].tx, vt[i]  [j].ty,  vt[i]  [j].tz ,       (float)(vtWidth-i)/(float)(vtWidth/2-1),      (float)j/(float)(vtWidth-1) );
+     vertex(vt[i+1][j].tx, vt[i+1][j].ty,  vt[i+1][j].tz ,       (float)(vtWidth-i-1)/(float)(vtWidth/2-1),      (float)j/(float)(vtWidth-1) );
+     vertex(vt[i+1][j+1].tx, vt[i+1][j+1].ty,  vt[i+1][j+1].tz , (float)(vtWidth-i-1)/(float)(vtWidth/2-1),  (float)(j+1)/(float)(vtWidth-1) );
+     vertex(vt[i]  [j+1].tx, vt[i]  [j+1].ty,  vt[i]  [j+1].tz , (float)(vtWidth-i)/(float)(vtWidth/2-1),  (float)(j+1)/(float)(vtWidth-1) );
+     
+    }
+    
    }}
   // +Z "front" face
   
