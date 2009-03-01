@@ -4,7 +4,7 @@
  
  import javax.media.opengl.*;
 
-
+arUdp theArUdp;
 
 int vtWidth = 60;
 
@@ -35,9 +35,64 @@ int ydupe = 2;
 
 float blendf = 0.0;
 
+int srcX = 0;
+int srcY = 0;
+
+float distance = 410;
+float distancev = 0;
+
+ boolean rotateMode = false;
+ 
+ int redblockCounter =0;
+ 
+ boolean lightMode = false;
+float lx,ly;
+
+
+void reset() {
+  
+   baseImage.copy(fbImage, 0,0,fbImage.width, fbImage.height, 0,0, baseImage.width, baseImage.height);
+ 
+ feedbackImage = false;
+ perturbMode = false;
+ redblockMode = true;
+
+  rotx = 0;//PI/4;
+roty = 0;//PI/4;
+rotxv = 0;
+rotyv = 0;
+
+roffsetv = 0;
+ roffset = 0;
+
+baseX = 2;
+ baseY = 2;
+
+radius = 0.3; 
+radiusv = 0.0; 
+
+xdupe = 2;
+ ydupe = 2;
+
+blendf = 0.0;
+
+srcX = 0;
+ srcY = 0;
+
+distance = 410;
+distancev = 0;
+
+rotateMode = false;
+ 
+redblockCounter =0;
+ 
+lightMode = false;
+lx =0;
+ly =0;
+}
 
 //GL gl;
-
+///////////////////////////////
 
 class block {
   
@@ -70,6 +125,8 @@ float z;
     
   }
 }
+
+//////////////////////////////
 
 final int NUM_BLOCKS = 20;
 block allBlocks[];
@@ -158,10 +215,16 @@ void particlesUpdate() {
   }}
 }
 
-
+/////////////////////////////////////////////////////////////////////
 
 void setup() {
   
+    //size(baseImage.width,baseImage.height, OPENGL); 
+  size(800,600, P3D); // texture feedback is way faster in p3d than opengl 
+  
+    theArUdp = new arUdp();
+    
+    
   redIm = loadImage("red.png");
   
   allBlocks = new block[NUM_BLOCKS];
@@ -191,8 +254,7 @@ void setup() {
   baseImage = createImage(width,height,  RGB);
   baseImage.copy(fbImage, 0,0,fbImage.width, fbImage.height, 0,0, baseImage.width, baseImage.height);
  
-  //size(baseImage.width,baseImage.height, OPENGL); 
-  size(800,600, P3D); // texture feedback is way faster in p3d than opengl 
+
 
  // PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;  // g may change
  // gl = pgl.gl; 
@@ -208,20 +270,10 @@ void setup() {
   */
 
  
- //frameRate(10);
 }
 
-int srcX = 0;
-int srcY = 0;
+/////////////////////////////
 
-float distance = 410;
-float distancev = 0;
-
-
-
- boolean rotateMode = false;
- 
- int redblockCounter =0;
 
 void mouseDragged() {
   
@@ -240,7 +292,7 @@ void mouseDragged() {
      redblockCounter = 0;
    }
     } else if (mouseButton == RIGHT)  {
-      blendf += (pmouseX - mouseX)*0.1;
+      blendf += (pmouseX - mouseX)*0.01;
       
     }
     
@@ -291,12 +343,15 @@ void mouseDragged() {
 
 
 
-boolean lightMode = false;
-float lx,ly;
+
 
 void keyPressed() {
   
-  
+  if (key == 'q') {
+   
+     reset();
+     
+  }
   if (key == 'b') {
     redblockMode = !redblockMode;
   }
@@ -336,8 +391,38 @@ void keyPressed() {
  
 }
 
+///////////////////////////////////////
+
 void draw() { 
   
+   theArUdp.update();
+  
+  
+   roty += (theArUdp.dbInfos[0].y-theArUdp.dbInfos[0].oldy) * 1.6;
+   rotx += (theArUdp.dbInfos[0].x-theArUdp.dbInfos[0].oldx) * 1.6;
+  distance += (theArUdp.dbInfos[0].rot-theArUdp.dbInfos[0].oldrot) * 2;
+  
+   baseY += (theArUdp.dbInfos[1].y-theArUdp.dbInfos[1].oldy) * 100;
+   baseX += (theArUdp.dbInfos[1].x-theArUdp.dbInfos[1].oldx) * 100; 
+   if (theArUdp.dbInfos[1].rot > PI) feedbackImage = true;
+   else feedbackImage = false;
+  
+   radius += (theArUdp.dbInfos[2].y-theArUdp.dbInfos[2].oldy) * 0.1;
+   blendf += (theArUdp.dbInfos[2].x-theArUdp.dbInfos[2].oldx) * 0.9; 
+   //roffset += (theArUdp.dbInfos[2].x-theArUdp.dbInfos[2].oldx) * 0.9; 
+   
+   
+   {
+    int x = (int) (theArUdp.dbInfos[3].x*(vtWidth-1));
+    int y = (int) (theArUdp.dbInfos[3].y*(vtWidth-1));
+    
+    //println(x + " " +y);
+    if ((x >=0) && (y >=0) && (x< vtWidth) && ( y < vtWidth)) {
+        vt[x][y].fz += 0.001+ (theArUdp.dbInfos[3].y-theArUdp.dbInfos[3].oldy) * 0.008;
+    }
+   }
+   
+   
   radius += radiusv;
   radiusv *= 0.98;
   roffset += roffsetv;
@@ -448,7 +533,22 @@ I*/
 
 
 /////////////////////////////////////////////////////////////////////
+   /**
+ * To perform any action on datagram reception, you need to implement this 
+ * handler in your code. This method will be automatically called by the UDP 
+ * object each time he receive a nonnull message.
+ * By default, this method have just one argument (the received message as 
+ * byte[] array), but in addition, two arguments (representing in order the 
+ * sender IP address and his port) can be set like below.
+ */
+// void receive( byte[] data ) { 			// <-- default handler
 
+ void receive( byte[] data, String ip, int port ) {
+ theArUdp.receive(data,ip,port); 
+  
+}
+
+////////////////////
 void TexturedCube(PImage tex,int tx, int ty) {
   
   fill(255);
