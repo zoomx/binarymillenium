@@ -5,17 +5,21 @@
  import javax.media.opengl.*;
 
 
+
 int vtWidth = 60;
 
 boolean feedbackImage = false;
 boolean perturbMode = false;
 boolean redblockMode = true;
+PImage redIm;
 
 PImage baseImage;
 PImage fbImage = createImage(100,100, RGB);
   
 float rotx = 0;//PI/4;
 float roty = 0;//PI/4;
+float rotxv = 0;
+float rotyv = 0;
 
 float roffsetv = 0;
 float roffset = 0;
@@ -28,6 +32,8 @@ float radiusv = 0.0;
 
 int xdupe = 2;
 int ydupe = 2;
+
+float blendf = 0.0;
 
 
 //GL gl;
@@ -53,18 +59,19 @@ float z;
     pushMatrix();
     
     fill(col);
-    rotateY(angle);
-    translate(radius*1.5*92,0,0);
+    rotateY(angle+roffset);
+    translate(radius*2.0*92,0,0);
     rotateY(PI/2);
-    float d = 20.0;
-    rect(0,y,d,d);
+    float d = 2.0;
+    //rect(0,y,d,d);
+    image(redIm,0,y,d+roffsetv*500 + rotxv*300,d);
     
     popMatrix();  
     
   }
 }
 
-final int NUM_BLOCKS = 10;
+final int NUM_BLOCKS = 20;
 block allBlocks[];
 
 class Prx {
@@ -85,21 +92,21 @@ class Prx {
   float ty;
   float tz;
   
-  void update(float angle) {
+  void update(float angle, float angle2, float blendf) {
    
    vz += fz;
    fz = 0;
    
    z += vz;
    
-   vz *= 0.99;
+   vz *= 0.98;
     
    
-
+  /// blend sphere and cylinder
    
-   tx = (radius+z) *cos(angle+roffset);
-   ty = y;
-   tz = (radius+z) *sin(angle+roffset);
+   tx = (radius+z) * (cos(angle+roffset)*blendf  + (1.0-blendf)*cos(angle+roffset)*cos(angle2));
+   ty = y*blendf + (1.0 - blendf)*(radius+z)*sin(angle2);
+   tz = (radius+z) * (sin(angle+roffset)*blendf  +  (1.0-blendf)*sin(angle+roffset)*cos(angle2)) ;
    
     
   }
@@ -123,10 +130,23 @@ void particlesUpdate() {
     int jr = j+1;
     if (jr > vtWidth -1) jr -= vtWidth;
     
-    vt[i][j].fz += ((vt[il][j].z - vt[i][j].z) +
+    vt[i][j].fz += 
+                  /// position
+                   ((vt[il][j].z - vt[i][j].z) +
                     (vt[ir][j].z - vt[i][j].z) + 
                     (vt[i][jl].z - vt[i][j].z) +
-                    (vt[i][jr].z - vt[i][j].z)) * 0.01;
+                    (vt[i][jr].z - vt[i][j].z)) * 0.005 +
+                    
+                   ((vt[il][jl].z - vt[i][j].z) +
+                    (vt[ir][jl].z - vt[i][j].z) + 
+                    (vt[ir][jr].z - vt[i][j].z) +
+                    (vt[il][jr].z - vt[i][j].z)) * 0.002 +
+                    
+                    /// velocity
+                   ((-vt[il][j].vz + vt[i][j].vz) +
+                    (-vt[ir][j].vz + vt[i][j].vz) + 
+                    (-vt[i][jl].vz + vt[i][j].vz) +
+                    (-vt[i][jr].vz + vt[i][j].vz)) * 0.001;
     
   }} 
   
@@ -134,7 +154,7 @@ void particlesUpdate() {
    for (int i = 0; i < vtWidth; i++) {
   for (int j = 0; j< vtWidth; j++) {
     
-    vt[i][j].update(2*PI*i/(vtWidth-1));
+    vt[i][j].update(2*PI*i/(vtWidth-1), PI*j/(vtWidth-1)-PI/2, blendf );
   }}
 }
 
@@ -142,13 +162,15 @@ void particlesUpdate() {
 
 void setup() {
   
+  redIm = loadImage("red.png");
+  
   allBlocks = new block[NUM_BLOCKS];
   
   for (int i = 0; i < allBlocks.length; i++) {
     allBlocks[i] = new block();  
     
     allBlocks[i].x = (int)(random(0,width/20))*20;
-    allBlocks[i].y = (int)(random(0,height/20))*20-height/2;
+    allBlocks[i].y = 0.1* ((int)(random(0,height/20))*20-height/2);
     
     allBlocks[i].col = color(255,0,0);
   }
@@ -193,15 +215,36 @@ int srcX = 0;
 int srcY = 0;
 
 float distance = 410;
+float distancev = 0;
 
 
 
  boolean rotateMode = false;
+ 
+ int redblockCounter =0;
 
 void mouseDragged() {
   
   
-  if (perturbMode) {
+  if (redblockMode) {
+   
+    
+    if (mouseButton == LEFT) {
+    allBlocks[redblockCounter].x = (int)(mouseX/20)*20;
+    allBlocks[redblockCounter].y = 0.1* (((int)(mouseY/20))*20-height/2);  
+   
+   //allBlocks[redblockCounter].col = color(redblockCounter*255.0/NUM_BLOCKS,0,0);
+   
+   redblockCounter++;
+   if (redblockCounter >= NUM_BLOCKS) {
+     redblockCounter = 0;
+   }
+    } else if (mouseButton == RIGHT)  {
+      blendf += (pmouseX - mouseX)*0.1;
+      
+    }
+    
+  }  else if (perturbMode) {
     
    if ( (mouseButton == RIGHT)) {
      srcX = mouseX;
@@ -229,12 +272,12 @@ void mouseDragged() {
   
   } else  if (rotateMode) {
     if (mouseButton == LEFT) {
-  float rate = 0.003;
-  rotx += (pmouseY-mouseY) * rate;
-  roty += (mouseX-pmouseX) * rate;
+  float rate = 0.0003;
+  rotxv += (pmouseY-mouseY) * rate;
+  rotyv += (mouseX-pmouseX) * rate;
   
     } else {
-    distance += (pmouseY-mouseY) * 1;
+    distancev += (pmouseY-mouseY) * 0.04;
     }
   
   } else {
@@ -253,6 +296,10 @@ float lx,ly;
 
 void keyPressed() {
   
+  
+  if (key == 'b') {
+    redblockMode = !redblockMode;
+  }
     if (key == 'p') {
      perturbMode = !perturbMode; 
       
@@ -292,9 +339,18 @@ void keyPressed() {
 void draw() { 
   
   radius += radiusv;
-  radiusv *= 0.99;
+  radiusv *= 0.98;
   roffset += roffsetv;
-   roffsetv *= 0.999;
+   roffsetv *= 0.98;
+   
+   
+   rotx += rotxv;
+   roty += rotyv;
+   rotxv *= 0.97;
+   rotyv *= 0.97;
+   
+   distance += distancev;
+   distancev *= 0.97;
   
   background(0);
   
@@ -412,6 +468,7 @@ void TexturedCube(PImage tex,int tx, int ty) {
   
   //stroke(255,255,255);
   
+  fill(255,255,255,128);
   
   for (int i = 0; i < vtWidth-1; i++) {
   for (int j = 0; j < vtWidth-1; j++) {  
