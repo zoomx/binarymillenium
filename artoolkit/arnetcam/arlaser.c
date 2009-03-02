@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     /// the port where the modified net ctrl is sent to flightgear
     memset(&host, 0, sizeof(host));       /* Clear struct */
     host.sin_family = AF_INET;                  /* Internet/IP */
-    host.sin_addr.s_addr = inet_addr("127.0.0.1");  /* IP address */
+    host.sin_addr.s_addr = inet_addr("192.168.1.100");  /* IP address */
     host.sin_port = htons(5600);       /* server port */
 
     bind(sock, (struct sockaddr*)&host, sizeof(host));
@@ -107,7 +107,6 @@ int main(int argc, char **argv)
 
     CURL *curl_handle;
     FILE *curl_file;
-    curl_file = fopen("images/test.jpg","w");
 
     curl_handle = curl_easy_init();
 
@@ -116,16 +115,31 @@ int main(int argc, char **argv)
         exit(0);
     }
     //curl_easy_setopt(curl_handle, CURLOPT_URL, "http://binarymillenium.googlecode.com/svn/trunk/artoolkit/arnetcam/images/arboard1angle.jpg");
-    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://192.168.1.57/now.jpg");
+    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://192.168.1.57/now.jpg?ds=2");
+    //curl_easy_setopt(curl_handle, CURLOPT_URL, "http://192.168.1.57/now.jpg");
+    
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data); 
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, curl_file); 
 
     CURLcode rv;
+    cur_filename = "/dev/shm/test.jpg";
 
-    rv = curl_easy_perform(curl_handle);
-    printf("%d\n", rv);
-    
-    cur_filename = "images/test.jpg";
+
+	MagickWandGenesis();
+
+        curl_file = fopen("/dev/shm/test.jpg","w");
+        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, curl_file); 
+
+        rv = curl_easy_perform(curl_handle);
+        //printf("%d curlCODE\n", rv);
+
+        fclose(curl_file);
+        
+
+        dataPtr	    = loadImage(cur_filename,&xsize,&ysize);
+
+
+
+
 
     if (argc > 2) {
         sprintf(path,"%s/", argv[2]);
@@ -135,10 +149,7 @@ int main(int argc, char **argv)
 
     fprintf(stderr,"%d %s,\n", argc, cur_filename);
 
-    /// make this get an image with curl
-	dataPtr	    = loadImage(cur_filename,&xsize,&ysize);
-
-	ARParam  wparam;
+    	ARParam  wparam;
 
     sprintf(cparam_name,"%s%s",path,"camera_para.dat");
     fprintf(stderr,"%s\n", cparam_name);
@@ -206,7 +217,22 @@ mat\n \
     //argInit( &cparam, 1.0, 0, 0, 0, 0 );
 
     printf("%s,\t\n",cur_filename);
-	findMarkers(dataPtr,sock, &host);
+	
+    
+    while (1) {
+    
+        curl_file = fopen("/dev/shm/test.jpg","w");
+        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, curl_file); 
+        rv = curl_easy_perform(curl_handle);
+        //printf("%d curlCODE\n", rv);
+        fclose(curl_file);
+        
+        dataPtr	    = loadImage(cur_filename,&xsize,&ysize);
+        findMarkers(dataPtr,sock, &host);
+        
+        free(dataPtr);
+
+    }
 
     argCleanup();
 }
@@ -215,7 +241,7 @@ void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host)
 {
     ARMarkerInfo    *marker_info;
     int             marker_num;
-    int             j, k;
+    int             i, j, k;
     int             thresh = 100;
 
     // detect the markers in the video frame 
@@ -225,7 +251,7 @@ void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host)
         exit(0);
     }
 
-    fprintf(stderr,"%d markers_found \n", marker_num);
+    //fprintf(stderr,"%d markers_found \n", marker_num);
 
 /*
     // check for object visibility 
@@ -242,10 +268,23 @@ void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host)
         double ox,oy;
         arParamIdeal2Observ(cparam.dist_factor ,  marker_info[k].pos[0], marker_info[k].pos[1], &ox, &oy);
 
-        float rot = atan2(  marker_info[k].vertex[0][1] - marker_info[k].pos[1] , 
-                            marker_info[k].vertex[0][0] - marker_info[k].pos[0] );
+        double          patt_trans[3][4];
+		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
+        double          patt_width     = 80.0;
+        double          patt_center[2] = {0.0, 0.0};
+        /* get the transformation between the marker and the real camera */
+		arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
+        double wa,wb,wc;
 
-        //char buffer[100];
+        double rot[3][3];
+        for (i= 0; i < 3; i++) {
+        for (j= 0; j < 3; j++) {
+            rot[i][j] = patt_trans[i][j];
+        }}
+
+        arGetAngle(rot,&wa,&wb,&wc);
+
+        //if (marker_info[k].id == 0) printf("%g %g %g\n",wa,wb,wc);
 
         struct send_marker_info to_send;
         
@@ -254,7 +293,7 @@ void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host)
         to_send.cf = marker_info[k].cf;
         to_send.x = ox/(float)xsize;
         to_send.y = oy/(float)ysize;
-        to_send.rot = rot;
+        to_send.rot = wc;
         
         int received = sendto(sock, (void*) &to_send, sizeof(to_send), 0,
                 (struct sockaddr *) host, sizeof(*host));
@@ -263,19 +302,12 @@ void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host)
             perror("sendto");
         } 
 
-        printf("%d, %d sent\n", to_send.id, received);
+        //printf("%d, %d sent\n", to_send.id, received);
 
 
         /// print rotation matrix
         if (0) {
-        double          patt_trans[3][4];
-		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
-        double          patt_width     = 80.0;
-        double          patt_center[2] = {0.0, 0.0};
-        /* get the transformation between the marker and the real camera */
-		arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
-
-		/// what is patt_center, it seems to be zeros
+        		/// what is patt_center, it seems to be zeros
 		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
 	
 		int i;
@@ -286,7 +318,7 @@ void findMarkers(ARUint8* dataPtr, int sock, struct sockaddr_in* host)
 			printf("\t");
 		}
         }
-		printf("\n");
+		//printf(".");
 	}
 }
 

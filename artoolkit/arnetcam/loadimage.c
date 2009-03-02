@@ -49,7 +49,6 @@ ARUint8* loadImage(char* filename, int* xsize, int* ysize)
 	Image *image;
 	MagickWand* magick_wand;
 
-	MagickWandGenesis();
 	magick_wand=NewMagickWand(); 
     if( magick_wand == NULL) {
         fprintf(stderr, "bad magickwand\n");
@@ -96,6 +95,8 @@ ARUint8* loadImage(char* filename, int* xsize, int* ysize)
 			index++;
 		}
 	}
+
+    DestroyMagickWand(magick_wand);
 
 	return dptr;
 }
