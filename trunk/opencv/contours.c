@@ -52,8 +52,8 @@ int main( int argc, char** argv )
     int i, j;
     storage = cvCreateMemStorage(0);
     //IplImage* img_src_pre = cvLoadImage("test1.jpg", CV_LOAD_IMAGE_COLOR );
-	img_src = cvLoadImage("test1.jpg", CV_LOAD_IMAGE_COLOR );
-	cvSmooth(img_src,img_src,CV_GAUSSIAN,3);
+	img_src = cvLoadImage("test2.png", CV_LOAD_IMAGE_COLOR );
+	//cvSmooth(img_src,img_src,CV_GAUSSIAN,9);
 	//img_src = cvCreateImage(cvSize(img_src_pre->width/2, img_src_pre->height/2), 8,3);
     //cvResize(img_src_pre,img_src, CV_INTER_LINEAR);
 	img_gray = cvCreateImage(cvSize(img_src->width, img_src->height), 8,1);
@@ -68,15 +68,17 @@ int main( int argc, char** argv )
 	
 	
 	CvSeq* cur_cont = contours;
-	//while (
-	int count = cur_cont->total;
+	while (cur_cont != NULL) {
+		int count = cur_cont->total;
 	
-	CvPoint* points = (CvPoint*)malloc(count*sizeof(CvPoint));
-	cvCvtSeqToArray(cur_cont, points, CV_WHOLE_SEQ);
-	for (int i = 0; i < count; i++) {
-		printf("%g, %g", (float)points[i].x/(float)img_src->width, 
+		CvPoint* points = (CvPoint*)malloc(count*sizeof(CvPoint));
+		cvCvtSeqToArray(cur_cont, points, CV_WHOLE_SEQ);
+		for (int i = 0; i < count; i++) {
+			printf("%g, %g\n", (float)points[i].x/(float)img_src->width, 
 						 (float)points[i].y/(float)img_src->height);
 
+		}
+		cur_cont = cur_cont->h_next;
 	}
 
     // comment this out if you do not want approximation
