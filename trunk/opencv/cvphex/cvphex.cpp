@@ -61,14 +61,27 @@ int main() {
 	cvInitFont(&font,CV_FONT_HERSHEY_SIMPLEX, hScale,vScale,0,lineWidth);
 	}
 
+	IplConvKernel* kern = cvCreateStructuringElementEx( 3, 3, 1, 1,CV_SHAPE_RECT, NULL );
+
 	cvNamedWindow("output",1);
 	cvNamedWindow("gui",1);
 
 	int last_key = 0;
 
+	const int NUM_TYPES = 2;
+	unsigned int type = 0;
+
 	while (running) {
-		cvAddWeighted(images[0], add_alpha, images[1], add_beta, add_gamma, images[images.size()-1] );
-		
+
+		if (type == 0) {
+			cvAddWeighted(images[0], add_alpha, images[1], 
+							add_beta, add_gamma, images[images.size()-1] );
+		} else if (type == 1) {
+			cvMorphologyEx(images[0], images[images.size()-1], images[1], 
+							kern,CV_MOP_OPEN, int(fabs(add_alpha*10)) );
+		}
+
+
 		cvShowImage("output",images[images.size()-1]);
 	
 		{
@@ -108,7 +121,11 @@ int main() {
 		
 			/// one time ops
 			if (key != last_key) {
-
+				if (key == 'd') {
+					type = (type-1)%NUM_TYPES;
+				} else if (key == 'f') {
+					type = (type+1)%NUM_TYPES;
+				}
 			}
 			//std::cout << add_beta << " " << add_alpha << std::endl;
 		}
