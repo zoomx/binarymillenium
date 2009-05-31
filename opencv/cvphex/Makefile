@@ -6,12 +6,21 @@ CCFLAGS +=  -I/usr/include/X11
 
 LDFLAGS = -Wl -L/home/lucasw/other/install/lib/ -lcv -lhighgui 
 
-all: objects
-	#$(CC) -o cvphex.so cvphex.o $(LDFLAGS)
-	$(CC) -o cvphex cvphex.o $(LDFLAGS)
+FILES =\
+	cvphex.o \
+	module.o
 
-objects: cvphex.cpp
-	$(CC) $(CCFLAGS) -o cvphex.o cvphex.cpp
+EXEC = cvphex
+
+all: $(EXEC)
+
+$(EXEC): $(FILES)
+	@echo building $@ with $(OBJS)
+	$(CC) $(LDFLAGS) $(FILES) $(LIBS) -o $@ 
+
+%.o: %.cpp
+	@echo $@ depends on $<
+	$(CC) $(CCFLAGS) -c $< -o $@ 
 
 clean: 
 	- rm -f cvphex.o cvphex.dll *~
