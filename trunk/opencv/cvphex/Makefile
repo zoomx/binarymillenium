@@ -8,7 +8,9 @@ LDFLAGS = -Wl -L/home/lucasw/other/install/lib/ -lcv -lhighgui
 
 FILES =\
 	cvphex.o \
-	module.o
+	phexNumber.o \
+	phexImage.o \
+	phexModule.o
 
 EXEC = cvphex
 
