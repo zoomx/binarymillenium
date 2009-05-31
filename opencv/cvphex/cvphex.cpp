@@ -13,7 +13,9 @@
 #include "cv.h"
 #include "highgui.h"
 
-#include "module.hpp"
+#include "phexModule.hpp"
+#include "phexNumber.hpp"
+#include "phexImage.hpp"
 
 int width  = 320;
 int height = 240;
@@ -41,7 +43,6 @@ int main() {
 
 	std::vector<IplImage*> images;
 	
-	IplImage* in1 = (cvLoadImage("images/test.jpg", CV_LOAD_IMAGE_COLOR));
 	//IplImage* in2 = (cvLoadImage("images/circle.png", CV_LOAD_IMAGE_COLOR));
 
 	float scale = 0.2;
@@ -63,39 +64,42 @@ int main() {
 	const int NUM_TYPES = 2;
 	unsigned int type = 0;
 
-	std::vector<module*> modules;
+	std::vector<phexModule*> phexModules;
 
-	modules.push_back(new module(5,5));
-	cvReleaseImage(&modules[0]->images[0]);
-	modules[0]->images[0] =  resize(in1,width,height);
-	modules[0]->dirty = true;
+	{
+		phexImage* first = new phexImage(5,5);
+		cvReleaseImage(&first->images[0]);
+		IplImage* in1 = (cvLoadImage("images/test.jpg", CV_LOAD_IMAGE_COLOR));
+		first->images[0] = resize(in1,width,height);
+		first->dirty = true;
+	
+		phexModules.push_back(first);
+	}
 
+	/// add a few more image modules
 	for (unsigned i = 1; i < 4; i++) {
-		modules.push_back(new module(i*60,5));	
-
-		modules[i]->inputModules.push_back(modules[i-1]);
+		phexImage* newIm = new phexImage(i*60,5);	
+		newIm->inputImages.push_back(dynamic_cast<phexImage*>(phexModules[i-1]));
+		phexModules.push_back(newIm);	
 	}
 	
-	unsigned moduleSelected = 0;
+	unsigned phexModuleSelected = 0;
 
 	while (running) {
 
-	//		cvAddWeighted(images[0], add_alpha, images[1], 
-	//						add_beta, add_gamma, images[images.size()-1] );
 
-
-		cvShowImage("output",modules[modules.size()-1]->images[0]);
+		cvShowImage("output",dynamic_cast<phexImage*>(phexModules[3])->images[0]);
 
 		{
 			// blank background
 			cvRectangle(gui, cvPoint(0,0), cvPoint(gui->width, gui->height), cvScalar(0,0,0),CV_FILLED);
 			/// update
-			for (unsigned i = 0; i < modules.size(); i++) {
-				modules[i]->update();
+			for (unsigned i = 0; i < phexModules.size(); i++) {
+				phexModules[i]->update();
 			}
 			/// gui output
-			for (unsigned i = 0; i < modules.size(); i++) {
-				modules[i]->draw(gui, moduleSelected == i);
+			for (unsigned i = 0; i < phexModules.size(); i++) {
+				phexModules[i]->draw(gui, phexModuleSelected == i);
 			}
 			/*	std::ostringstream txt;
 				txt << "add_beta =" << add_beta << ", add_alpha =" << add_alpha;	
@@ -112,9 +116,9 @@ int main() {
 			if (key == 'q') {
 				running = false;
 			} else if (key == 'u') {
-				moduleSelected = (moduleSelected + 1)%modules.size();
+				phexModuleSelected = (phexModuleSelected + 1)%phexModules.size();
 			} else if (key == 'i') {
-				moduleSelected = (moduleSelected - 1)%modules.size();
+				phexModuleSelected = (phexModuleSelected - 1)%phexModules.size();
 			} /*else if (key == 'j') {
 				add_alpha += 0.02;
 			} else if (key == 'k') {
