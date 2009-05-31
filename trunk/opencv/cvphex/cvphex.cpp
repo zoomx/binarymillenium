@@ -13,6 +13,8 @@
 #include "cv.h"
 #include "highgui.h"
 
+#include "module.hpp"
+
 int width  = 320;
 int height = 240;
 
