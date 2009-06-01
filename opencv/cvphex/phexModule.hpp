@@ -27,6 +27,7 @@ class phexModule
 		virtual bool update();
 		virtual void draw(IplImage* output,bool isSelected = false);
 
+		virtual void changeValue(int index, float offset) {}
 
 	protected:
 		

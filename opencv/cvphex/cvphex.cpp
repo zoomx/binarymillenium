@@ -82,7 +82,9 @@ int main() {
 		newIm->inputImages.push_back(dynamic_cast<phexImage*>(phexModules[i-1]));
 		phexModules.push_back(newIm);	
 	}
-	
+
+	/// now add some number modules
+
 	unsigned phexModuleSelected = 0;
 
 	while (running) {
@@ -115,17 +117,25 @@ int main() {
 		if (key >= 0) {
 			if (key == 'q') {
 				running = false;
-			} else if (key == 'u') {
-				phexModuleSelected = (phexModuleSelected + 1)%phexModules.size();
-			} else if (key == 'i') {
+			} else if (key == '1') {
 				phexModuleSelected = (phexModuleSelected - 1)%phexModules.size();
-			} /*else if (key == 'j') {
-				add_alpha += 0.02;
+			} else if (key == '2') {
+				phexModuleSelected = (phexModuleSelected + 1)%phexModules.size();
+			} else if (key == 'u') {
+				phexModules[phexModuleSelected]->changeValue(0, 0.1);
+			} else if (key == 'i') {
+				phexModules[phexModuleSelected]->changeValue(0,-0.1);
+			} else if (key == 'j') {
+				phexModules[phexModuleSelected]->changeValue(1, 0.1);
 			} else if (key == 'k') {
-				add_alpha -= 0.0199;
-			}
-		*/
-			/// one time ops
+				phexModules[phexModuleSelected]->changeValue(1,-0.1);
+			} else if (key == 'n') {
+				phexModules[phexModuleSelected]->changeValue(2, 10);
+			} else if (key == 'm') {
+				phexModules[phexModuleSelected]->changeValue(2,-10);
+			}	
+		
+			// one time ops
 			if (key != last_key) {
 		/*		if (key == 'd') {
 					type = (type-1)%NUM_TYPES;
