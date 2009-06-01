@@ -6,8 +6,6 @@
 #include "cv.h"
 
 //class phexModule;
-class phexImage;
-class phexNumber;
 
 class phexModule 
 {
@@ -15,8 +13,8 @@ class phexModule
 	public:
 		/// list of input objects
 		//inport
-		std::vector<phexImage*> inputImages;
-		std::vector<phexNumber*> inputNumbers;
+		std::vector<phexModule*> inputImages;
+		std::vector<phexModule*> inputNumbers;
 
 		bool dirty;
 

@@ -1,17 +1,17 @@
 #include "cv.h"
 
-#include "phexImage.hpp"
+#include "phexNumber.hpp"
 
-phexImage::phexImage(float x, float y, float imWidth, float imHeight, float w, float h) :
+phexNumber::phexNumber(float x, float y, float imWidth, float imHeight, float w, float h) :
 		   phexModule(x, y, imWidth, imHeight, w, h)
 {
 }
 
-phexImage::~phexImage()
+phexNumber::~phexNumber()
 {
 }
 
-bool phexImage::update()
+bool phexNumber::update()
 {
 	if (phexModule::update()) {
 
@@ -19,7 +19,7 @@ bool phexImage::update()
 
 }
 
-void phexImage::draw(IplImage* output, bool isSelected)
+void phexNumber::draw(IplImage* output, bool isSelected)
 {
 	phexModule::draw(output, isSelected);
 

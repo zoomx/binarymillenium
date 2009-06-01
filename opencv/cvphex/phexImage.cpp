@@ -33,7 +33,7 @@ phexImage::~phexImage()
 bool phexImage::update()
 {
 	if (phexModule::update()) {
-		cvGetQuadrangleSubPix(inputImages[0]->images[0], images[0], map);
+		cvGetQuadrangleSubPix(dynamic_cast<phexImage*>(inputImages[0])->images[0], images[0], map);
 		//		cvAddWeighted(images[0], add_alpha, images[1], 
 		//						add_beta, add_gamma, images[images.size()-1] );
 
