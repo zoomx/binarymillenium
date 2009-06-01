@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "cv.h"
 
 #include "phexModule.hpp"
@@ -18,19 +20,24 @@ phexModule::~phexModule()
 
 bool phexModule::update()
 {
-	changed = false;
+	if (changed) {
+//		std::cout << "changed 0 " << std::endl;
+		return changed;
+	}
 
 	/// TBD later keep a mask object that says which inputs are really being used
 	/// might have inputs connected but ignore them
-	for (unsigned i = 0; i< inputImages.size(); i++) {
+	for (unsigned i = 0; i < inputImages.size(); i++) {
 		if (inputImages[i]->dirty) {
+//		std::cout << "changed 1 " << std::endl;
 			changed = true;
 			return changed;
 		}
 	}
 	
-	for (unsigned i = 0; i< inputNumbers.size(); i++) {
+	for (unsigned i = 0; i < inputNumbers.size(); i++) {
 		if (inputNumbers[i]->dirty) {
+//		std::cout << "changed 2 " << std::endl;
 			changed = true;
 			return changed;
 		}
@@ -42,6 +49,7 @@ bool phexModule::update()
 void phexModule::draw(IplImage* output, bool isSelected)
 {
 	dirty = changed;
+	changed = false;
 
 	if (dirty)
 		cvRectangle(output, cvPoint(pos.x,pos.y), 

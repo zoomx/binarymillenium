@@ -11,7 +11,6 @@ class phexNumber;
 
 class phexNumber : public phexModule 
 {
-
 	public:
 
 		///

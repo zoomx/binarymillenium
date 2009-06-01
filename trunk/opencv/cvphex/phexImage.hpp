@@ -11,7 +11,6 @@ class phexImage;
 
 class phexImage : public phexModule 
 {
-
 	public:
 		std::vector<IplImage*> images;	
 
@@ -26,10 +25,10 @@ class phexImage : public phexModule
 
 		virtual void draw(IplImage* output,bool isSelected = false);
 		virtual bool update();
+		virtual void changeValue(int index, float offset);
 
 	private:
 		
-		bool changed;
 };
 
 #endif //PHEX_IMAGE_HPP

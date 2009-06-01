@@ -16,7 +16,6 @@ bool phexNumber::update()
 	if (phexModule::update()) {
 
 	}
-
 }
 
 void phexNumber::draw(IplImage* output, bool isSelected)
