@@ -28,6 +28,11 @@ class phexModule
 		virtual void draw(IplImage* output,bool isSelected = false);
 
 		virtual void changeValue(int index, float offset) {}
+	
+		int type;
+		int typeMax;
+
+		virtual void changeType(int offset);
 
 	protected:
 		

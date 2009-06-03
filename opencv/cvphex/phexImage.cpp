@@ -23,6 +23,8 @@ phexImage::phexImage(float x, float y, float imWidth, float imHeight, float w, f
 	for (unsigned i = 0; i < 2; i++) {
 		images.push_back(cvCreateImage(cvSize(imWidth,imHeight),8,3));
 	}
+
+	typeMax = 2;
 }
 
 phexImage::~phexImage()
@@ -47,17 +49,30 @@ bool phexImage::update()
 {
 	//if (changed) std::cout << "update " << std::endl;
 	if (phexModule::update()) {
-	
-		if ((inputImages.size() > 0) && dynamic_cast<phexImage*>(inputImages[0]) && 
-				(dynamic_cast<phexImage*>(inputImages[0])->images.size() > 0)) {
-		
-			cvGetQuadrangleSubPix(dynamic_cast<phexImage*>(inputImages[0])->images[0], images[0], map);
-		
-		//		cvAddWeighted(images[0], add_alpha, images[1], 
-		//						add_beta, add_gamma, images[images.size()-1] );
 
-		//		cvMorphologyEx(inputModules[0]->images[0], images[0], images[1] ,
-		//					   kern,CV_MOP_OPEN, 1 );
+		if (type == 0) {
+			if (inputImages.size() < 1) { return false; }
+			phexImage* in1 = dynamic_cast<phexImage*>(inputImages[0]);
+			if (in1 == NULL) { return false; }
+			if (in1->images.size() < 1) { return false; }
+
+			cvGetQuadrangleSubPix(in1->images[0], images[0], map);
+		} else if (type == 1) {
+			/// TBD do something else here if some of these fail, like
+			/// add image to itself
+			if (inputImages.size() < 2) { return false; }
+			phexImage* in1 = dynamic_cast<phexImage*>(inputImages[0]);
+			phexImage* in2 = dynamic_cast<phexImage*>(inputImages[1]);
+			if (in1 == NULL) { return false; }
+			if (in2 == NULL) { return false; }
+			if (in1->images.size() < 1) { return false; }
+			if (in2->images.size() < 1) { return false; }
+		
+			cvAddWeighted(in1->images[0], cvmGet(map,0,0), 
+						  in2->images[0], cvmGet(map,0,1), 
+						  cvmGet(map,0,2), images[0] );
+			//		cvMorphologyEx(inputModules[0]->images[0], images[0], images[1] ,
+			//					   kern,CV_MOP_OPEN, 1 );
 		}
 	}
 }
@@ -69,7 +84,18 @@ void phexImage::draw(IplImage* output, bool isSelected)
 	cvSetImageROI(output,pos);
 	cvResize(images[0], output);
 	cvResetImageROI(output);
-	
+
+	/// draw lines that connect modules
+	int numConnected = inputImages.size();
+	for (unsigned i = 0; i< numConnected; i++) {
+		phexImage* connectedModule = dynamic_cast<phexImage*>(inputImages[i]);
+		if (connectedModule) {
+			cvLine(output, cvPoint(pos.x,pos.y+ (float)i/(float)numConnected),
+						   cvPoint(connectedModule->pos.x+ connectedModule->pos.width,
+						   		   connectedModule->pos.y+ connectedModule->pos.height/2), cvScalar(100,0,255),2);
+		}
+	}
+
 	phexModule::draw(output,isSelected);
 }
 
