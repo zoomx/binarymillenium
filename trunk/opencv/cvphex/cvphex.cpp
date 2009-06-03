@@ -77,20 +77,26 @@ int main() {
 	}
 
 	/// add a few more image modules
-	for (unsigned i = 1; i < 4; i++) {
-		phexImage* newIm = new phexImage(i*60,5);	
-		newIm->inputImages.push_back(dynamic_cast<phexImage*>(phexModules[i-1]));
+	for (unsigned i = 1; i < 9; i++) {
+		int x = 60*(i%3);
+		int y = 60*int(i/3);
+		phexImage* newIm = new phexImage(x,y);	
+		//newIm->inputImages.push_back(dynamic_cast<phexImage*>(phexModules[i-1]));
+		newIm->inputImages.push_back(phexModules[i-1]);
 		phexModules.push_back(newIm);	
 	}
+
+	phexModules[4]->inputImages.push_back(phexModules[6]);
+	phexModules[4]->changeType(1);
 
 	/// now add some number modules
 
 	unsigned phexModuleSelected = 0;
 
 	while (running) {
+		
 
-
-		cvShowImage("output",dynamic_cast<phexImage*>(phexModules[3])->images[0]);
+		cvShowImage("output",dynamic_cast<phexImage*>(phexModules[8])->images[0]);
 
 		{
 			// blank background
@@ -113,8 +119,10 @@ int main() {
 		/// simultaneous keypresses aren't handled, only the last press and holds
 		/// probably should use SDL for io
 		/// but keyboards aren't ideal for a lot of simultaneous io anyway
-		int key = cvWaitKey(5);
-		if (key >= 0) {
+		int key = cvWaitKey(33);
+		// the last_key doesn't quite work like it seems it should, but does slow
+		//  down event processing so it doesn't block drawing
+		if ((key >= 0) && (last_key < 0)) {
 			if (key == 'q') {
 				running = false;
 			} else if (key == '1') {
@@ -135,15 +143,13 @@ int main() {
 				phexModules[phexModuleSelected]->changeValue(2,-10);
 			}	
 		
-			// one time ops
-			if (key != last_key) {
 		/*		if (key == 'd') {
 					type = (type-1)%NUM_TYPES;
 				} else if (key == 'f') {
 					type = (type+1)%NUM_TYPES;
 				}
 				*/
-			}
+			usleep(10000);
 		}
 		last_key = key;
 	}

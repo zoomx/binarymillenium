@@ -11,6 +11,9 @@ phexModule::phexModule(float x, float y, float imWidth, float imHeight, float w,
 	pos.width = w;
 	pos.height = h;
 
+	typeMax = 1;
+	type = 0;
+
 	dirty = false;
 }
 
@@ -51,15 +54,19 @@ void phexModule::draw(IplImage* output, bool isSelected)
 	dirty = changed;
 	changed = false;
 
-	if (dirty)
+	if (dirty) {
 		cvRectangle(output, cvPoint(pos.x,pos.y), 
 			cvPoint(pos.x + pos.width, pos.y + pos.height), cvScalar(0,255,0),2);
-		
+	}	
+
 	if (isSelected) {
 		cvRectangle(output, cvPoint(pos.x,pos.y), 
 			cvPoint(pos.x + pos.width-1, pos.y + pos.height-1), cvScalar(255,255,0),2);
 	}
 }
 
-
+void phexModule::changeType(int offset)
+{
+	type = (typeMax+type+offset)%typeMax;		
+}
 
