@@ -2,8 +2,8 @@
 
 #include "phexNumber.hpp"
 
-phexNumber::phexNumber(float x, float y, float imWidth, float imHeight, float w, float h) :
-		   phexModule(x, y, imWidth, imHeight, w, h)
+phexNumber::phexNumber(float x, float y, float w, float h) :
+		   phexModule(x, y, w, h)
 {
 }
 
@@ -18,9 +18,9 @@ bool phexNumber::update()
 	}
 }
 
-void phexNumber::draw(IplImage* output, bool isSelected)
+void phexNumber::draw(IplImage* output,CvFont* font, bool isSelected)
 {
-	phexModule::draw(output, isSelected);
+	phexModule::draw(output, font, isSelected);
 
 	cvResetImageROI(output);
 	cvSetImageROI(output,pos);

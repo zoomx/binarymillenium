@@ -67,7 +67,7 @@ int main() {
 	std::vector<phexModule*> phexModules;
 
 	{
-		phexImage* first = new phexImage(5,5);
+		phexImage* first = new phexImage(20,20,width,height);
 		cvReleaseImage(&first->images[0]);
 		IplImage* in1 = (cvLoadImage("images/test.jpg", CV_LOAD_IMAGE_COLOR));
 		first->images[0] = resize(in1,width,height);
@@ -78,9 +78,9 @@ int main() {
 
 	/// add a few more image modules
 	for (unsigned i = 1; i < 9; i++) {
-		int x = 60*(i%3);
-		int y = 60*int(i/3);
-		phexImage* newIm = new phexImage(x,y);	
+		int x = 20 + 90*(i%3);
+		int y = 20 + 90*int(i/3);
+		phexImage* newIm = new phexImage(x,y,width,height);	
 		//newIm->inputImages.push_back(dynamic_cast<phexImage*>(phexModules[i-1]));
 		newIm->inputImages.push_back(phexModules[i-1]);
 		phexModules.push_back(newIm);	
@@ -107,12 +107,8 @@ int main() {
 			}
 			/// gui output
 			for (unsigned i = 0; i < phexModules.size(); i++) {
-				phexModules[i]->draw(gui, phexModuleSelected == i);
+				phexModules[i]->draw(gui, &font, phexModuleSelected == i);
 			}
-			/*	std::ostringstream txt;
-				txt << "add_beta =" << add_beta << ", add_alpha =" << add_alpha;	
-				cvPutText (gui,txt.str().c_str(),cvPoint(0,height*scale+10), &font, cvScalar(255,255,200));
-				*/
 			cvShowImage("gui",gui);
 		}
 
@@ -129,6 +125,10 @@ int main() {
 				phexModuleSelected = (phexModuleSelected - 1)%phexModules.size();
 			} else if (key == '2') {
 				phexModuleSelected = (phexModuleSelected + 1)%phexModules.size();
+			} else if (key == '3') {
+				phexModules[phexModuleSelected]->changeType(-1);
+			} else if (key == '4') {
+				phexModules[phexModuleSelected]->changeType(1);
 			} else if (key == 'u') {
 				phexModules[phexModuleSelected]->changeValue(0, 0.1);
 			} else if (key == 'i') {

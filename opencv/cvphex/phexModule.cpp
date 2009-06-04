@@ -4,12 +4,18 @@
 
 #include "phexModule.hpp"
 
-phexModule::phexModule(float x, float y, float imWidth, float imHeight, float w, float h)
+phexModule::phexModule(float x, float y, float w, float h)
 {
+	if ((x < 0) || (y<0) || (w < 1) || (h <1)) {
+		std::cerr << "phexModule bad roi  " << x << " " << y << " " << w << " " << h << std::endl;
+		return;
+	}
 	pos.x = x;
 	pos.y =y;
 	pos.width = w;
 	pos.height = h;
+	
+	inputImOffset = 0;
 
 	typeMax = 1;
 	type = 0;
@@ -49,7 +55,7 @@ bool phexModule::update()
 	return changed;
 }
 
-void phexModule::draw(IplImage* output, bool isSelected)
+void phexModule::draw(IplImage* output, CvFont* font, bool isSelected)
 {
 	dirty = changed;
 	changed = false;

@@ -14,23 +14,28 @@ class phexModule
 		/// list of input objects
 		//inport
 		std::vector<phexModule*> inputImages;
+		/// where to begin with inputImages	
+		int inputImOffset;
+
 		std::vector<phexModule*> inputNumbers;
 
 		bool dirty;
 
 		CvRect pos;
 
-		phexModule(float x, float y, float imWidth=320, float imHeight=240, float w=50.0, float h=50.0);
+		phexModule(float x, float y, float w=50.0, float h=50.0);
 
 		~phexModule();
 
 		virtual bool update();
-		virtual void draw(IplImage* output,bool isSelected = false);
+		virtual void draw(IplImage* output,CvFont* font,  bool isSelected = false);
 
 		virtual void changeValue(int index, float offset) {}
 	
 		int type;
 		int typeMax;
+		
+		
 
 		virtual void changeType(int offset);
 
