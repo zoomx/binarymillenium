@@ -125,10 +125,17 @@ int main() {
 				phexModuleSelected = (phexModuleSelected - 1)%phexModules.size();
 			} else if (key == '2') {
 				phexModuleSelected = (phexModuleSelected + 1)%phexModules.size();
+			
 			} else if (key == '3') {
 				phexModules[phexModuleSelected]->changeType(-1);
 			} else if (key == '4') {
 				phexModules[phexModuleSelected]->changeType(1);
+			
+			} else if (key == '5') {
+				phexModules[phexModuleSelected]->changeImOffset(-1);
+			} else if (key == '6') {
+				phexModules[phexModuleSelected]->changeImOffset(1);
+			
 			} else if (key == 'u') {
 				phexModules[phexModuleSelected]->changeValue(0, 0.1);
 			} else if (key == 'i') {

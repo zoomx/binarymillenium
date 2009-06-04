@@ -38,6 +38,7 @@ class phexModule
 		
 
 		virtual void changeType(int offset);
+		virtual void changeImOffset(int offset);
 
 	protected:
 		
