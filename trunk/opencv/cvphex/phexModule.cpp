@@ -76,3 +76,10 @@ void phexModule::changeType(int offset)
 	type = (typeMax+type+offset)%typeMax;		
 }
 
+void phexModule::changeImOffset(int offset)
+{
+	int max = inputImages.size();
+	if (max < 2) return;
+	inputImOffset = (max+inputImOffset+offset)%max;		
+}
+

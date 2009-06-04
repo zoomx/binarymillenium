@@ -52,7 +52,7 @@ bool phexImage::update()
 	if (phexModule::update()) {
 
 		unsigned lenIm = inputImages.size();
-		if (inputImages.size() < 1) { return false; }
+		if (lenIm < 1) { return false; }
 		phexImage* in1 = dynamic_cast<phexImage*>(inputImages[inputImOffset%lenIm]);
 		if (in1->images.size() < 1) { return false; }
 		if (in1 == NULL) { return false; }
