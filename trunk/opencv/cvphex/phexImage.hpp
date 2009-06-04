@@ -23,7 +23,7 @@ class phexImage : public phexModule
 
 		~phexImage();
 
-		virtual void draw(IplImage* output,bool isSelected = false);
+		virtual void draw(IplImage* output, CvFont* font, bool isSelected = false);
 		virtual bool update();
 		virtual void changeValue(int index, float offset);
 

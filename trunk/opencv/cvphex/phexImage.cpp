@@ -1,11 +1,12 @@
 #include <iostream>
+#include <sstream>
 
 #include "cv.h"
 
 #include "phexImage.hpp"
 
 phexImage::phexImage(float x, float y, float imWidth, float imHeight, float w, float h) :
-			phexModule(x, y, imWidth, imHeight, w, h)
+			phexModule(x, y, w, h)
 {
 
 	kern = cvCreateStructuringElementEx( 3, 3, 1, 1, CV_SHAPE_RECT, NULL );
@@ -24,7 +25,7 @@ phexImage::phexImage(float x, float y, float imWidth, float imHeight, float w, f
 		images.push_back(cvCreateImage(cvSize(imWidth,imHeight),8,3));
 	}
 
-	typeMax = 2;
+	typeMax = 3;
 }
 
 phexImage::~phexImage()
@@ -50,40 +51,44 @@ bool phexImage::update()
 	//if (changed) std::cout << "update " << std::endl;
 	if (phexModule::update()) {
 
-		if (type == 0) {
-			if (inputImages.size() < 1) { return false; }
-			phexImage* in1 = dynamic_cast<phexImage*>(inputImages[0]);
-			if (in1 == NULL) { return false; }
-			if (in1->images.size() < 1) { return false; }
+		unsigned lenIm = inputImages.size();
+		if (inputImages.size() < 1) { return false; }
+		phexImage* in1 = dynamic_cast<phexImage*>(inputImages[inputImOffset%lenIm]);
+		if (in1->images.size() < 1) { return false; }
+		if (in1 == NULL) { return false; }
 
+		if (type == 0) {
 			cvGetQuadrangleSubPix(in1->images[0], images[0], map);
 		} else if (type == 1) {
-			/// TBD do something else here if some of these fail, like
-			/// add image to itself
-			if (inputImages.size() < 2) { return false; }
-			phexImage* in1 = dynamic_cast<phexImage*>(inputImages[0]);
-			phexImage* in2 = dynamic_cast<phexImage*>(inputImages[1]);
-			if (in1 == NULL) { return false; }
+			/// if there is only one input, it will add to itself
+			phexImage* in2 = dynamic_cast<phexImage*>(inputImages[(inputImOffset+1)%lenIm]);
 			if (in2 == NULL) { return false; }
-			if (in1->images.size() < 1) { return false; }
 			if (in2->images.size() < 1) { return false; }
 		
 			cvAddWeighted(in1->images[0], cvmGet(map,0,0), 
 						  in2->images[0], cvmGet(map,0,1), 
 						  cvmGet(map,0,2), images[0] );
-			//		cvMorphologyEx(inputModules[0]->images[0], images[0], images[1] ,
-			//					   kern,CV_MOP_OPEN, 1 );
+		} else if (type == 2) {
+			if (images.size() == 1) images.push_back(cvCreateImage(cvSize(images[0]->width,images[0]->height),8,3));
+
+			cvMorphologyEx(in1->images[0], images[0], images[1], kern,CV_MOP_OPEN, 1 );
 		}
 	}
 }
 
-void phexImage::draw(IplImage* output, bool isSelected)
+void phexImage::draw(IplImage* output, CvFont* font, bool isSelected)
 {
 
+	/// TBD, have this be done only intermittently, or when cpu load is low
 	cvResetImageROI(output);
 	cvSetImageROI(output,pos);
-	cvResize(images[0], output);
+	/// compare to CV_INTER_AREA
+	cvResize(images[0], output, CV_INTER_NN);
 	cvResetImageROI(output);
+	
+	std::ostringstream txt;
+	txt << "" << type << "," << inputImOffset;	
+	cvPutText (output,txt.str().c_str(),cvPoint(pos.x,pos.y-10), font, cvScalar(55,255,100));
 
 	/// draw lines that connect modules
 	int numConnected = inputImages.size();
@@ -96,6 +101,9 @@ void phexImage::draw(IplImage* output, bool isSelected)
 		}
 	}
 
-	phexModule::draw(output,isSelected);
+
+
+
+	phexModule::draw(output,font,isSelected);
 }
 
