@@ -90,17 +90,6 @@ void phexImage::draw(IplImage* output, CvFont* font, bool isSelected)
 	txt << "" << type << "," << inputImOffset;	
 	cvPutText (output,txt.str().c_str(),cvPoint(pos.x,pos.y-10), font, cvScalar(55,255,100));
 
-	/// draw lines that connect modules
-	int numConnected = inputImages.size();
-	for (unsigned i = 0; i< numConnected; i++) {
-		phexImage* connectedModule = dynamic_cast<phexImage*>(inputImages[i]);
-		if (connectedModule) {
-			cvLine(output, cvPoint(pos.x,pos.y+ (float)i/(float)numConnected),
-						   cvPoint(connectedModule->pos.x+ connectedModule->pos.width,
-						   		   connectedModule->pos.y+ connectedModule->pos.height/2), cvScalar(100,0,255),2);
-		}
-	}
-
 
 
 
