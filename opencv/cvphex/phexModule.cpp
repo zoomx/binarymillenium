@@ -60,6 +60,23 @@ void phexModule::draw(IplImage* output, CvFont* font, bool isSelected)
 	dirty = changed;
 	changed = false;
 
+
+	/// draw lines that connect modules
+	int numConnected = inputImages.size();
+	for (unsigned i = 0; i< numConnected; i++) {
+		float frct = pos.height/(float)(numConnected+1);
+		
+		phexModule* connectedModule = inputImages[i];
+		if (connectedModule) {
+			cvLine(output, cvPoint(pos.x, pos.y + frct*(i+1)),
+						   cvPoint(connectedModule->pos.x + connectedModule->pos.width,
+						   		   connectedModule->pos.y + connectedModule->pos.height/2), 
+							cvScalar(100,0,255),2);
+		}
+	}
+
+
+
 	if (dirty) {
 		cvRectangle(output, cvPoint(pos.x,pos.y), 
 			cvPoint(pos.x + pos.width, pos.y + pos.height), cvScalar(0,255,0),2);
