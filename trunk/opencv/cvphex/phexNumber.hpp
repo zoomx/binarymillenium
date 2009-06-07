@@ -21,7 +21,7 @@ class phexNumber : public phexModule
 
 		~phexNumber();
 
-		virtual void draw(IplImage* output,CvFont* font, bool isSelected = false);
+		virtual void draw(IplImage* output,CvFont* font, bool isSelected = false, bool isTarget = false);
 		virtual bool update();
 
 	private:
