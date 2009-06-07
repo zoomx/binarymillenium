@@ -76,7 +76,7 @@ bool phexImage::update()
 	}
 }
 
-void phexImage::draw(IplImage* output, CvFont* font, bool isSelected)
+void phexImage::draw(IplImage* output, CvFont* font, bool isSelected, bool isTarget)
 {
 
 	/// TBD, have this be done only intermittently, or when cpu load is low
@@ -93,6 +93,6 @@ void phexImage::draw(IplImage* output, CvFont* font, bool isSelected)
 
 
 
-	phexModule::draw(output,font,isSelected);
+	phexModule::draw(output,font,isSelected,isTarget);
 }
 

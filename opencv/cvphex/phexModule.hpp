@@ -28,7 +28,7 @@ class phexModule
 		~phexModule();
 
 		virtual bool update();
-		virtual void draw(IplImage* output,CvFont* font,  bool isSelected = false);
+		virtual void draw(IplImage* output,CvFont* font,  bool isSelected = false, bool isTarget = false);
 
 		virtual void changeValue(int index, float offset) {}
 	

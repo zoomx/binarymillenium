@@ -92,6 +92,7 @@ int main() {
 	/// now add some number modules
 
 	unsigned phexModuleSelected = 0;
+	unsigned targetModuleSelected = 0;
 
 	while (running) {
 		
@@ -107,7 +108,7 @@ int main() {
 			}
 			/// gui output
 			for (unsigned i = 0; i < phexModules.size(); i++) {
-				phexModules[i]->draw(gui, &font, phexModuleSelected == i);
+				phexModules[i]->draw(gui, &font, phexModuleSelected == i, targetModuleSelected == i);
 			}
 			cvShowImage("gui",gui);
 		}
@@ -125,15 +126,22 @@ int main() {
 				phexModuleSelected = (phexModuleSelected - 1)%phexModules.size();
 			} else if (key == '2') {
 				phexModuleSelected = (phexModuleSelected + 1)%phexModules.size();
-			
 			} else if (key == '3') {
-				phexModules[phexModuleSelected]->changeType(-1);
+				targetModuleSelected = (targetModuleSelected - 1)%phexModules.size();
 			} else if (key == '4') {
+				targetModuleSelected = (targetModuleSelected + 1)%phexModules.size();
+			} else if (key == 't') {
+				/// add current selected as input of target selected
+				/// TBD handler multiple additions of same module somehow
+				phexModules[targetModuleSelected]->inputImages.push_back(phexModules[phexModuleSelected]);
+			} else if (key == '5') {
+				phexModules[phexModuleSelected]->changeType(-1);
+			} else if (key == '6') {
 				phexModules[phexModuleSelected]->changeType(1);
 			
-			} else if (key == '5') {
+			} else if (key == '7') {
 				phexModules[phexModuleSelected]->changeImOffset(-1);
-			} else if (key == '6') {
+			} else if (key == '8') {
 				phexModules[phexModuleSelected]->changeImOffset(1);
 			
 			} else if (key == 'u') {

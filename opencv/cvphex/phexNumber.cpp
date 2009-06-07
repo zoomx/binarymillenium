@@ -18,9 +18,9 @@ bool phexNumber::update()
 	}
 }
 
-void phexNumber::draw(IplImage* output,CvFont* font, bool isSelected)
+void phexNumber::draw(IplImage* output,CvFont* font, bool isSelected,bool isTarget)
 {
-	phexModule::draw(output, font, isSelected);
+	phexModule::draw(output, font, isSelected,isTarget);
 
 	cvResetImageROI(output);
 	cvSetImageROI(output,pos);

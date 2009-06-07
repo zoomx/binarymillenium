@@ -55,7 +55,7 @@ bool phexModule::update()
 	return changed;
 }
 
-void phexModule::draw(IplImage* output, CvFont* font, bool isSelected)
+void phexModule::draw(IplImage* output, CvFont* font, bool isSelected, bool isTarget)
 {
 	dirty = changed;
 	changed = false;
@@ -67,24 +67,32 @@ void phexModule::draw(IplImage* output, CvFont* font, bool isSelected)
 		float frct = pos.height/(float)(numConnected+1);
 		
 		phexModule* connectedModule = inputImages[i];
+
+		CvScalar col = cvScalar(70,0,255);
+		if (i == inputImOffset)
+			col = cvScalar(150,0,205);
+
 		if (connectedModule) {
 			cvLine(output, cvPoint(pos.x, pos.y + frct*(i+1)),
 						   cvPoint(connectedModule->pos.x + connectedModule->pos.width,
 						   		   connectedModule->pos.y + connectedModule->pos.height/2), 
-							cvScalar(100,0,255),2);
+							col,2);
 		}
 	}
 
 
 
 	if (dirty) {
-		cvRectangle(output, cvPoint(pos.x,pos.y), 
-			cvPoint(pos.x + pos.width, pos.y + pos.height), cvScalar(0,255,0),2);
+		cvRectangle(output, cvPoint(pos.x+1,pos.y+1), 
+			cvPoint(pos.x + pos.width-1, pos.y + pos.height-1), cvScalar(0,255,0),2);
 	}	
 
 	if (isSelected) {
 		cvRectangle(output, cvPoint(pos.x,pos.y), 
 			cvPoint(pos.x + pos.width-1, pos.y + pos.height-1), cvScalar(255,255,0),2);
+	}
+	if (isTarget) {
+		cvLine(output, cvPoint(pos.x, pos.y), cvPoint(pos.x-2, pos.y + pos.height/2), cvScalar(255,50,110),2);
 	}
 }
 
