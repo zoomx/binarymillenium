@@ -174,6 +174,52 @@ void test(struct wiimote_t* wm, byte* data, unsigned short len) {
 	printf("test: %i [%x %x %x %x]\n", len, data[0], data[1], data[2], data[3]);
 }
 
+// for the wii leds, huemin 80 100 works okay
+void getBlueParts(int huemin, int huemax, CvCapture* cap, 
+                  IplImage* blue,   IplImage* msk,   IplImage* blue_rgb, 
+                  IplImage* output, IplImage* frame, 
+                  IplImage* hsv, IplImage* hue, IplImage* var)
+{
+        if (!cvGrabFrame(cap)) { 
+            printf("cvGrabFrame failed");
+            return;
+        }
+
+        frame = cvRetrieveFrame(cap);
+
+        if (!frame) {
+            printf("bad cvRetrieveFrame");
+            return;
+        }
+       
+        cvCopy(frame, output);
+
+        /// now find bright blue parts of frame and save them in blue image
+        cvCvtColor(frame,hsv, CV_BGR2HSV);
+        cvSetImageCOI(hsv,1);
+        cvCopy(hsv, hue);
+        cvInRangeS(hue, cvScalarAll(huemin), cvScalarAll(huemax), hue);
+        
+        cvSetImageCOI(hsv,3);
+        cvCopy(hsv, var);
+        cvInRangeS(var, cvScalarAll(245), cvScalarAll(255), var);
+        cvAnd(hue,var, msk);
+        //
+        
+        //cvErode(msk,msk, NULL, 1);
+        cvDilate(msk,msk, NULL, 1);
+        
+        cvAdd(blue, msk,blue);
+        cvSetImageCOI(blue_rgb,1);
+        cvCopy(blue,blue_rgb);
+        
+        
+        cvSetImageCOI(blue_rgb,0);
+        cvAdd(output,blue_rgb, output);
+
+        cvShowImage("wii_led_draw",output);
+        cvWaitKey(20);
+        }
 
 
 /**
@@ -183,8 +229,20 @@ void test(struct wiimote_t* wm, byte* data, unsigned short len) {
  *	that occur on either device.
  */
 int main(int argc, char** argv) {
-	wiimote** wiimotes;
+    int huemin = atoi(argv[1]);
+    int huemax = atoi(argv[2]);
+
+    wiimote** wiimotes;
 	int found, connected;
+
+    CvCapture* cap = cvCaptureFromCAM(0);
+
+    if (cap == NULL) {
+        printf("no camera found");
+        return -1;
+    }
+    
+    cvNamedWindow("wii_led_draw",CV_WINDOW_AUTOSIZE);
 
 	/*
 	 *	Initialize an array of wiimote objects.
@@ -204,10 +262,10 @@ int main(int argc, char** argv) {
 	 *
 	 *	This will return the number of actual wiimotes that are in discovery mode.
 	 */
-	found = wiiuse_find(wiimotes, MAX_WIIMOTES, 5);
+	found = wiiuse_find(wiimotes, MAX_WIIMOTES, 1);  // TBD make longer later
 	if (!found) {
 		printf ("No wiimotes found.");
-		return 0;
+		//return 0;
 	}
 
 	/*
@@ -224,7 +282,7 @@ int main(int argc, char** argv) {
 		printf("Connected to %i wiimotes (of %i found).\n", connected, found);
 	else {
 		printf("Failed to connect to any wiimote.\n");
-		return 0;
+		//return 0;
 	}
 
 	/*
@@ -248,8 +306,11 @@ int main(int argc, char** argv) {
 	wiiuse_rumble(wiimotes[1], 0);
 
 	IplImage* img_src = cvLoadImage("bm.png", CV_LOAD_IMAGE_GRAYSCALE);
+    img = cvCreateImage(cvSize(img_src->width,img_src->height), img_src->depth, 1);
 	cvThreshold(img_src, img, 128, 255, CV_THRESH_BINARY);	
 
+    cvNamedWindow("input image",CV_WINDOW_AUTOSIZE);
+    cvShowImage("input image",img);
 
 	int j;
 	for (j = 0; j < 4; j++) {
@@ -267,6 +328,28 @@ int main(int argc, char** argv) {
 		wiiuse_set_ir_sensitivity(wiimotes[j],5);
 	}
 
+
+    if (!cvGrabFrame(cap)) { 
+        printf("cvGrabFrame failed");
+        return -1;
+    }
+
+    IplImage* frame = cvRetrieveFrame(cap);
+
+    if (!frame) {
+        printf("bad cvRetrieveFrame");
+        return -1;
+    }
+
+    IplImage* blue = cvCreateImage(cvSize(frame->width,frame->height), frame->depth, 1);
+    IplImage* blue_rgb = cvCreateImage(cvSize(frame->width,frame->height), frame->depth, 3);
+    cvRectangle(blue_rgb, cvPoint(0,0), cvPoint(blue_rgb->width,blue_rgb->height), CV_RGB(0,0,0), CV_FILLED);
+
+    IplImage* output = cvCreateImage(cvSize(frame->width,frame->height), frame->depth, 3);
+    IplImage* hsv = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 3);
+    IplImage* hue = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 1);
+    IplImage* var = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 1);
+    IplImage* msk = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 1);
 	/*
 	 *	This is the main loop
 	 *
@@ -279,7 +362,10 @@ int main(int argc, char** argv) {
 	 *	when the wiimote has things to report.
 	 */
 	while (1) {
-		if (wiiuse_poll(wiimotes, MAX_WIIMOTES)) {
+
+        getBlueParts(huemin, huemax, cap, blue, msk, blue_rgb, output, frame, hsv, hue, var);
+		
+        if (wiiuse_poll(wiimotes, MAX_WIIMOTES)) {
 			/*
 			 *	This happens if something happened on any wiimote.
 			 *	So go through each one and check if anything happened.
