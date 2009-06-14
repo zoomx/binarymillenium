@@ -37,6 +37,7 @@
 #endif
 
 #include "cv.h"
+#include "highgui.h"
 
 #include "wiiuse.h"
 
@@ -80,7 +81,7 @@ void handle_event(struct wiimote_t* wm) {
 			if (wm->ir.dot[i].visible) {
 				printf("IR source %i: (%u, %u)\n", i, wm->ir.dot[i].x, wm->ir.dot[i].y);
 
-				if ((i == 0) && (CV_MAT_ELEM(img,uchar,wm->ir.dot[i].x, wm->ir.dot[i].y)  == 255)) {
+				if ((i == 0) && (CV_IMAGE_ELEM(img,uchar,wm->ir.dot[i].x, wm->ir.dot[i].y)  == 255)) {
 					wiiuse_set_leds(wm, WIIMOTE_LED_1);
 				} else {
 					wiiuse_set_leds(wm, 0);
@@ -247,7 +248,7 @@ int main(int argc, char** argv) {
 	wiiuse_rumble(wiimotes[1], 0);
 
 	IplImage* img_src = cvLoadImage("bm.png", CV_LOAD_IMAGE_GRAYSCALE);
-	cvThreshold(img_src, img, 128, 255, CV_THRESHOLD_BINARY);	
+	cvThreshold(img_src, img, 128, 255, CV_THRESH_BINARY);	
 
 
 	int j;
