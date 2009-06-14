@@ -176,7 +176,8 @@ void test(struct wiimote_t* wm, byte* data, unsigned short len) {
 
 // for the wii leds, huemin 80 100 works okay
 void getBlueParts(int huemin, int huemax, CvCapture* cap, 
-                  IplImage* blue,   IplImage* msk,   IplImage* blue_rgb, 
+                  IplImage* blue, IplImage* msk, IplImage* msk_rgb, 
+                  IplImage* blue_rgb, 
                   IplImage* output, IplImage* frame, 
                   IplImage* hsv, IplImage* hue, IplImage* var)
 {
@@ -205,17 +206,25 @@ void getBlueParts(int huemin, int huemax, CvCapture* cap,
         cvInRangeS(var, cvScalarAll(245), cvScalarAll(255), var);
         cvAnd(hue,var, msk);
         //
-        
         //cvErode(msk,msk, NULL, 1);
         cvDilate(msk,msk, NULL, 1);
+       
+        cvSetImageCOI(msk_rgb,1);
+        cvCopy(msk, msk_rgb);
+        cvSetImageCOI(msk_rgb,2);
+        cvCopy(msk, msk_rgb);
+        cvSetImageCOI(msk_rgb,3);
+        cvCopy(msk, msk_rgb);
+        cvSetImageCOI(msk_rgb,0);
+    
+
+        cvAnd(msk_rgb,frame,msk_rgb);
         
-        cvAdd(blue, msk,blue);
-        cvSetImageCOI(blue_rgb,1);
-        cvCopy(blue,blue_rgb);
-        
-        
-        cvSetImageCOI(blue_rgb,0);
-        cvAdd(output,blue_rgb, output);
+        cvOr(blue_rgb, msk_rgb,blue_rgb);
+        //cvSetImageCOI(blue_rgb,1);
+        //cvCopy(blue,blue_rgb);
+        //cvSetImageCOI(blue_rgb,0);
+        cvOr(output,blue_rgb, output);
 
         cvShowImage("wii_led_draw",output);
         cvWaitKey(20);
@@ -350,6 +359,7 @@ int main(int argc, char** argv) {
     IplImage* hue = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 1);
     IplImage* var = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 1);
     IplImage* msk = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 1);
+    IplImage* msk_rgb = cvCreateImage(cvSize(frame->width,frame->height), IPL_DEPTH_8U, 3);
 	/*
 	 *	This is the main loop
 	 *
@@ -363,7 +373,7 @@ int main(int argc, char** argv) {
 	 */
 	while (1) {
 
-        getBlueParts(huemin, huemax, cap, blue, msk, blue_rgb, output, frame, hsv, hue, var);
+        getBlueParts(huemin, huemax, cap, blue, msk, msk_rgb, blue_rgb, output, frame, hsv, hue, var);
 		
         if (wiiuse_poll(wiimotes, MAX_WIIMOTES)) {
 			/*
