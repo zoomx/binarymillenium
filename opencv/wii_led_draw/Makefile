@@ -5,7 +5,7 @@
 #
 # Change this to your GCC version.
 #
-CC = gcc
+CC = g++
 
 ####################################################
 #
@@ -16,7 +16,8 @@ CC = gcc
 #
 # Universal cflags
 #
-CFLAGS = -Wall -pipe -fPIC -funroll-loops
+CFLAGS = -Wall -pipe -fPIC -funroll-loops -I/home/lucasw/other/sw/wiiuse_v0.12/src -I/home/lucasw/other/install/include/opencv
+
 
 ifeq ($(debug),1)
         OBJ_PREFIX = debug
@@ -31,7 +32,7 @@ OBJ_DIR = $(OBJ_PREFIX)-$(shell $(CC) -v 2>&1|grep ^Target:|cut -d' ' -f2)
 #
 # Linking flags
 #
-LDFLAGS = -L../src/$(OBJ_DIR) -lm -lwiiuse
+LDFLAGS = -lm -lwiiuse -Wl -L/home/lucasw/other/install/lib/ -lcv -lhighgui 
 
 #
 # Target binaries (always created as BIN)
