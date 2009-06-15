@@ -44,8 +44,10 @@
 
 #define MAX_WIIMOTES				4
 
-
+bool recording = false;
 IplImage* img = NULL;
+
+int counter = 1000000;
 
 /**
  *	@brief Callback that handles an event.
@@ -55,16 +57,17 @@ IplImage* img = NULL;
  *	This function is called automatically by the wiiuse library when an
  *	event occurs on the specified wiimote. power.
  */
-void handle_event(struct wiimote_t* wm) {
-	printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
+void handle_event(struct wiimote_t* wm,IplImage* frame, IplImage* output) {
+	//printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
 
 
 	/* if the accelerometer is turned on then print angles */
-	if (WIIUSE_USING_ACC(wm)) {
+	/*if (WIIUSE_USING_ACC(wm)) {
 		printf("wiimote roll  = %f [%f]\n", wm->orient.roll, wm->orient.a_roll);
 		printf("wiimote pitch = %f [%f]\n", wm->orient.pitch, wm->orient.a_pitch);
 		printf("wiimote yaw   = %f\n", wm->orient.yaw);
 	}
+    */
 
 	/*
 	 *	If IR tracking is enabled then print the coordinates
@@ -79,19 +82,38 @@ void handle_event(struct wiimote_t* wm) {
 		for (; i < 4; ++i) {
 			/* check if the source is visible */
 			if (wm->ir.dot[i].visible) {
-				printf("IR source %i: (%u, %u)\n", i, wm->ir.dot[i].x, wm->ir.dot[i].y);
+				//printf("IR source %i: (%u, %u)\n", i, wm->ir.dot[i].x, wm->ir.dot[i].y);
 
-				if ((i == 0) && (CV_IMAGE_ELEM(img,uchar,wm->ir.dot[i].x, wm->ir.dot[i].y)  == 255)) {
-					wiiuse_set_leds(wm, WIIMOTE_LED_1);
-				} else {
-					wiiuse_set_leds(wm, 0);
-				}
+               if ((wm->ir.dot[i].x > 0) || (wm->ir.dot[i].y > 0)) {
+                    printf("%d, %d, %g\n", wm->ir.dot[i].x, wm->ir.dot[i].y, wm->ir.z);
 
+                    //if (i == 0) { 
+                    printf("using  %d %d", wm->ir.dot[i].x, wm->ir.dot[i].y);
+                    if (CV_IMAGE_ELEM(img,uchar,wm->ir.dot[i].x, wm->ir.dot[i].y) == 255) {
+                        wiiuse_set_leds(wm, WIIMOTE_LED_1);
+                    } else {
+                        wiiuse_set_leds(wm, 0);
+                    }
+
+                    if (recording) {
+                        char filename[100];
+                        char filename2[100];
+                        sprintf(filename, "frames/raw_frame%7d.jpg", counter );
+                        sprintf(filename2,"frames/out_frame%7d.jpg", counter );
+
+                        cvSaveImage(filename, frame);
+                        cvSaveImage(filename2, output);
+                        printf("counter %d", counter);
+
+                        counter++;
+                    }
+                    //}
+                }
+
+				
 			}
 		}
 
-		printf("IR cursor: (%u, %u)\n", wm->ir.x, wm->ir.y);
-		printf("IR z distance: %f\n", wm->ir.z);
 	}
 
 }
@@ -227,7 +249,17 @@ void getBlueParts(int huemin, int huemax, CvCapture* cap,
         cvOr(output,blue_rgb, output);
 
         cvShowImage("wii_led_draw",output);
-        cvWaitKey(20);
+        int key = cvWaitKey(20);
+        if (key == 'r') {
+            /// start over
+            cvRectangle(blue_rgb, cvPoint(0,0), cvPoint(blue_rgb->width,blue_rgb->height), CV_RGB(0,0,0), CV_FILLED);
+
+        } 
+        else if (key == 'f') {
+            recording = !recording; 
+            if (recording) printf("recording on");
+            else printf("recording off");
+        }
         }
 
 
@@ -271,7 +303,7 @@ int main(int argc, char** argv) {
 	 *
 	 *	This will return the number of actual wiimotes that are in discovery mode.
 	 */
-	found = wiiuse_find(wiimotes, MAX_WIIMOTES, 1);  // TBD make longer later
+	found = wiiuse_find(wiimotes, MAX_WIIMOTES, 6);  // TBD make longer later
 	if (!found) {
 		printf ("No wiimotes found.");
 		//return 0;
@@ -306,11 +338,15 @@ int main(int argc, char** argv) {
 	wiiuse_rumble(wiimotes[1], 1);
 
 	#ifndef WIN32
-		usleep(200000);
+		usleep(300000);
 	#else
 		Sleep(200);
 	#endif
-
+	
+    wiiuse_set_leds(wiimotes[0], 0);
+	wiiuse_set_leds(wiimotes[1], 0);
+	wiiuse_set_leds(wiimotes[2], 0);
+	wiiuse_set_leds(wiimotes[3], 0);
 	wiiuse_rumble(wiimotes[0], 0);
 	wiiuse_rumble(wiimotes[1], 0);
 
@@ -318,8 +354,10 @@ int main(int argc, char** argv) {
     img = cvCreateImage(cvSize(img_src->width,img_src->height), img_src->depth, 1);
 	cvThreshold(img_src, img, 128, 255, CV_THRESH_BINARY);	
 
-    cvNamedWindow("input image",CV_WINDOW_AUTOSIZE);
-    cvShowImage("input image",img);
+    //cvNamedWindow("input image",CV_WINDOW_AUTOSIZE);
+    //cvShowImage("input image",img);
+
+        
 
 	int j;
 	for (j = 0; j < 4; j++) {
@@ -385,7 +423,7 @@ int main(int argc, char** argv) {
 				switch (wiimotes[i]->event) {
 					case WIIUSE_EVENT:
 						/* a generic event occured */
-						handle_event(wiimotes[i]);
+						handle_event(wiimotes[i],frame,output);
 						break;
 
 					case WIIUSE_STATUS:
