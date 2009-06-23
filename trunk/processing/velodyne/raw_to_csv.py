@@ -4,9 +4,8 @@ import csv
 import sys
 import operator
 
-def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off,vertKeys,image):
+def processBin1206(bin,outfile, rot,vert,dist,z_off,x_off,vertKeys,sphereical,image):
 
-	sphereical = True
 
 	#output = array.array('f')
 	
@@ -127,15 +126,18 @@ print(str(vertKeys) + '\n\n')
 old_rot = 0;
 
 count = 0
+	
+sphereical = False
 
 while (len(bin) == 1206):
 
 	# clear image every time
 	image = []
-	for ind in range(64):
-		image.append([])
-		for jind in range(1280):
-			image[ind].append(0)
+	if sphereical: 
+		for ind in range(64):
+			image.append([])
+			for jind in range(1280):
+				image[ind].append(0)
 
 
 	# each call here produces 12*32 new points, i will increment to about 79,000 before this is done
@@ -144,7 +146,7 @@ while (len(bin) == 1206):
 	# this will have 2604 1206 byte packets per second, so split files int 1 second files
 
 	if (filecounter >= startind):
-		new_rot = processBin1206(bin,fout, rotCor,vertCor,distCor,vertOffCor,horizOffCor,vertKeys,image)
+		new_rot = processBin1206(bin,fout, rotCor,vertCor,distCor,vertOffCor,horizOffCor,vertKeys,sphereical, image)
 	else:
 		new_rot = 0
 
@@ -159,8 +161,8 @@ while (len(bin) == 1206):
 		fout = open(outname + str(filecounter) +'.csv','wb')
 		print(str(filecounter) + ', ' + str(count*1206) + ', ' + str(new_rot) + '\n')
 	
-		if (filecounter >= startind):
-		
+		if (sphereical and (filecounter >= startind)):
+				
 			for jind in range(1280):
 				for ind in range(64):
 					fout.write(str(image[ind][jind]) + ', ')

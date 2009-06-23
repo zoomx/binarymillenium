@@ -20,7 +20,7 @@ void setup(){
   String base = "C:/Users/lucasw/own/prog/velodyne/frames/";
   converter = new CloudConverter(base);
 
-  size(1280,720);
+  size(800,600);
 }
 
 void draw() {
@@ -32,9 +32,13 @@ void update() {
   BufferedReader reader;
   
   
-  println(counter);
+  println("counter " + counter);
+    
+    String file = "C:/Users/lucasw/own/prog/googlecode/trunk/processing/velodyne/unit_46_sample_capture_velodyne_" + str(counter) + ".csv";
+  
+   //
+          reader = createReader(file);
 
-    reader = createReader("data/normal/unit_46_velodyne_full_monterey_pc_" + counter + ".csv");
     
     counter++;
     //rv = new PC(len);
@@ -50,13 +54,16 @@ void loadPoints(BufferedReader reader) {
   //rv.colors = new float[1][b.length/16 * 4]; 
 
   //for (int i = 0; i < b.length/16; i++) {
+String newline = null;
+     try {
+     newline = reader.readLine();
+   } catch (IOException e) {
+      println("ioexception");
+   }
+   
+    String raw[] = new String[0]; 
 
-    String newline;
-    newline = reader.readLine();
-    
-    while (newline != null) {
-
-      String raw[] = new String[0]; 
+    while (newline != null) {  
 
       raw = append(raw, newline);
       
