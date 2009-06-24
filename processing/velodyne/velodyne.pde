@@ -10,6 +10,7 @@ import processing.opengl.*;
 //import java.util.*
 
 boolean converttogrid = true;
+int fillGapIterations = 3;
 
 int counter = 0;
 
@@ -20,7 +21,7 @@ void setup(){
   String base = "C:/Users/lucasw/own/prog/googlecode/trunk/processing/velodyne/frames/";
   converter = new CloudConverter(base,28000);
 
-  size(200,200);
+  size(500,500);
 }
 
 void draw() {
@@ -78,7 +79,7 @@ String newline = null;
     converter.processStrings(raw, false); // (counter == 0) && (j==0));
     
     if (converttogrid)
-      converter.toGrid(width,height,  false,true);
+      converter.toGrid(width,height,  false,fillGapIterations);
   
 
   return;

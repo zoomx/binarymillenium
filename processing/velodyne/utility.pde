@@ -164,7 +164,7 @@ class CloudConverter {
     maxz =  2000;//2000;
   }
   
- PImage  fillGaps(PImage tx) {
+ PImage  fillGaps(PImage tx,int iterations) {
     PImage rx;
     try{ 
     rx = (PImage) tx.clone();
@@ -173,28 +173,48 @@ class CloudConverter {
     }
     
     int unfillednum =1;
-    for (int k = 0; (k < 8) &&(unfillednum > 0); k++) {
+    for (int k = 0; (k < iterations) &&(unfillednum > 0); k++) {
       unfillednum =0;
       
     /// ignore edges for now
+ 
    for (int i = 1; i <tx.width-1; i++) {
     for (int j = 1; j <tx.height-1; j++) {
       
-       int p = i*tx.width + j;
+        float[] val = new float[3];
+        int p = i*tx.width + j;
+  
        boolean a  = alpha(tx.pixels[p]) > 0;
        
        if (!a) {
          
+         for (int c =0; c< 3; c++) {
          
        int pl = i*tx.width + j-1;
        int pr = i*tx.width + j+1;
        int pu = (i-1)*tx.width + j;
        int pd = (i+1)*tx.width + j;
        
-       float vl = brightness(tx.pixels[pl]);
-       float vr = brightness(tx.pixels[pr]);
-       float vu = brightness(tx.pixels[pu]);
-       float vd = brightness(tx.pixels[pd]);
+       float vl=0;
+       float vr=0;
+       float vu =0;
+       float vd = 0;
+       if (c ==0) {
+         vl = red(tx.pixels[pl]);
+         vr = red(tx.pixels[pr]);
+         vu = red(tx.pixels[pu]);
+         vd = red(tx.pixels[pd]);
+       } else if (c==1) {
+         vl = green(tx.pixels[pl]);
+         vr = green(tx.pixels[pr]);
+         vu = green(tx.pixels[pu]);
+         vd = green(tx.pixels[pd]);
+       } else if (c==2) {
+         vl = blue(tx.pixels[pl]);
+         vr = blue(tx.pixels[pr]);
+         vu = blue(tx.pixels[pu]);
+         vd = blue(tx.pixels[pd]);
+       }
           
        boolean al = alpha(tx.pixels[pl]) > 0;
        boolean ar = alpha(tx.pixels[pr]) > 0;
@@ -207,16 +227,24 @@ class CloudConverter {
        if (ar) { sum += vr; sumnum++; }
        if (au) { sum += vu; sumnum++; }
        if (ad) { sum += vd; sumnum++; }
-
+      
         if (sumnum > 0) {
-            float val = sum/(float)sumnum;
-            
-           rx.pixels[p] = color(val, 255);      
+            val[c] = sum/(float)sumnum;
         } else {
-         unfillednum++; 
+            val[c] = -1;
+        }
+        
+       }
+        
+       
+       if (val[0] >= 0) {
+           rx.pixels[p] = color(val[0],val[1],val[2], 255);      
+        } else {
+           unfillednum++; 
         }
         
        } 
+       
     }
    } 
    
@@ -296,7 +324,7 @@ class CloudConverter {
   }
 
   /// input a array of strings that are in point cloud form and convert to textures  
-  PImage[] toGrid(int SZX, int SZY , boolean doublePoints, boolean doFillGaps)
+  PImage[] toGrid(int SZX, int SZY , boolean doublePoints, int fillGapIterations)
   {
     PImage tx[] = new PImage[4];
 
@@ -362,7 +390,7 @@ class CloudConverter {
         /// saves all the data with 16-bit precision, but doesn't look like much
         //tx[1].pixels[pix_ind] = color(c/255,c%255,intensity);
         tx[2].pixels[pix_ind] = color(intensity,intensity, intensity, alphachannel);
-        tx[3].pixels[pix_ind] = color(c/255,c/255,c/255, alphachannel);
+        tx[3].pixels[pix_ind] = color(intensity,c/255,c/512+intensity/2, alphachannel);
         }
 
       }     
@@ -372,7 +400,7 @@ class CloudConverter {
       tx[i].updatePixels();
     }
 
-    if (doFillGaps)  tx[3] = fillGaps(tx[3]);
+    if (fillGapIterations >0)  tx[3] = fillGaps(tx[3],fillGapIterations);
     
 
     //tx[1].save("/home/lucasw/own/prog/google/trunk/processing/hoc/all/prepross_all_" + (counter+10000) + ".png");
