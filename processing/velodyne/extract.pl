@@ -43,7 +43,7 @@ if ($_ =~ /<vertOffsetCorrection_>(.*?)<\/vertOffsetCorrection_>/){
 if ($_ =~ /<horizOffsetCorrection_>(.*?)<\/horizOffsetCorrection_>/){
 #print ("horizOffsetCorrection is $1 \n");
  $horizOffsetCorrection = $1;
-print OUTFILE "$index, $rotCorrection, $vertCorrection, $distCorrection, $vertOffsetCorrection, $horizOffsetCorrection \n";
+print OUTFILE "$index,	$rotCorrection,	$vertCorrection,	$distCorrection,	$vertOffsetCorrection,	$horizOffsetCorrection \n";
 
 }
 

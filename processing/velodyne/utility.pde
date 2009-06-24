@@ -149,11 +149,11 @@ class CloudConverter {
 
   int index = 0;
 
-  CloudConverter(String base) {
+  CloudConverter(String base, float extent) {
     this.base = base;
     p1 = new float[0][0];
     
-    float extent = 28000;
+    //float extent = 28000;
     minx = -extent*width/height;
     maxx =  extent*width/height;
     
@@ -296,7 +296,7 @@ class CloudConverter {
   }
 
   /// input a array of strings that are in point cloud form and convert to textures  
-  PImage[] toGrid(int SZX, int SZY , boolean doublePoints)
+  PImage[] toGrid(int SZX, int SZY , boolean doublePoints, boolean doFillGaps)
   {
     PImage tx[] = new PImage[4];
 
@@ -372,12 +372,12 @@ class CloudConverter {
       tx[i].updatePixels();
     }
 
-    //tx[3] = fillGaps(tx[3]);
+    if (doFillGaps)  tx[3] = fillGaps(tx[3]);
     
 
     //tx[1].save("/home/lucasw/own/prog/google/trunk/processing/hoc/all/prepross_all_" + (counter+10000) + ".png");
     tx[2].save(base + "int/prepross_intensity_" + (index+10000) + ".png");
-    tx[3].save(base + "hgt/prepross_height_" + (index+10000) + ".png");
+    tx[3].save(base + "hgt/prepross_height_"    + (index+10000) + ".png");
     index++;
 
     println("index: " + index);
