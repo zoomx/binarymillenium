@@ -9,7 +9,7 @@
 import processing.opengl.*;
 //import java.util.*
 
-boolean converttogrid = false;
+boolean converttogrid = true;
 
 int counter = 0;
 
@@ -17,10 +17,10 @@ CloudConverter converter;
 
 void setup(){
 
-  String base = "C:/Users/lucasw/own/prog/velodyne/frames/";
-  converter = new CloudConverter(base);
+  String base = "C:/Users/lucasw/own/prog/googlecode/trunk/processing/velodyne/frames/";
+  converter = new CloudConverter(base,28000);
 
-  size(800,600);
+  size(200,200);
 }
 
 void draw() {
@@ -37,7 +37,7 @@ void update() {
     String file = "C:/Users/lucasw/own/prog/googlecode/trunk/processing/velodyne/unit_46_sample_capture_velodyne_" + str(counter) + ".csv";
   
    //
-          reader = createReader(file);
+  reader = createReader(file);
 
     
     counter++;
@@ -78,7 +78,7 @@ String newline = null;
     converter.processStrings(raw, false); // (counter == 0) && (j==0));
     
     if (converttogrid)
-      converter.toGrid(width,height,  false);
+      converter.toGrid(width,height,  false,true);
   
 
   return;
