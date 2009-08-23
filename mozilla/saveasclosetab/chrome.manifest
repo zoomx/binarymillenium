@@ -1,0 +1,4 @@
+content	saveasclosetab	content/
+locale	saveasclosetab	en-US	locale/en-US/
+skin	saveasclosetab	classic/1.0	skin/
+overlay	chrome://browser/content/browser.xul	chrome://saveasclosetab/content/firefoxOverlay.xul
