@@ -46,11 +46,12 @@
     <stringbundle id="saveasclosetab-strings" src="chrome://saveasclosetab/locale/saveasclosetab.properties"/>
   </stringbundleset>
 
+<!--
   <menupopup id="menu_ToolsPopup">
     <menuitem id="saveasclosetab-hello" label="&saveasclosetab.label;" 
               oncommand="saveasclosetab.onMenuItemCommand(event);"/>
   </menupopup>
-  
+  -->
   <popup id="contentAreaContextMenu">
     <menuitem id="context-saveasclosetab" label="&saveasclosetabContext.label;"
               accesskey="&saveasclosetabContext.accesskey;"
