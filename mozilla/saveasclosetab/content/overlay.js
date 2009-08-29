@@ -41,13 +41,13 @@ var saveasclosetab = {
     this.initialized = true;
     this.strings = document.getElementById("saveasclosetab-strings");
     document.getElementById("contentAreaContextMenu")
-            .addEventListener("popupshowing", function(e) { this.showContextMenu(e); }, false);
+            .addEventListener("popupshowing", function(e) { saveasclosetab.showSaveCloseContextMenu(e); }, false);
   },
 
-  showContextMenu: function(event) {
+  showSaveCloseContextMenu: function(event) {
     // show or hide the menuitem based on what the context menu is on
     // see http://kb.mozillazine.org/Adding_items_to_menus
-    document.getElementById("context-saveasclosetab").hidden = gContextMenu.onImage;
+    document.getElementById("context-saveasclosetab").hidden = !gContextMenu.onImage;
   },
   onMenuItemCommand: function(e) {
     gContextMenu.saveImage();
