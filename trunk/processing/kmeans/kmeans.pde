@@ -26,6 +26,16 @@ int counter = 0;
   
   float new_col_center_x[] = new float[maxKnum];
   float new_col_center_y[] = new float[maxKnum];
+  
+  float min_x[] = new float[maxKnum];
+  float max_x[] = new float[maxKnum];
+  float min_y[] = new float[maxKnum];
+  float max_y[] = new float[maxKnum];
+  
+  float new_min_x[] = new float[maxKnum];
+  float new_max_x[] = new float[maxKnum];
+  float new_min_y[] = new float[maxKnum];
+  float new_max_y[] = new float[maxKnum];
 /////////////
 
 void keyPressed() {
@@ -93,28 +103,34 @@ return dist(0,0, col_dist, space_weight*space_dist);
 
 void find_means() {
   
-  for (int j = 0; j < in.height; j+= int(random(3))) {
-  for (int i = 0; i < in.width;  i+= int(random(5))) {
-    
-      int pixind = j*in.width + i;
-
-      
-       
+  
+  
+  for (int j = 0; j < in.height; j+= 1 /*int(random(3))g*/) {
+  for (int i = 0; i < in.width;  i+= 1 /* int(random(5))*/) {
+     int pixind = j*in.width + i;
+     
      ///////////////
      float dist_closest = sqrt(255*255*3); 
      int ind_closest = 0;
-     
-     
+        
      for (int k = 0; k< knum; k++) {
        
-        //float col_dist = color_dist(in.pixels[pixind],cols[k]);
-        float col_dist = color_space_dist(in.pixels[pixind],cols[k], i,j, col_center[k][0], col_center[k][1]);
-        
-        if (col_dist < dist_closest) {
-           ind_closest = k;
-           dist_closest = col_dist; 
-        }
-        
+//        if ((i < max_x[k]*1.3+5) && (i > min_x[k]*0.7-5) && 
+//            (j < max_y[k]*1.3+5) && (i > min_y[k]*0.7-5))       
+            
+          if ((i < max_x[k]+5) && (i > min_x[k]-5) && 
+              (j < max_y[k]+5) && (i > min_y[k]-5)) {
+              
+      
+          //float col_dist = color_dist(in.pixels[pixind],cols[k]);
+          float col_dist = color_space_dist(in.pixels[pixind],cols[k], i,j, 
+                                           col_center[k][0], col_center[k][1]);
+          
+          if (col_dist < dist_closest) {
+             ind_closest = k;
+             dist_closest = col_dist; 
+          }
+        }       
      }
      
      out.pixels[pixind] = cols[ind_closest];    
@@ -128,55 +144,65 @@ void find_means() {
       new_col_center_y[ind_closest] += j;
       
       new_cols_num[ind_closest]++;
-   
+     
+      if (i < new_min_x[ind_closest]) new_min_x[ind_closest] = i;
+      if (j < new_min_y[ind_closest]) new_min_y[ind_closest] = j;
+      
+      if (i > new_max_x[ind_closest]) new_max_x[ind_closest] = i;
+      if (j > new_max_y[ind_closest]) new_max_y[ind_closest] = j;
   }
   }
+  
   out.updatePixels();// = true;
   
+  ////////////////////////////////////
   
   int num_changed = 0;
-    for (int k = 0; k< knum; k++) {
+  for (int k = 0; k < knum; k++) {
+    /// assign new values  
+    float new_r = new_cols[k][0]/new_cols_num[k];
+    float new_g = new_cols[k][1]/new_cols_num[k];
+    float new_b = new_cols[k][2]/new_cols_num[k];
       
-      float new_r = new_cols[k][0]/new_cols_num[k];
-      float new_g = new_cols[k][1]/new_cols_num[k];
-      float new_b = new_cols[k][2]/new_cols_num[k];
-      
-      float new_x = new_col_center_x[k]/new_cols_num[k];
-      float new_y = new_col_center_y[k]/new_cols_num[k];    
+    float new_x = new_col_center_x[k]/new_cols_num[k];
+    float new_y = new_col_center_y[k]/new_cols_num[k];    
       
       /*
       if ( (int(new_r) != int(red(cols[k]))) || (int(new_g) != int(green(cols[k]))) || (int(new_b) != int(blue(cols[k])))   ) {
             num_changed++;
             }
-            */
-      
-       cols[k] = color( int(new_r), int(new_g), int(new_b));
+            */ 
+     cols[k] = color( int(new_r), int(new_g), int(new_b));
+     
+     col_center[k][0] = int(new_x);
+     col_center[k][1] = int(new_y);
+     
+     min_x[k] = new_min_x[k];
+     max_x[k] = new_max_x[k];    
+     min_y[k] = new_min_y[k];
+     max_y[k] = new_max_y[k];
+                  
+     /// reset values
+     new_cols[k][0] = 0;
+     new_cols[k][1] = 0;
+     new_cols[k][2] = 0;
+     new_col_center_x[k] = 0;
+     new_col_center_y[k] = 0;
+     new_cols_num[k] = 0;
+     
+     new_min_x[k] =  col_center[k][0];
+     new_min_y[k] =  col_center[k][1];
+     new_max_x[k] =  col_center[k][0];
+     new_max_y[k] =  col_center[k][1];
        
-       col_center[k][0] = int(new_x);
-       col_center[k][1] = int(new_y);
-              
-              
-       new_cols[k][0] = 0;
-       new_cols[k][1] = 0;
-       new_cols[k][2] = 0;
-       new_col_center_x[k] = 0;
-       new_col_center_y[k] = 0;
-       new_cols_num[k] = 0;
-       
-              /*          
-     print(k + ", " + red(cols[k]) + " " + green(cols[k]) + " " + blue(cols[k]) + 
-               ",    " + float(new_cols_num[k])/(in.width*in.height) +"\n");
-               */
     }
     
     /*
     if (num_changed == 0) {
         print("done\n");
         noLoop();
-       
     }
     */
-  
 }
 
 ///////
@@ -243,6 +269,11 @@ void makeNewCenter(int i) {
   cols[i] = in.pixels[y*in.width+x];
   col_center[i][0] = x;
   col_center[i][1] = y;
+  
+  min_x[i] = x;
+  max_x[i] = x;
+  min_y[i] = y;
+  max_y[i] = y;
 }
 
 int count = 0;
