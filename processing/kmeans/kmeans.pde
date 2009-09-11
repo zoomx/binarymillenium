@@ -7,25 +7,57 @@
  */
  
 
-PImage a,b;  // Declare variable "a" of type PImage
+PImage in,out;  // Declare variable "a" of type PImage
 
-
+boolean doSobel = true;;
+final int maxKnum = 20;
 int knum = 10;
-float space_weight = 0.3;
+float space_weight = 1.4;//0.3;
   String name = "test.jpg";
 
-color cols[] = new color[knum];
-int col_center[][] = new int[knum][2];
+color cols[] = new color[maxKnum];
+int col_center[][] = new int[maxKnum][2];
 
 
 int counter = 0;
 
-  float new_cols[][] = new float[knum][3];
-  int new_cols_num[] = new int[knum];
+  float new_cols[][] = new float[maxKnum][3];
+  int new_cols_num[] = new int[maxKnum];
   
-  float new_col_center_x[] = new float[knum];
-  float new_col_center_y[] = new float[knum];
-  
+  float new_col_center_x[] = new float[maxKnum];
+  float new_col_center_y[] = new float[maxKnum];
+/////////////
+
+void keyPressed() {
+ if (key == 'q') {
+   space_weight *= 1.19;
+  println("space weight " + space_weight); 
+ }
+ if (key == 'a') {
+   space_weight *= 0.85;
+    println("space weight " + space_weight); 
+ }
+ 
+ if (key == 's') {
+   saveFrame("output.png");
+ }
+ 
+ if (key == 'j') {
+   knum++;
+   if (knum >= maxKnum) knum = maxKnum-1;
+   makeNewCenter(knum-1);
+   println("knum " + knum);
+ }
+ if (key == 'k') {
+   knum--;
+   if (knum < 2) knum = 2;
+   println("knum " + knum);
+ }
+ 
+ if (key == 'e') {
+   doSobel = !doSobel; 
+ }
+}
 ///////////
 
 float color_dist(color c1, color c2) {
@@ -46,7 +78,7 @@ float color_space_dist(color c1, color c2, int x1, int y1, int x2, int y2) {
   float nom_cdist = color_dist(color(255,255,255), color(0,0,0));
  float col_dist = color_dist(c1,c2)/nom_cdist;
 
-  float nom_sdist = dist(0,0,a.width,a.height);
+  float nom_sdist = dist(0,0,in.width,in.height);
 
 float space_dist = dist(x1,y1, x2,y2)/nom_sdist; 
 
@@ -61,10 +93,10 @@ return dist(0,0, col_dist, space_weight*space_dist);
 
 void find_means() {
   
-  for (int j = 0; j < a.height; j++) {
-  for (int i = 0; i < a.width;  i++) {
+  for (int j = 0; j < in.height; j++) {
+  for (int i = 0; i < in.width;  i++) {
     
-      int pixind = j*a.width + i;
+      int pixind = j*in.width + i;
 
       
        
@@ -75,8 +107,8 @@ void find_means() {
    
    for (int k = 0; k< knum; k++) {
      
-      //float col_dist = color_dist(a.pixels[pixind],cols[k]);
-      float col_dist = color_space_dist(a.pixels[pixind],cols[k], i,j, col_center[k][0], col_center[k][1]);
+      //float col_dist = color_dist(in.pixels[pixind],cols[k]);
+      float col_dist = color_space_dist(in.pixels[pixind],cols[k], i,j, col_center[k][0], col_center[k][1]);
       
       if (col_dist < dist_closest) {
          ind_closest = k;
@@ -85,16 +117,16 @@ void find_means() {
       
    }
    
-   b.pixels[pixind] = cols[ind_closest];
+   out.pixels[pixind] = cols[ind_closest];
    
-   b.modified = true;
+   out.updatePixels();// = true;
    
    
       /////////////
  
-      new_cols[ind_closest][0] += (red(a.pixels[pixind]));
-      new_cols[ind_closest][1] += (green(a.pixels[pixind]));
-      new_cols[ind_closest][2] += (blue(a.pixels[pixind]));
+      new_cols[ind_closest][0] += (red(in.pixels[pixind]));
+      new_cols[ind_closest][1] += (green(in.pixels[pixind]));
+      new_cols[ind_closest][2] += (blue(in.pixels[pixind]));
       
       new_col_center_x[ind_closest] += i;
       new_col_center_y[ind_closest] += j;
@@ -139,7 +171,7 @@ void find_means() {
        
               /*          
      print(k + ", " + red(cols[k]) + " " + green(cols[k]) + " " + blue(cols[k]) + 
-               ",    " + float(new_cols_num[k])/(a.width*a.height) +"\n");
+               ",    " + float(new_cols_num[k])/(in.width*in.height) +"\n");
                */
     }
     
@@ -153,23 +185,21 @@ void find_means() {
   
 }
 
-
 ///////
 
 void setup() {
+in = loadImage(name); // Load the images into the program
+  
+size(in.width, in.height);
+
   
   colorMode(RGB, 255);
   
-  frameRate(4);
-  
+  frameRate(10);
 
-  a = loadImage(name); // Load the images into the program
+ out = loadImage(name);
 
-size(a.width*2, a.height);
-
- b = loadImage(name);
-
-print( a.height + " " + a.width + " " + a.width*a.height +"\r\n");
+print( in.height + " " + in.width + " " + in.width*in.height +"\r\n");
 
 randomSeed(minute() + second());
 /// initial random guess at colors
@@ -191,43 +221,77 @@ for (int i = 0; i < knum; i++) {
   
   print(red(cols[i]) + " " + green(cols[i]) + " " +blue(cols[i]) + "\n");
  */
+  makeNewCenter(i);
+
   
-  int x,y;
-  int picsize = a.width*a.height;
+}
+
+}
+
+
+void makeNewCenter(int i) {
+    int x,y;
+  int picsize = in.width*in.height;
   
-  if (false) {
-    x = int(random(a.width));
-    y = int(random(a.height));
+  if (true) {
+    x = int(random(in.width));
+    y = int(random(in.height));
   } else {
     /// uniformly spaced sample points (not really)
     int ind =  int(float(i)/knum * picsize); 
 
-    x = ind%a.width;
-    y=  int(ind/a.width);
-     print(x + " " + y + ", ");
+    x = ind%in.width;
+    y=  int(ind/in.width);
+     
   }
   
-  cols[i] = a.pixels[y*a.width+x];
+  print(x + " " + y + ", ");
+  cols[i] = in.pixels[y*in.width+x];
   col_center[i][0] = x;
   col_center[i][1] = y;
-  
 }
 
-}
-
-
-
+int count = 0;
 
 void draw() {
 
-/// image() caches the image , so need to set modified to true to redraw it
-image(b, 0, 0); // Displays the image from point (0,0)
-image(a, a.width, 0);
-
-
+  /// image() caches the image , so need to set modified to true to redraw it
+  image(out, 0, 0); // Displays the image from point (0,0)
+  //image(a, in.width, 0);
   
+  find_means();
+  if (doSobel) findEdges();
+  
+  //if (count == 5) { 
+    //noLoop();
+  //  saveFrame("output.png");
+  //}
+  count++;
 
-find_means();
+}
 
+void findEdges() {
+ loadPixels();
+ 
+ float sobel_x, sobel_y;
 
+  for (int i = 1; i < height -1; i++) {
+  for (int j = 1; j < width -1; j++) {
+    float pl = brightness(out.pixels[i*width+j-1]);
+    float pr = brightness(out.pixels[i*width+j+1]);
+    float pu = brightness(out.pixels[(i-1)*width+j]);
+    float pd = brightness(out.pixels[(i+1)*width+j]);
+    
+    float plu = brightness(out.pixels[(i-1)*width+j-1]);
+    float pld = brightness(out.pixels[(i+1)*width+j-1]);
+    float pru = brightness(out.pixels[(i-1)*width+j+1]);
+    float prd = brightness(out.pixels[(i+1)*width+j+1]);
+     
+    sobel_x = (0.5*pr + 0.25*(pru + prd)) - (0.5*pl + 0.25*(plu + pld));
+    sobel_y = -(0.5*pd + 0.25*(pld + prd)) + (0.5*pu + 0.25*(pru + plu));
+    float sobel = sqrt(sobel_x*sobel_x + sobel_y*sobel_y);
+    
+    if (sobel > 0.9) pixels[i*width+j] = color(0);
+  }}  
+  updatePixels();
 }
