@@ -56,7 +56,7 @@ void keyPressed() {
    knum++;
    if (knum >= maxKnum) knum = maxKnum-1;
    makeNewCenter(knum-1);
-   println("knum " + knum);
+   println("knum " + (knum-1));
  }
  if (key == 'k') {
    knum--;
@@ -103,9 +103,10 @@ return dist(0,0, col_dist, space_weight*space_dist);
 
 void find_means() {
   
-  
+  float ext = 0.3;
   
   for (int j = 0; j < in.height; j+= 1 /*int(random(3))g*/) {
+    float ext2 = ext; //random(ext)+0.1;
   for (int i = 0; i < in.width;  i+= 1 /* int(random(5))*/) {
      int pixind = j*in.width + i;
      
@@ -116,10 +117,20 @@ void find_means() {
      for (int k = 0; k< knum; k++) {
        
 //        if ((i < max_x[k]*1.3+5) && (i > min_x[k]*0.7-5) && 
-//            (j < max_y[k]*1.3+5) && (i > min_y[k]*0.7-5))       
+//            (j < max_y[k]*1.3+5) && (i > min_y[k]*0.7-5))    
+
+          float min_x_temp = col_center[k][0] - (col_center[k][0]-min_x[k])*(1.0+ext2) -5;
+          if (min_x_temp < 0) min_x_temp = 0;
+          
+          float min_y_temp = col_center[k][1] - (col_center[k][1]-min_y[k])*(1.0+ext2) -5;
+          if (min_y_temp < 0) min_y_temp = 0;
+          
+          float max_x_temp = col_center[k][0] + (max_x[k]- col_center[k][0])*(1.0+ext2) +5;
+          float max_y_temp = col_center[k][1] + (max_y[k]- col_center[k][1])*(1.0+ext2) +5;
+          
             
-          if ((i < max_x[k]+5) && (i > min_x[k]-5) && 
-              (j < max_y[k]+5) && (i > min_y[k]-5)) {
+          if ((i < max_x_temp) && (i >= min_x_temp) && 
+              (j < max_y_temp) && (i >= min_y_temp)) {
               
       
           //float col_dist = color_dist(in.pixels[pixind],cols[k]);
@@ -159,6 +170,8 @@ void find_means() {
   
   int num_changed = 0;
   for (int k = 0; k < knum; k++) {
+    
+    if (new_cols_num[k] > 0) {
     /// assign new values  
     float new_r = new_cols[k][0]/new_cols_num[k];
     float new_g = new_cols[k][1]/new_cols_num[k];
@@ -181,6 +194,10 @@ void find_means() {
      max_x[k] = new_max_x[k];    
      min_y[k] = new_min_y[k];
      max_y[k] = new_max_y[k];
+     } else {
+       makeNewCenter(k);
+     }
+     //println(k + " " + min_x[k] + " " + max_x[k] + ", " + min_y[k] + ", " + max_y[k]);
                   
      /// reset values
      new_cols[k][0] = 0;
@@ -206,12 +223,15 @@ void find_means() {
 }
 
 ///////
+PFont font;
 
 void setup() {
 in = loadImage(name); // Load the images into the program
   
 size(in.width, in.height);
 
+  font = createFont("Serif.bold",12);
+  textFont(font);
   
   colorMode(RGB, 255);
   
@@ -286,6 +306,17 @@ void draw() {
   
   find_means();
   if (doSobel) findEdges();
+  
+  boolean doText = false;
+  if (doText) {
+  fill(255,100,100);
+  for (int k = 0; k < knum; k++) {
+    if (k == knum-1) fill(100,100,255);
+    text(k, col_center[k][0], col_center[k][1]);
+  }
+  }
+  
+  //println(col_center[knum-1][0] + " " + col_center[knum-1][1]);
   
   //if (count == 5) { 
     //noLoop();
