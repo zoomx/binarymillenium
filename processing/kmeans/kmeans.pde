@@ -9,8 +9,8 @@
 
 PImage in,out;  // Declare variable "a" of type PImage
 
-boolean doSobel = true;;
-final int maxKnum = 20;
+boolean doSobel = true;
+final int maxKnum = 30;
 int knum = 10;
 float space_weight = 1.4;//0.3;
   String name = "test.jpg";
@@ -93,35 +93,31 @@ return dist(0,0, col_dist, space_weight*space_dist);
 
 void find_means() {
   
-  for (int j = 0; j < in.height; j++) {
-  for (int i = 0; i < in.width;  i++) {
+  for (int j = 0; j < in.height; j+= int(random(3))) {
+  for (int i = 0; i < in.width;  i+= int(random(5))) {
     
       int pixind = j*in.width + i;
 
       
        
-   ///////////////
-   float dist_closest = sqrt(255*255*3); 
-   int ind_closest = 0;
-   
-   
-   for (int k = 0; k< knum; k++) {
+     ///////////////
+     float dist_closest = sqrt(255*255*3); 
+     int ind_closest = 0;
      
-      //float col_dist = color_dist(in.pixels[pixind],cols[k]);
-      float col_dist = color_space_dist(in.pixels[pixind],cols[k], i,j, col_center[k][0], col_center[k][1]);
-      
-      if (col_dist < dist_closest) {
-         ind_closest = k;
-         dist_closest = col_dist; 
-      }
-      
-   }
-   
-   out.pixels[pixind] = cols[ind_closest];
-   
-   out.updatePixels();// = true;
-   
-   
+     
+     for (int k = 0; k< knum; k++) {
+       
+        //float col_dist = color_dist(in.pixels[pixind],cols[k]);
+        float col_dist = color_space_dist(in.pixels[pixind],cols[k], i,j, col_center[k][0], col_center[k][1]);
+        
+        if (col_dist < dist_closest) {
+           ind_closest = k;
+           dist_closest = col_dist; 
+        }
+        
+     }
+     
+     out.pixels[pixind] = cols[ind_closest];    
       /////////////
  
       new_cols[ind_closest][0] += (red(in.pixels[pixind]));
@@ -133,11 +129,9 @@ void find_means() {
       
       new_cols_num[ind_closest]++;
    
-   
-   
-   
   }
   }
+  out.updatePixels();// = true;
   
   
   int num_changed = 0;
@@ -291,7 +285,8 @@ void findEdges() {
     sobel_y = -(0.5*pd + 0.25*(pld + prd)) + (0.5*pu + 0.25*(pru + plu));
     float sobel = sqrt(sobel_x*sobel_x + sobel_y*sobel_y);
     
-    if (sobel > 0.9) pixels[i*width+j] = color(0);
+    //print(sobel + " ");
+    if (sobel >  70) pixels[i*width+j] = color(0);
   }}  
   updatePixels();
 }
