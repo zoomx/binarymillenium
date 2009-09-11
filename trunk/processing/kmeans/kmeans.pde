@@ -10,7 +10,8 @@
 PImage in,out;  // Declare variable "a" of type PImage
 
 boolean doSobel = true;
-final int maxKnum = 30;
+float sobelThreshold = 70;
+final int maxKnum = 80;
 int knum = 10;
 float space_weight = 1.4;//0.3;
   String name = "test.jpg";
@@ -40,11 +41,11 @@ int counter = 0;
 
 void keyPressed() {
  if (key == 'q') {
-   space_weight *= 1.19;
+   space_weight *= 1.11;
   println("space weight " + space_weight); 
  }
  if (key == 'a') {
-   space_weight *= 0.85;
+   space_weight *= 0.95;
     println("space weight " + space_weight); 
  }
  
@@ -62,6 +63,15 @@ void keyPressed() {
    knum--;
    if (knum < 2) knum = 2;
    println("knum " + knum);
+ }
+ 
+ if (key == 'i') {
+    sobelThreshold *= 1.2; 
+    println(sobelThreshold);
+ }
+ if (key == 'u') {
+    sobelThreshold *= 0.95; 
+    println(sobelThreshold);
  }
  
  if (key == 'e') {
@@ -103,7 +113,7 @@ return dist(0,0, col_dist, space_weight*space_dist);
 
 void find_means() {
   
-  float ext = 0.3;
+  float ext = 0.7;
   
   for (int j = 0; j < in.height; j+= 1 /*int(random(3))g*/) {
     float ext2 = ext; //random(ext)+0.1;
@@ -348,7 +358,7 @@ void findEdges() {
     float sobel = sqrt(sobel_x*sobel_x + sobel_y*sobel_y);
     
     //print(sobel + " ");
-    if (sobel >  70) pixels[i*width+j] = color(0);
+    if (sobel >  sobelThreshold) pixels[i*width+j] = color(0);
   }}  
   updatePixels();
 }
