@@ -14,7 +14,10 @@ float sobelThreshold = 70;
 final int maxKnum = 80;
 int knum = 10;
 float space_weight = 1.4;//0.3;
-  String name = "test.jpg";
+
+String name = "test.jpg";
+
+  
 
 color cols[] = new color[maxKnum];
 int col_center[][] = new int[maxKnum][2];
@@ -28,15 +31,16 @@ int counter = 0;
   float new_col_center_x[] = new float[maxKnum];
   float new_col_center_y[] = new float[maxKnum];
   
-  float min_x[] = new float[maxKnum];
-  float max_x[] = new float[maxKnum];
-  float min_y[] = new float[maxKnum];
-  float max_y[] = new float[maxKnum];
-  
-  float new_min_x[] = new float[maxKnum];
-  float new_max_x[] = new float[maxKnum];
-  float new_min_y[] = new float[maxKnum];
-  float new_max_y[] = new float[maxKnum];
+class minmax {
+  float min_x;
+  float max_x;
+  float min_y;
+  float max_y;
+};
+
+minmax minmaxes[] = new minmax[maxKnum];
+minmax new_minmaxes[] = new minmax[maxKnum];
+
 /////////////
 
 void keyPressed() {
@@ -49,19 +53,28 @@ void keyPressed() {
     println("space weight " + space_weight); 
  }
  
+ if(key == 'z') {
+   sel-=1;
+   if (sel < 0) sel = 0;
+ } 
+ if (key == 'x') {
+   sel+=1;
+   if (sel >= knum) sel = 0;
+ }
+   
  if (key == 's') {
    saveFrame("output.png");
  }
  
- if (key == 'j') {
+ if (key == 'k') {
    knum++;
    if (knum >= maxKnum) knum = maxKnum-1;
    makeNewCenter(knum-1);
    println("knum " + (knum-1));
  }
- if (key == 'k') {
+ if (key == 'j') {
    knum--;
-   if (knum < 2) knum = 2;
+   if (knum < 1) knum = 1;
    println("knum " + knum);
  }
  
@@ -74,8 +87,33 @@ void keyPressed() {
     println(sobelThreshold);
  }
  
+  if (key == 'n') {
+    ext *= 0.95; 
+    println(ext);
+ }
+ if (key == 'm') {
+    ext *= 1.2; 
+    println(ext);
+ }
+ 
+ if (key == 'l') {
+    doLabel = !doLabel; 
+ }
+ 
+ 
  if (key == 'e') {
    doSobel = !doSobel; 
+ }
+ 
+ if (key == 'c') {
+   drawInput = !drawInput; 
+ }
+ 
+ if (key =='p') {
+   noLoop(); 
+ }
+ if (key == 'o') {
+    loop(); 
  }
 }
 ///////////
@@ -109,11 +147,22 @@ return dist(0,0, col_dist, space_weight*space_dist);
 }
 
 ////////
-
-
-void find_means() {
+minmax getMinMax(int k) {
+  minmax rv = new minmax();
+             
+  rv.min_x = col_center[k][0] - (col_center[k][0] - minmaxes[k].min_x)*(1.0+ext) - 5;
+  if (rv.min_x < 0) rv.min_x = 0;    
+  rv.min_y = col_center[k][1] - (col_center[k][1] - minmaxes[k].min_y)*(1.0+ext) - 5;
+  if (rv.min_y < 0) rv.min_y = 0;    
+  rv.max_x = col_center[k][0] + (minmaxes[k].max_x - col_center[k][0])*(1.0+ext) + 5;
+  rv.max_y = col_center[k][1] + (minmaxes[k].max_y - col_center[k][1])*(1.0+ext) + 5;
   
-  float ext = 0.7;
+  return rv;
+}
+
+float ext = 0.7;
+
+void find_means() { 
   
   for (int j = 0; j < in.height; j+= 1 /*int(random(3))g*/) {
     float ext2 = ext; //random(ext)+0.1;
@@ -127,35 +176,30 @@ void find_means() {
      for (int k = 0; k< knum; k++) {
        
 //        if ((i < max_x[k]*1.3+5) && (i > min_x[k]*0.7-5) && 
-//            (j < max_y[k]*1.3+5) && (i > min_y[k]*0.7-5))    
+//            (j < max_y[k]*1.3+5) && (i > min_y[k]*0.7-5))         
 
-          float min_x_temp = col_center[k][0] - (col_center[k][0]-min_x[k])*(1.0+ext2) -5;
-          if (min_x_temp < 0) min_x_temp = 0;
-          
-          float min_y_temp = col_center[k][1] - (col_center[k][1]-min_y[k])*(1.0+ext2) -5;
-          if (min_y_temp < 0) min_y_temp = 0;
-          
-          float max_x_temp = col_center[k][0] + (max_x[k]- col_center[k][0])*(1.0+ext2) +5;
-          float max_y_temp = col_center[k][1] + (max_y[k]- col_center[k][1])*(1.0+ext2) +5;
-          
-            
-          if ((i < max_x_temp) && (i >= min_x_temp) && 
-              (j < max_y_temp) && (i >= min_y_temp)) {
-              
+          minmax temp_mm = getMinMax(k);
+                    
+          if ((i < temp_mm.max_x) && (i >= temp_mm.min_x) && 
+              (j < temp_mm.max_y) && (i >= temp_mm.min_y)) {      
       
-          //float col_dist = color_dist(in.pixels[pixind],cols[k]);
-          float col_dist = color_space_dist(in.pixels[pixind],cols[k], i,j, 
+            //float col_dist = color_dist(in.pixels[pixind],cols[k]);
+            float col_dist = color_space_dist(in.pixels[pixind],cols[k], i,j, 
                                            col_center[k][0], col_center[k][1]);
           
-          if (col_dist < dist_closest) {
-             ind_closest = k;
-             dist_closest = col_dist; 
-          }
+            if (col_dist < dist_closest) {
+              ind_closest = k;
+              dist_closest = col_dist; 
+            }
         }       
      }
      
+     if ((ind_closest == sel) && (doLabel)) {
+       out.pixels[pixind] = color(100,255,00);
+     } else {
+     
      out.pixels[pixind] = cols[ind_closest];    
-      /////////////
+     } /////////////
  
       new_cols[ind_closest][0] += (red(in.pixels[pixind]));
       new_cols[ind_closest][1] += (green(in.pixels[pixind]));
@@ -166,11 +210,11 @@ void find_means() {
       
       new_cols_num[ind_closest]++;
      
-      if (i < new_min_x[ind_closest]) new_min_x[ind_closest] = i;
-      if (j < new_min_y[ind_closest]) new_min_y[ind_closest] = j;
+      if (i < new_minmaxes[ind_closest].min_x) new_minmaxes[ind_closest].min_x = i;
+      if (j < new_minmaxes[ind_closest].min_y) new_minmaxes[ind_closest].min_y = j;
       
-      if (i > new_max_x[ind_closest]) new_max_x[ind_closest] = i;
-      if (j > new_max_y[ind_closest]) new_max_y[ind_closest] = j;
+      if (i > new_minmaxes[ind_closest].max_x) new_minmaxes[ind_closest].max_x = i;
+      if (j > new_minmaxes[ind_closest].max_y) new_minmaxes[ind_closest].max_y = j;
   }
   }
   
@@ -195,15 +239,18 @@ void find_means() {
             num_changed++;
             }
             */ 
-     cols[k] = color( int(new_r), int(new_g), int(new_b));
-     
-     col_center[k][0] = int(new_x);
-     col_center[k][1] = int(new_y);
-     
-     min_x[k] = new_min_x[k];
-     max_x[k] = new_max_x[k];    
-     min_y[k] = new_min_y[k];
-     max_y[k] = new_max_y[k];
+       float mixv = 1;//0.05;
+       cols[k] = color( int(new_r*mixv + red(cols[k])*(1.0-mixv)), 
+                        int(new_g*mixv + green(cols[k])*(1.0-mixv)),
+                        int(new_b*mixv + blue(cols[k])*(1.0-mixv)));
+       
+       col_center[k][0] = int(new_x*mixv + col_center[k][0]*(1.0-mixv));
+       col_center[k][1] = int(new_y*mixv + col_center[k][1]*(1.0-mixv));
+       
+       minmaxes[k].min_x = new_minmaxes[k].min_x*mixv + minmaxes[k].min_x*(1.0-mixv);
+       minmaxes[k].max_x = new_minmaxes[k].max_x*mixv + minmaxes[k].max_x*(1.0-mixv);    
+       minmaxes[k].min_y = new_minmaxes[k].min_y*mixv + minmaxes[k].min_y*(1.0-mixv);
+       minmaxes[k].max_y = new_minmaxes[k].max_y*mixv + minmaxes[k].max_y*(1.0-mixv);
      } else {
        makeNewCenter(k);
      }
@@ -217,10 +264,10 @@ void find_means() {
      new_col_center_y[k] = 0;
      new_cols_num[k] = 0;
      
-     new_min_x[k] =  col_center[k][0];
-     new_min_y[k] =  col_center[k][1];
-     new_max_x[k] =  col_center[k][0];
-     new_max_y[k] =  col_center[k][1];
+     new_minmaxes[k].min_x = col_center[k][0];
+     new_minmaxes[k].min_y = col_center[k][1];
+     new_minmaxes[k].max_x = col_center[k][0];
+     new_minmaxes[k].max_y = col_center[k][1];
        
     }
     
@@ -236,9 +283,20 @@ void find_means() {
 PFont font;
 
 void setup() {
-in = loadImage(name); // Load the images into the program
+
+  if (false) {
+  name = selectInput("choose input image");  // Opens file chooser
+  if (name == null) {
+    // If a file was not selected
+    println("No file was selected...");
+  } else {
+    // If a file was selected, print path to file
+    println(name);
+  }
+  }
   
-size(in.width, in.height);
+    in = loadImage(name); // Load the images into the program
+  size(in.width, in.height);
 
   font = createFont("Serif.bold",12);
   textFont(font);
@@ -255,8 +313,10 @@ randomSeed(minute() + second());
 /// initial random guess at colors
 /// could choose completely random colors, but taking some inside the image ought to converge faster
 /// (though likelihood of getting two of the same color may be increased)
-for (int i = 0; i < knum; i++) {
+for (int i = 0; i < maxKnum; i++) {
   
+  minmaxes[i] = new minmax();
+  new_minmaxes[i] = new minmax();
   /*
   /// this doesn't work too well for uniformly colored pictures as knum is increased,
   /// most of the colors will be further away and not get any pixels assigned to them.
@@ -300,29 +360,48 @@ void makeNewCenter(int i) {
   col_center[i][0] = x;
   col_center[i][1] = y;
   
-  min_x[i] = x;
-  max_x[i] = x;
-  min_y[i] = y;
-  max_y[i] = y;
+  minmaxes[i].min_x = x;
+  minmaxes[i].max_x = x;
+  minmaxes[i].min_y = y;
+  minmaxes[i].max_y = y;
 }
 
 int count = 0;
-
+  boolean doLabel = false;
+  int sel = 0;
+  
+  boolean drawInput = false;
 void draw() {
 
   /// image() caches the image , so need to set modified to true to redraw it
+  if (drawInput) {
+    image(in,0,0);
+  } else {
   image(out, 0, 0); // Displays the image from point (0,0)
+    }
   //image(a, in.width, 0);
   
   find_means();
   if (doSobel) findEdges();
   
-  boolean doText = false;
-  if (doText) {
-  fill(255,100,100);
+
+  if (doLabel) {
+
+ 
   for (int k = 0; k < knum; k++) {
-    if (k == knum-1) fill(100,100,255);
+    if (k == sel) {  strokeWeight(2);fill(100,100,255); stroke(55,50,250,240);}
+    else {  fill(255,100,100);
+  stroke(255,50,60,20); strokeWeight(1); }
     text(k, col_center[k][0], col_center[k][1]);
+    
+    noFill();
+    
+    rect(minmaxes[k].min_x,                     minmaxes[k].min_y, 
+         minmaxes[k].max_x - minmaxes[k].min_x, minmaxes[k].max_y - minmaxes[k].min_y);
+    
+    //
+    minmax temp = getMinMax(k);
+    rect(temp.min_x, temp.min_y, temp.max_x - temp.min_x, temp.max_y - temp.min_y);
   }
   }
   
