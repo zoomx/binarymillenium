@@ -23,7 +23,7 @@ def getlinepts(x1,y1, x2, y2):
     return linepts
 
 def addText(xoff,yoff,txt,font,fgcolor):
-    draw.text((xoff,yoff+3), txt, fill="#000000", font=font)
+    draw.text((xoff+2,yoff+3), txt, fill="#000000", font=font)
     draw.text((xoff,yoff), txt, fill=fgcolor, font=font)
 
 
@@ -74,12 +74,30 @@ addText(wd/2-x/2,90,txt,font,fgcolor)
 
 txt = "THE FILM ADVERTISED HAS BEEN RATED"
 (x,y) = font.getsize(txt)
-addText(wd/2-x/2,ht/2-20,txt,font,fgcolor)
+addText(wd/2-x/2,ht/2-25,txt,font,fgcolor)
 
-ulx = wd/2-wd/3 
+ulx = wd/2-wd/3*0.9 
 uly = ht/2
-lrx = wd/2+wd/3
-lry = ht/2+100
+lrx = wd/2+wd/3*0.9
+lry = ht/2+90
+
+# pg 13
+txt = "PARENTS STRONGLY CAUTIONED"
+(x,y) = font.getsize(txt)
+addText(ulx+64,uly+4,txt,font,fgcolor)
+
+fontSmall = ImageFont.truetype(fontFile,13)
+
+# TBD text for R film
+txt = "TROMA-INSPIRED GROTESQUENESS,"
+(x,y) = font.getsize(txt)
+addText(wd/2-x/2,uly+43,txt,font,fgcolor)
+
+txt = "AND SPASTIC HUMOR"
+(x,y) = font.getsize(txt)
+addText(wd/2-x/2,uly+63,txt,font,fgcolor)
+
+
 
 # shadows
 draw.line( getlinepts(ulx+2,uly+2,lrx+2,lry+2) , width=2, fill="#000000")
@@ -88,12 +106,17 @@ draw.line( getlinepts(ulx+2,uly+2,ulx+60+2,uly+26+2) , width=2, fill="#000000")
 # parents cautioned box
 draw.line( getlinepts(ulx+60+2,uly+2,lrx+2,uly+26+2) , width=2, fill="#000000")
 # some material box
-draw.line( getlinepts(ulx+2,uly+26+2,lrx+2,uly+40+2) , width=2, fill="#000000")
+draw.line( getlinepts(ulx+2,uly+26+2,lrx+2,uly+42+2) , width=2, fill="#000000")
+
+
+txt = "Some Material May Be Inappropriate for Children Under 13"
+(x,y) = fontSmall.getsize(txt)
+addText(wd/2-x/2,uly+26,txt,fontSmall,fgcolor)
 
 # white lines
 draw.line( getlinepts(ulx,uly,ulx+60,uly+26) , width=2, fill=fgcolor)
 draw.line( getlinepts(ulx+60,uly,lrx,uly+26) , width=2, fill=fgcolor)
-draw.line( getlinepts(ulx,uly+26,lrx,uly+40) , width=2, fill=fgcolor)
+draw.line( getlinepts(ulx,uly+26,lrx,uly+42) , width=2, fill=fgcolor)
 draw.line( getlinepts(ulx,uly,lrx,lry) , width=2, fill=fgcolor)
 
 
