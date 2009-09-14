@@ -108,10 +108,23 @@ draw.line( getlinepts(ulx+60+2,uly+2,lrx+2,uly+26+2) , width=2, fill="#000000")
 # some material box
 draw.line( getlinepts(ulx+2,uly+26+2,lrx+2,uly+42+2) , width=2, fill="#000000")
 
+draw.ellipse( ((lrx-42, uly+5),(lrx-5,uly+20)), outline=fgcolor)
+draw.ellipse( ((lrx-35, uly+5),(lrx-12,uly+20)), outline=fgcolor)
+draw.line( ((lrx-42, uly+12), (lrx-5,uly+12)), fill=fgcolor)
 
 txt = "Some Material May Be Inappropriate for Children Under 13"
 (x,y) = fontSmall.getsize(txt)
 addText(wd/2-x/2,uly+26,txt,fontSmall,fgcolor)
+
+# Rating- century schoolboy?
+fontFileRating = "/var/lib/defoma/x-ttcidfont-conf.d/dirs/TrueType/DejaVuSerif-Bold.ttf"
+#fontFileRating = "/var/lib/defoma/x-ttcidfont-conf.d/dirs/TrueType/FreeSerifBold.ttf"
+fontRating = ImageFont.truetype(fontFileRating,16)
+
+txt = "PG-13"
+(x,y) = fontRating.getsize(txt)
+addTextBold(ulx+3,uly+2,txt,fontRating,fgcolor)
+
 
 # white lines
 draw.line( getlinepts(ulx,uly,ulx+60,uly+26) , width=2, fill=fgcolor)
