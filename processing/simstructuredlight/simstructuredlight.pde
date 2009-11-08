@@ -14,10 +14,12 @@ import toxi.geom.*;
 
 GL gl;
 
-Texture tex;
+Texture tex[] = new Texture[3];
 float rotx = PI/4;
 float roty = PI/4;
 
+String imnames[] = new String[3]; 
+int imind = 0;
 
 /// the position and orientation of the projector
 Matrix4x4 projector;
@@ -37,28 +39,38 @@ Matrix4x4 rotateAbs(Matrix4x4 rot, float df, Vec3D axis) {
     
 void setup() 
 {
-  size(640, 360, OPENGL);
+  size(480, 640, OPENGL);
   
-  vs[0] = new Vec3D(-1, -1,  1);  
-  vs[1] = new Vec3D( 1, -1,  1);
-  vs[2] = new Vec3D( 1,  1,  1);
-  vs[3] = new Vec3D(-1,  1,  1);
+  imnames[0] = "i1.png";
+  imnames[1] = "i2.png";
+  imnames[2] = "i3.png";
   
-  vs[4] = new Vec3D(-1, -1,  -1);  
-  vs[5] = new Vec3D( 1, -1,  -1);
-  vs[6] = new Vec3D( 1,  1,  -1);
-  vs[7] = new Vec3D(-1,  1,  -1);
+  float sc = 1;
+  vs[0] = new Vec3D(-sc, -sc,  sc);  
+  vs[1] = new Vec3D( sc, -sc,  sc);
+  vs[2] = new Vec3D( sc,  sc,  sc);
+  vs[3] = new Vec3D(-sc,  sc,  sc);
+  
+  vs[4] = new Vec3D(-sc, -sc,  -sc);  
+  vs[5] = new Vec3D( sc, -sc,  -sc);
+  vs[6] = new Vec3D( sc,  sc,  -sc);
+  vs[7] = new Vec3D(-sc,  sc,  -sc);
   
   gl=((PGraphicsOpenGL)g).gl;
-  
- // tex = loadImage("berlin-1.jpg");
-    try { tex=TextureIO.newTexture(new File(dataPath("berlin-1.jpg")),true); }
-   catch(Exception e) { println(e); } 
    
-      tex.setTexParameteri(GL.GL_TEXTURE_WRAP_R,GL.GL_REPEAT);    
-    tex.setTexParameteri(GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT);
-    tex.setTexParameteri(GL.GL_TEXTURE_WRAP_T,GL.GL_REPEAT);
+  for (int i = 0; i < 3; i++) { 
+    try { 
+      tex[i] = TextureIO.newTexture(new File(dataPath(imnames[i])),true); 
+    }
+    catch(Exception e) { println(e); } 
     
+    tex[i].setTexParameteri(GL.GL_TEXTURE_WRAP_R,GL.GL_REPEAT);    
+    tex[i].setTexParameteri(GL.GL_TEXTURE_WRAP_S,GL.GL_REPEAT);
+    tex[i].setTexParameteri(GL.GL_TEXTURE_WRAP_T,GL.GL_REPEAT);
+  }
+ 
+
+  
   textureMode(NORMALIZED);
   fill(255);
   stroke(color(44,48,32));
@@ -100,12 +112,17 @@ void keyPressed() {
   if (key == 's') {
     projPos = projPos.sub(0,0.5*sc,0);
   }  
+  
+  /// reset
   if (key == 'r') {
-    projPos = new Vec3D(0,0,-10);
+    projPos = new Vec3D(0,0,0);
       projector = new Matrix4x4(1,0,0,0,
                             0,1,0,0,
                             0,0,1,0,
                             0,0,0,1);
+                            
+     rotx = PI/4;
+    roty = PI/4;
   }  
   
   if (key == 'j') {
@@ -127,64 +144,111 @@ void keyPressed() {
     projector = rotateAbs(projector, -sc*PI/20, new Vec3D(1,0,0));
   }
   
+  if (key == 'h') {
+    drawLine = !drawLine; 
+  }
+  
+  if (key == 'y') {
+    switchTex = true;
+  }
+  
+  if (key == 'g') {
+    saveIm = true;
+  }
+  
 }
 
-void draw() 
-{
+///////////////////////////////////////////////
+
+boolean switchTex = false;
+boolean drawLine = true;
+boolean saveIm = false;
+
+void draw() {
+  
+  /// only do this synchronously with drawing
+  if (switchTex) {
+    imind++;
+    imind %= 3;  
+    /*
+    try { tex  = TextureIO.newTexture(new File(dataPath(imnames[imind])),true); }
+    catch(Exception e) { println(e); } 
+    */
+    println("using texture " + imnames[imind]); 
+    
+  }
+  switchTex = false;
+  
   background(0);
   noStroke();
-  translate(width/2.0, height/2.0, -100);
-  rotateX(rotx);
-  rotateY(roty);
-  scale(90);
-  drawObject(tex);
   
-  stroke(255,255,255);
-  line(projPos.x,projPos.y, projPos.z, 
-       projPos.x+15.0*(float)projector.matrix[2][0],
-       projPos.y+15.0*(float)projector.matrix[2][1], 
-       projPos.z+15.0*(float)projector.matrix[2][2]);
+  translate(width/2.0, height/2.0, -100);
+    rotateZ(PI/2); 
+rotateY(-rotx);     
+  rotateX(roty);
+  
+
+  scale(90);
+  drawObject(tex[imind]);
+  
+  if (saveIm) {
+    String name = "phase" + (imind +1) + ".jpg";
+    saveFrame(name);
+    println("saving " + name);
+  } 
+  saveIm = false;
+  
+  if (drawLine) {
+    stroke(255,255,255);
+    line(projPos.x,projPos.y, projPos.z, 
+         projPos.x+15.0*(float)projector.matrix[2][0],
+         projPos.y+15.0*(float)projector.matrix[2][1], 
+         projPos.z+15.0*(float)projector.matrix[2][2]);
+  }
+  
+ 
 }
+
+///////////////////////////////////////////////////
 
 void vertexProj(Vec3D v,boolean verbose) {
   
   Vec3D rel = v.sub(projPos);
 
-  Vec3D pt = projector.apply(rel);
+  Vec3D uv = projector.apply(rel);
+  
+  uv = uv.scale(0.1);
   
   //vertex(v.x, v.y, v.z, pt.x*10, pt.y *10);
-  gl.glTexCoord2f(pt.x,pt.y);
+  gl.glTexCoord2f(uv.x,uv.y);
   gl.glVertex3f(v.x,v.y,v.z);
   
-  
-  if (verbose) println(pt.x + " " + pt.y);
+  if (verbose) println(uv.x + " " + uv.y);
 }
 
 void vertexProj(Vec3D v) {
   vertexProj(v,false);
-  
 }
-
 
 /// draw an object with texture projected onto it
 void drawObject(Texture tex) {
-
   
-   PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;  
-   GL gl = pgl.beginGL();  
+  PGraphicsOpenGL pgl = (PGraphicsOpenGL) g;  
+  GL gl = pgl.beginGL();  
    
-   tex.bind();  
-   tex.enable();  
+  tex.bind();  
+  tex.enable();  
    
- // beginShape(QUADS);
- // texture(tex);
+  // beginShape(QUADS);
+  // texture(tex);
  
   gl.glBegin(GL.GL_QUADS);
   //gl.glNormal3f( 0.0f, 0.0f, 1.0f); 
- 
- gl.glTexParameteri( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT );
- gl.glTexParameteri( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT );
-
+  
+  gl.glTexParameteri( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT );
+  gl.glTexParameteri( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT );
+  gl.glTexParameteri( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_R, GL.GL_REPEAT );
+  
   // Given one texture and six faces, we can easily set up the uv coordinates
   // such that four of the faces tile "perfectly" along either u or v, but the other
   // two faces cannot be so aligned.  This code tiles "along" u, "around" the X/Z faces
@@ -230,8 +294,6 @@ void drawObject(Texture tex) {
 
   tex.disable();
   pgl.endGL();
-
-  
 }
 
 void mouseDragged() {
