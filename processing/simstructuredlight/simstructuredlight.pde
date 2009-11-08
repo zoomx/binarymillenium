@@ -25,8 +25,16 @@ Vec3D projPos;
 
 Vec3D vs[] = new Vec3D[8];
 
-
-
+Matrix4x4 rotateAbs(Matrix4x4 rot, float df, Vec3D axis) {
+  Quaternion quat = new Quaternion(cos(df/2), 
+                          new Vec3D(axis.x*sin(df/2),
+                                    axis.y*sin(df/2),
+                                    axis.z*sin(df/2)) );
+                                    
+  rot = rot.multiply(quat.getMatrix());
+  return rot;
+}
+    
 void setup() 
 {
   size(640, 360, OPENGL);
@@ -57,7 +65,7 @@ void setup()
   
   
   float angle = PI/2;
-  projPos = new Vec3D(0,0,-10);
+  projPos = new Vec3D(0,0,0);
   
   /// point at the origin
   //Vec3D dirV = new Vec3D(0,0,0).sub(projPos).getNormalized();
@@ -94,7 +102,31 @@ void keyPressed() {
   }  
   if (key == 'r') {
     projPos = new Vec3D(0,0,-10);
+      projector = new Matrix4x4(1,0,0,0,
+                            0,1,0,0,
+                            0,0,1,0,
+                            0,0,0,1);
   }  
+  
+  if (key == 'j') {
+    projector = rotateAbs(projector, sc*PI/10, new Vec3D(0,1,0));
+  }
+  if (key == 'k') {
+    projector=rotateAbs(projector, -sc*PI/20, new Vec3D(0,1,0));
+  }
+  if (key == 'u') {
+    projector = rotateAbs(projector, sc*PI/10, new Vec3D(0,0,1));
+  }
+  if (key == 'm') {
+    projector = rotateAbs(projector, -sc*PI/20, new Vec3D(0,0,1));
+  }
+  if (key == 'o') {
+    projector = rotateAbs(projector, sc*PI/10, new Vec3D(1,0,0));
+  }
+  if (key == 'l') {
+    projector = rotateAbs(projector, -sc*PI/20, new Vec3D(1,0,0));
+  }
+  
 }
 
 void draw() 
@@ -191,12 +223,15 @@ void drawObject(Texture tex) {
   i = 2; vertexProj(vs[i]);
   i = 6; vertexProj(vs[i]);
   i = 5; vertexProj(vs[i]);
+  
+  gl.glEnd();
   //println();
+  //endShape();
 
   tex.disable();
   pgl.endGL();
 
-  endShape();
+  
 }
 
 void mouseDragged() {
