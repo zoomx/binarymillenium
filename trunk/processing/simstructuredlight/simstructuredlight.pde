@@ -36,10 +36,20 @@ Matrix4x4 rotateAbs(Matrix4x4 rot, float df, Vec3D axis) {
   rot = rot.multiply(quat.getMatrix());
   return rot;
 }
+
+Matrix4x4 rotateRel(Matrix4x4 rot, float df, Vec3D axis) {
+  Quaternion quat = new Quaternion(cos(df/2), 
+                          new Vec3D(axis.x*sin(df/2),
+                                    axis.y*sin(df/2),
+                                    axis.z*sin(df/2)) );
+                                    
+  rot = quat.getMatrix().multiply(rot);
+  return rot;
+}
     
 void setup() 
 {
-  size(480, 640, OPENGL);
+  size(640, 480, OPENGL);
   
   imnames[0] = "i1.png";
   imnames[1] = "i2.png";
@@ -126,10 +136,14 @@ void keyPressed() {
   }  
   
   if (key == 'j') {
-    projector = rotateAbs(projector, sc*PI/10, new Vec3D(0,1,0));
+    relAngle+= 0.01;
+    println("angle " + relAngle*180/PI);
+    //projector = rotateAbs(projector, sc*PI/10, new Vec3D(0,1,0));
   }
   if (key == 'k') {
-    projector=rotateAbs(projector, -sc*PI/20, new Vec3D(0,1,0));
+    relAngle -= 0.005;
+    println("angle " + relAngle*180/PI);
+   // projector=rotateAbs(projector, -sc*PI/20, new Vec3D(0,1,0));
   }
   if (key == 'u') {
     projector = rotateAbs(projector, sc*PI/10, new Vec3D(0,0,1));
@@ -160,9 +174,20 @@ void keyPressed() {
 
 ///////////////////////////////////////////////
 
+void apply(Matrix4x4 m) {
+ applyMatrix( (float)m.matrix[0][0], (float)m.matrix[0][1], (float)m.matrix[0][2], 0,  
+                 (float)m.matrix[1][0], (float)m.matrix[1][1], (float)m.matrix[1][2], 0,  
+                 (float)m.matrix[2][0], (float)m.matrix[2][1], (float)m.matrix[2][2], 0,  
+                 (float)m.matrix[3][0], (float)m.matrix[3][1], (float)m.matrix[3][2], 1  ); 
+            
+}
+
+/////
+
 boolean switchTex = false;
 boolean drawLine = true;
 boolean saveIm = false;
+float relAngle = 0;
 
 void draw() {
   
@@ -183,20 +208,30 @@ void draw() {
   noStroke();
   
   translate(width/2.0, height/2.0, -100);
-    rotateZ(PI/2); 
-rotateY(-rotx);     
-  rotateX(roty);
   
+  Matrix4x4 view = rotateRel(projector, relAngle, new Vec3D(0,1,0) );
+  rotateZ(PI/2); 
+  apply(view);
+  /*rotateZ(PI/2); 
+  rotateY(-rotx);     
+  rotateX(roty);
+  */
 
   scale(90);
   drawObject(tex[imind]);
   
   if (saveIm) {
-    String name = "phase" + (imind +1) + ".jpg";
+    String name = "phase" + (imind + 1) + ".png";
     saveFrame(name);
     println("saving " + name);
+    
+    imind++;
+    
   } 
-  saveIm = false;
+  if (imind > 2) { saveIm = false;
+    imind = 0;
+  }
+  
   
   if (drawLine) {
     stroke(255,255,255);
@@ -297,7 +332,10 @@ void drawObject(Texture tex) {
 }
 
 void mouseDragged() {
-  float rate = 0.01;
-  rotx += (pmouseY-mouseY) * rate;
-  roty += (mouseX-pmouseX) * rate;
+  float rate = 0.005;
+  rotx = (pmouseY-mouseY) * rate;
+  roty = (mouseX-pmouseX) * rate;
+  
+  projector = rotateRel(projector, -rotx, new Vec3D(0,1,0));
+  projector = rotateRel(projector, roty, new Vec3D(1,0,0));
 }
