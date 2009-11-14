@@ -36,6 +36,8 @@ Vec3D projPos;
 Vec3D vs[];
 int faces[][];
 
+//////////////////////////////////////////////////////////
+/// utility functions
 
 Matrix4x4 rotateAbs(Matrix4x4 rot, float df, Vec3D axis) {
   Quaternion quat = new Quaternion(cos(df/2), 
@@ -47,6 +49,8 @@ Matrix4x4 rotateAbs(Matrix4x4 rot, float df, Vec3D axis) {
   return rot;
 }
 
+
+///////////////////
 Matrix4x4 rotateRel(Matrix4x4 rot, float df, Vec3D axis) {
   Quaternion quat = new Quaternion(cos(df/2), 
                           new Vec3D(axis.x*sin(df/2),
@@ -57,6 +61,7 @@ Matrix4x4 rotateRel(Matrix4x4 rot, float df, Vec3D axis) {
   return rot;
 }
     
+/////////////////////////////////////////////////////////////
 void setup() 
 {
   size(480, 640, OPENGL);
@@ -105,8 +110,6 @@ void setup()
     tex[i].setTexParameteri(GL.GL_TEXTURE_WRAP_T,GL.GL_REPEAT);
   }
  
-
-  
   textureMode(NORMALIZED);
   fill(255);
   stroke(color(44,48,32));
@@ -132,8 +135,10 @@ void setup()
   
 }
 
+//////////////////////////////////////////////////////////////////
 void keyPressed() {
   float sc = 0.1;
+  /*
   if (key == 'a') {
     projPos = projPos.add(sc,0,0);
   }  
@@ -152,7 +157,14 @@ void keyPressed() {
   if (key == 's') {
     projPos = projPos.sub(0,0.5*sc,0);
   }  
+  */
   
+  if (key == 'o') {
+     texScale *= 1.05; 
+  }
+  if (key == 'l') {
+    texScale *= 0.98;
+  }
   /// reset
   if (key == 'r') {
     projPos = new Vec3D(0,0,0);
@@ -167,6 +179,8 @@ void keyPressed() {
                             
     rotx = PI/4;
     roty = PI/4;
+    
+    texScale = 0.14;
   }  
   
   if (key == 'j') {
@@ -225,6 +239,7 @@ boolean drawLine = true;
 boolean saveIm = false;
 float relAngle = -25.0/180.0*PI;
 
+//////////////////////////////////////////////////////////////
 void draw() {
   
   /// only do this synchronously with drawing
@@ -286,13 +301,14 @@ void draw() {
 
 ///////////////////////////////////////////////////
 
+float texScale = 0.14;
 void vertexProj(Vec3D v,boolean verbose) {
   
   Vec3D rel = v.sub(projPos);
 
   Vec3D uv = projector.apply(rel);
   
-  uv = uv.scale(0.14);
+  uv = uv.scale(texScale);
   
   //vertex(v.x, v.y, v.z, pt.x*10, pt.y *10);
   gl.glTexCoord2f(uv.x,uv.y);
