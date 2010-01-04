@@ -3,7 +3,6 @@ function structured_light()
 
 gen_sawtooths(3);
 
-
 function gen_sawtooths(n)
 
 t = [1:500];
@@ -20,14 +19,14 @@ end
 
 
 figure(1);
-plot(t,y);
+plot(t/max(t),y);
 
 
 %% generate one sawtooth cycle
 function y=sawtooth(t,phase)
 
 y = zeros(size(t));
-ynew = 2*[ [0:1:floor(t(end)/2-1)], [floor(t(end)/2-1):-1:0] ]/t(end);
+ynew = 2*[ [floor(t(end)/2-1):-1:0], [0:1:floor(t(end)/2-1)] ]/t(end);
 y(1:length(ynew)) = ynew;
 
 y = [y(phase:end), y(1:phase-1)];
