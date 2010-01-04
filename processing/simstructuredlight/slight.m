@@ -1,10 +1,14 @@
-function angles=slight;
+function [angles,unwrapped_angles]=slight;
 % binarymillenium Jan 2010
 % GNU GPL v3.0
 
 p1 = rot90(double( rgb2gray(imread('data/00003phase1.jpg'))));
 p2 = rot90(double( rgb2gray(imread('data/00003phase2.jpg'))));
 p3 = rot90(double( rgb2gray(imread('data/00003phase3.jpg'))));
+
+p1 = p1(8*end/16:16*end/16, end/4:3*end/4);
+p2 = p2(8*end/16:16*end/16, end/4:3*end/4);
+p3 = p3(8*end/16:16*end/16, end/4:3*end/4);
 
 % p1 = double( rgb2gray(imread('data/i1.png')));
 % p2 = double( rgb2gray(imread('data/i2.png')));
@@ -26,20 +30,33 @@ image(pavg/4);
 figure(2);
 
 angles = get_angle_full(p); %p(1:1,1:end/8,:));
-angles_unwrapped = get_unwrapped(angles);
+
 
 x = [1:size(p1,2)/8];
-p1sub = p1(1:1,1:end/8);
-p2sub = p2(1:1,1:end/8);
-p3sub = p3(1:1,1:end/8);
+p1sub = p1(1:1,:); %1:end/8);
+p2sub = p2(1:1,:); %1:end/8);
+p3sub = p3(1:1,:); %1:end/8);
 
-subplot(2,1,1), plot(x,p1sub, x,p2sub, x,p3sub);
-subplot(2,1,2), plot(x,angles(1:1,1:end/8));
+% subplot(2,1,1), plot(x,p1sub, x,p2sub, x,p3sub);
+% subplot(2,1,2), plot(x,angles(1:1,1:floor(end/8)));
 figure(3),
 %subplot(1,2,1), image(p1/4);
 %subplot(1,2,2),
 image(255/4*angles/max(max(angles)));
 colormap('gray');
+
+figure(4),
+
+unwrapped_angles = get_unwrapped(angles);
+% TBD the offsets are just arbitrary to the images I'm using
+image(255/4*(unwrapped_angles+4)/12);
+colormap('gray');
+
+
+
+
+
+
 
 %%
 if (0)
@@ -141,27 +158,46 @@ end
 % end
 
 %% 
-[unwrapped_angles, has_unwrapped, queue] = unwrap(unwrapped_angles, has_unwrapped, queue,h,w,hn,wn)
+function [unwrapped_angles, has_unwrapped, queue] = unwrap(unwrapped_angles, has_unwrapped, queue,item)
 
-if (has_unwrapped(hn,wn) == 1)
+[hmax,wmax]= size(unwrapped_angles);
+
+h = item(1);
+w = item(2);
+hn = item(3);
+wn = item(4);
+
+if (hn <1) || (hn > hmax) || (wn <1) || (wn > wmax) || (has_unwrapped(hn,wn) == 1)
     return
 end
 
-frac = unwrapped_angles(h,w) - floor(unwrapped_angles(h,w));
+new_angle = unwrapped_angles(hn,wn);
+ 
 base = floor(unwrapped_angles(h,w));
+old_angle = unwrapped_angles(h,w) - base;
 
+tol = 0.1;
 
+unwrapped_angles(hn,wn) = unwrapped_angles(hn,wn) + base;
+
+if (old_angle > 1-tol) && (new_angle < tol) 
+   unwrapped_angles(hn,wn) = unwrapped_angles(hn,wn) +1;  
+elseif (old_angle < tol) && (new_angle > 1 - tol)
+   unwrapped_angles(hn,wn) = unwrapped_angles(hn,wn) -1; 
+end
+
+%display([ num2str(unwrapped_angles(hn,wn)) ' ' num2str(base) ' ' num2str(hn) ' ' num2str(wn)]);
 has_unwrapped(hn,wn) = 1;
 
-queue = [queue; [sh,sw,sh,sw+1]];
-queue = [queue; [sh,sw,sh,sw-1]];
-queue = [queue; [sh,sw,sh+1,sw]];
-queue = [queue; [sh,sw,sh-1,sw]];
+queue = [queue; [hn,wn,hn,wn+1]];
+queue = [queue; [hn,wn,hn,wn-1]];
+queue = [queue; [hn,wn,hn+1,wn]];
+queue = [queue; [hn,wn,hn-1,wn]];
 
 
 
 %%
-unwrapped_angles = get_unwrapped(angles)
+function unwrapped_angles = get_unwrapped(angles)
 
 [h,w] = size(angles);
 
@@ -169,8 +205,8 @@ sh = floor(h/2);
 sw = floor(w/2);
 
 has_unwrapped = zeros(h,w);
-has_unwrapped(h,w) = 1;
-unwrapped_angles = zeros(h,w);
+has_unwrapped(sh,sw) = 1;
+
 unwrapped_angles = angles;
 
 queue = [sh,sw,sh,sw+1];
@@ -180,11 +216,18 @@ queue = [queue; [sh,sw,sh-1,sw]];
 
 do_loop = 1;
 
-while (do_loop == 1)
-    if (size(do_loop,2) > 0) 
-        [unwrapped_angles, has_unwrapped, queue] = unwrap(unwrapped_angles, has_unwrapped, queue(:,1));
-        queue = queue(:,2:end);
-    else 
-        do_loop = 0;
+tot = prod(size(unwrapped_angles));
+count = 0;
+
+figure(4);
+while (do_loop == 1)    
+    [unwrapped_angles,has_unwrapped, queue] = unwrap(unwrapped_angles,has_unwrapped, queue, queue(1,:));
+    queue = queue(2:end,:);
+    count= count+1;
+    if (mod(count,1000) == 0)
+        display([ num2str(count/tot) ' ' num2str(size(queue,1)) ' ' num2str(sum(sum(has_unwrapped))/tot)] );
+    end
+    if (size(queue,1) < 1)
+        do_loop = 0
     end
 end
