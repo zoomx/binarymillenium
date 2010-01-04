@@ -26,6 +26,7 @@ image(pavg/4);
 figure(2);
 
 angles = get_angle_full(p); %p(1:1,1:end/8,:));
+angles_unwrapped = get_unwrapped(angles);
 
 x = [1:size(p1,2)/8];
 p1sub = p1(1:1,1:end/8);
@@ -138,3 +139,52 @@ end
 %       % now we know we are in a section of angle ((i-1) +/- 0.5)/phasenum 
 %    end
 % end
+
+%% 
+[unwrapped_angles, has_unwrapped, queue] = unwrap(unwrapped_angles, has_unwrapped, queue,h,w,hn,wn)
+
+if (has_unwrapped(hn,wn) == 1)
+    return
+end
+
+frac = unwrapped_angles(h,w) - floor(unwrapped_angles(h,w));
+base = floor(unwrapped_angles(h,w));
+
+
+has_unwrapped(hn,wn) = 1;
+
+queue = [queue; [sh,sw,sh,sw+1]];
+queue = [queue; [sh,sw,sh,sw-1]];
+queue = [queue; [sh,sw,sh+1,sw]];
+queue = [queue; [sh,sw,sh-1,sw]];
+
+
+
+%%
+unwrapped_angles = get_unwrapped(angles)
+
+[h,w] = size(angles);
+
+sh = floor(h/2);
+sw = floor(w/2);
+
+has_unwrapped = zeros(h,w);
+has_unwrapped(h,w) = 1;
+unwrapped_angles = zeros(h,w);
+unwrapped_angles = angles;
+
+queue = [sh,sw,sh,sw+1];
+queue = [queue; [sh,sw,sh,sw-1]];
+queue = [queue; [sh,sw,sh+1,sw]];
+queue = [queue; [sh,sw,sh-1,sw]];
+
+do_loop = 1;
+
+while (do_loop == 1)
+    if (size(do_loop,2) > 0) 
+        [unwrapped_angles, has_unwrapped, queue] = unwrap(unwrapped_angles, has_unwrapped, queue(:,1));
+        queue = queue(:,2:end);
+    else 
+        do_loop = 0;
+    end
+end
