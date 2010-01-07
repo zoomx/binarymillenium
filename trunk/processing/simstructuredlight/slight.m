@@ -1,14 +1,23 @@
-function [angles,unwrapped_angles]=slight;
+function [angles,unwrapped_angles,p1]=slight;
 % binarymillenium Jan 2010
 % GNU GPL v3.0
+% 
+% p1 = rot90(double( rgb2gray(imread('data/00003phase1.jpg'))));
+% p2 = rot90(double( rgb2gray(imread('data/00003phase2.jpg'))));
+% p3 = rot90(double( rgb2gray(imread('data/00003phase3.jpg'))));
 
-p1 = rot90(double( rgb2gray(imread('data/00003phase1.jpg'))));
-p2 = rot90(double( rgb2gray(imread('data/00003phase2.jpg'))));
-p3 = rot90(double( rgb2gray(imread('data/00003phase3.jpg'))));
+p1 = rot90(double( rgb2gray(imread('data/phase1.jpg'))));
+p2 = rot90(double( rgb2gray(imread('data/phase2.jpg'))));
+p3 = rot90(double( rgb2gray(imread('data/phase3.jpg'))));
 
-p1 = p1(8*end/16:16*end/16, end/4:3*end/4);
-p2 = p2(8*end/16:16*end/16, end/4:3*end/4);
-p3 = p3(8*end/16:16*end/16, end/4:3*end/4);
+
+figure(10);
+colormap('gray')
+image(p1/4);
+
+p1 = p1(end/2, end/4:3*end/4);
+p2 = p2(end/2, end/4:3*end/4);
+p3 = p3(end/2, end/4:3*end/4);
 
 % p1 = double( rgb2gray(imread('data/i1.png')));
 % p2 = double( rgb2gray(imread('data/i2.png')));
@@ -22,10 +31,15 @@ p(:,:,3) = p3;
 
 pavg = sum(p,3)/3;
 
+
+
 figure(1);
 
-colormap('gray')
-image(pavg/4);
+
+%colormap('gray')
+%image(pavg/4);
+plot(p1);
+
 
 figure(2);
 
@@ -42,15 +56,18 @@ p3sub = p3(1:1,:); %1:end/8);
 figure(3),
 %subplot(1,2,1), image(p1/4);
 %subplot(1,2,2),
-image(255/4*angles/max(max(angles)));
-colormap('gray');
+
+plot(angles);
+%image(255/4*angles/max(max(angles)));
+%colormap('gray');
 
 figure(4),
 
 unwrapped_angles = get_unwrapped(angles);
 % TBD the offsets are just arbitrary to the images I'm using
-image(255/4*(unwrapped_angles+4)/12);
-colormap('gray');
+plot(unwrapped_angles);
+%image(255/4*(unwrapped_angles+4)/12);
+%colormap('gray');
 
 
 
@@ -108,7 +125,11 @@ angles = zeros(h,w) -0.5;
 
 for y=[1:h]
     for x = [1:w]
-        angles(y,x) = get_angle(p(y,x,:));
+        i1 = p(y,x,1);
+        i2 = p(y,x,2);
+        i3 = p(y,x,3);
+        angles(y,x) = 0.5+ atan2(sqrt(3) * (i1 - i3), 2*i2 - i1 - i3) / (2*pi);
+        %get_angle(p(y,x,:));
     end
 end
 
@@ -203,6 +224,12 @@ function unwrapped_angles = get_unwrapped(angles)
 
 sh = floor(h/2);
 sw = floor(w/2);
+if sh == 0 
+    sh = 1
+end
+if sw == 0
+    sw = 1
+end
 
 has_unwrapped = zeros(h,w);
 has_unwrapped(sh,sw) = 1;
