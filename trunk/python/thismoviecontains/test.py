@@ -108,9 +108,18 @@ draw.line( getlinepts(ulx+60+2,uly+2,lrx+2,uly+26+2) , width=2, fill="#000000")
 # some material box
 draw.line( getlinepts(ulx+2,uly+26+2,lrx+2,uly+42+2) , width=2, fill="#000000")
 
-draw.ellipse( ((lrx-42, uly+5),(lrx-5,uly+20)), outline=fgcolor)
-draw.ellipse( ((lrx-35, uly+5),(lrx-12,uly+20)), outline=fgcolor)
-draw.line( ((lrx-42, uly+12), (lrx-5,uly+12)), fill=fgcolor)
+# center at 
+lgx = lrx-23
+lgy = uly+12
+draw.ellipse( ((lgx-18, lgy-8),(lgx+18,lgy+8)), outline=fgcolor)
+draw.ellipse( ((lgx-14, lgy-8),(lgx+14,lgy+8)), outline=fgcolor)
+draw.line(    ((lgx-18, lgy),  (lgx+18,lgy)), fill=fgcolor)
+draw.ellipse( ((lgx-8, lgy-8),(lgx+8,lgy+8)), fill=fgcolor,outline=fgcolor)
+
+draw.ellipse( ((lgx, lgy),(lgx+7,lgy+7)), fill="#000000") #,outline=fgcolor)
+draw.ellipse( ((lgx-7, lgy),(lgx,lgy+7)), fill="#000000") #,outline=fgcolor)
+draw.ellipse( ((lgx-7, lgy-7),(lgx,lgy)), fill="#000000") #,outline=fgcolor)
+draw.ellipse( ((lgx, lgy-7),(lgx,lgy)), fill="#000000") #,outline=fgcolor)
 
 txt = "Some Material May Be Inappropriate for Children Under 13"
 (x,y) = fontSmall.getsize(txt)
