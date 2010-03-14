@@ -208,13 +208,17 @@ void findMarkers(ARUint8* dataPtr)
         /* get the transformation between the marker and the real camera */
 		arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
 
+        /* convert to opengl matrix */
+        double    gl_para[16];
+        argConvGlpara(patt_trans, gl_para);
+
 		/// what is patt_center, it seems to be zeros
 		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
 
 		int i;
-		for (j = 0; j < 3; j++) {
+		for (j = 0; j < 4; j++) {
 		for (i = 0; i < 4; i++) {
-				printf("%f,\t", patt_trans[j][i]);	
+				printf("%f,\t", gl_para[j*4+i]);	
 			}
 			printf("\t");
 		}
