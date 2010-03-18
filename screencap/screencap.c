@@ -27,6 +27,7 @@
 #else
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/XShm.h>
 #endif
 
 extern "C" {
@@ -278,15 +279,21 @@ void f0r_update(f0r_instance_t instance, double time,
 	inst->bitmap = NULL;
 #else
     
-    XImage *ximage;
 
     /// this will crash if x + width is bigger than the screen size
     /// TBD how to find out the screen size?
     if (inst->x + inst->width >= 1024) inst->x = 1024-inst->width-1;
     if (inst->y + inst->height >= 800) inst->y = 800-inst->height-1;
-    ximage = XGetImage(inst->dpy, RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
-                       2*inst->x, inst->y,
-                       inst->width, inst->height, AllPlanes, ZPixmap);
+    
+    XImage *ximage = XShmCreate(inst->dpy, , 32, inst->width, inst->height,  ZPixmap, );
+    //ximage = XGetImage(inst->dpy, RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
+    //                   2*inst->x, inst->y,
+    //                   inst->width, inst->height, AllPlanes, ZPixmap);
+    XShmGetImage(inst->dpy, RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
+                    ximage,
+                    0,0,
+                    AllPlanes);
+
     if (!ximage) {
         std::cerr << "XGetImage failed" << std::endl;
     } 
