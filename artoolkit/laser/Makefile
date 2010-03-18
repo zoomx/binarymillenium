@@ -2,7 +2,8 @@ ARDIR=/home/lucasw/other/sw/ARToolKit
 INC_DIR= $(ARDIR)/include
 LIB_DIR= $(ARDIR)/lib
 
-IMDIR=/home/lucasw/other/sw/ImageMagick-6.4.9-2
+IMDIR=/home/lucasw/other/sw/ImageMagick-6.4.9-6
+#IMDIR=/home/lucasw/other/sw/ImageMagick-6.4.9-2
 #IMINCDIR=$(IMDIR)/wand
 
 BIN_DIR=.
