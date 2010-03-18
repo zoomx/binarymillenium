@@ -32,6 +32,8 @@ int             xsize, ysize;
 
    ARParam         cparam;
 
+int frame_ind;
+
 int main(int argc, char **argv)
 {
     ARUint8 *dataPtr;
@@ -64,6 +66,7 @@ int main(int argc, char **argv)
 
 
     cur_filename = argv[1];
+    frame_ind = atoi(argv[3]);
 
     if (argc > 2) {
         sprintf(path,"%s/", argv[2]);
@@ -143,7 +146,7 @@ mat\n \
     /* open the graphics window */
     //argInit( &cparam, 1.0, 0, 0, 0, 0 );
 
-    printf("%s,\t\n",cur_filename);
+    //printf("%s,\t\n",cur_filename);
 	findMarkers(dataPtr);
 
     argCleanup();
@@ -181,19 +184,23 @@ void findMarkers(ARUint8* dataPtr)
         double ox,oy;
         arParamIdeal2Observ(cparam.dist_factor ,  marker_info[k].pos[0], marker_info[k].pos[1], &ox, &oy);
 
+        printf("%d,\t", frame_ind);
 
-        printf("%g,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t",
-            (float)marker_info[k].area/(float)(xsize*ysize), marker_info[k].id, marker_info[k].cf, 
+        //printf("%g,\t%d,\t%g,\t%g,\t%g,\t%g,\t%g,\t",
+        printf("%d,\t%g,\t%g,\t%g,\t%g,\t",
+            marker_info[k].id,
+            marker_info[k].cf, 
+            (float)marker_info[k].area/(float)(xsize*ysize),
            // marker_info[k].pos[0]/(float)xsize,         marker_info[k].pos[1]/(float)(ysize), 
-            ox,         oy, 
-           // marker_info[k].pos[0],         marker_info[k].pos[1], 
+           // ox,         oy, 
+            marker_info[k].pos[0], marker_info[k].pos[1] 
            // marker_info[k].vertex[0][0]/(float)xsize,   marker_info[k].vertex[0][1]/(float)(ysize));
-            marker_info[k].vertex[0][0],   marker_info[k].vertex[0][1]
+           // marker_info[k].vertex[0][0],   marker_info[k].vertex[0][1]
             );
         }
        
         /// print rotation matrix
-        if (0) {
+        if (1) {
         double          patt_trans[3][4];
 		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
         double          patt_width     = 80.0;
@@ -203,7 +210,7 @@ void findMarkers(ARUint8* dataPtr)
 
 		/// what is patt_center, it seems to be zeros
 		//fprintf("%f,\t%f,\t", patt_center[0], patt_center[1]);
-	
+
 		int i;
 		for (j = 0; j < 3; j++) {
 		for (i = 0; i < 4; i++) {
