@@ -174,21 +174,21 @@ int main (int argc, char **argv)
           odePart newPart;       
           newPart.id = atoi(tokens[1].c_str());
           newPart.body = dBodyCreate(world);
-          dBodySetPosition(newBody, atof(tokens[2].c_str()), atof(tokens[3].c_str()), atof(tokens[4].c_str()));
-          dBodySetBox(&m, 1,  atof(tokens[5].c_str()), atof(tokens[6].c_str()), atof(tokens[7].c_str()));
+          dBodySetPosition(newPart.body, atof(tokens[2].c_str()), atof(tokens[3].c_str()), atof(tokens[4].c_str()));
+          dMassSetBox(&m, 1,  atof(tokens[5].c_str()), atof(tokens[6].c_str()), atof(tokens[7].c_str()));
           dMassAdjust(&m, atof(tokens[8].c_str()));
           newPart.geom = dCreateBox(space, atof(tokens[5].c_str()), atof(tokens[6].c_str()), atof(tokens[7].c_str()));
-          dGeomSetBody(newPart.body, newPart.geom);
+          dGeomSetBody(newPart.geom, newPart.body);
           allParts.push_back(newPart);
         }
       } // body
 
       if (tokens[0] == "joint") {
-        dJointId newJoint = dJointCreateBall(world,0);
-        dBodyId body1 = allParts[atoi(tokens[1])].body;
-        dBodyId body2 = allParts[atoi(tokens[2])].body;
+        dJointID newJoint = dJointCreateBall(world,0);
+        dBodyID body1 = allParts[atoi(tokens[1].c_str())].body;
+        dBodyID body2 = allParts[atoi(tokens[2].c_str())].body;
         dJointAttach(newJoint, body1, body2 );
-        dJointSetBallAnchor(newJoint, atof(tokens[3]), atof(tokens[4]), atof(tokens[5]) );
+        dJointSetBallAnchor(newJoint, atof(tokens[3].c_str()), atof(tokens[4].c_str()), atof(tokens[5].c_str()) );
       } //body
 
     } // tokens
