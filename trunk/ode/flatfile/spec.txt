@@ -1,4 +1,32 @@
-#name id  pos       len     mass
-body  0   1 1 1     1 1 1   5.0
-body  1   2 1.5 2   1 1 1   5.0
-joint 0 1   1.5 1.2 1.5 
+#name id    pos       len           mass
+#leg1 
+body  0     1 4 0.75   0.5 0.5 1.5   1.0
+body  1     1 4 2.25   0.5 0.5 1.5   1.0
+joint 0 1   1 4 1.5 
+#leg2
+body  2     3 4 0.75   0.5 0.5 1.5   1.0
+body  3     3 4 2.25   0.5 0.5 1.5   1.0
+joint 2 3   3 4 1.5
+#waist
+body  4     2 4 3      1.5 0.5 0.75   1.0
+joint 1 4   1 4 3
+joint 3 4   3 4 3
+# torso
+body  5     2 4 5      1 0.5 2.5   1.0
+joint 4 5   2 4 3.5
+
+# arm1
+body  6     1   4 6    0.5 0.5 1.5   0.7
+joint 5 6   1.5 4 6
+body  7     1   4 4    0.5 0.5 1.5   0.7
+joint 6 7   1.5 4 5
+
+# arm2
+body  8     3   4 6    0.5 0.5 1.5   0.7
+joint 5 8   2.5 4 6
+body  9     3   4 4    0.5 0.5 1.5   0.7
+joint 8 9   2.5 4 5
+
+#head
+body  10    2   4 7    1.0 1.0 1.0.   1.0
+joint 5 10  2   4 6
