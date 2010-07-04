@@ -1,0 +1,4 @@
+#name id  pos       len     mass
+body  0   1 1 1     1 1 1   5.0
+body  1   2 1.5 2   1 1 1   5.0
+joint 0 1   1.5 1.2 1.5 
