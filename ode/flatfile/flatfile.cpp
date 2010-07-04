@@ -199,6 +199,7 @@ int main (int argc, char **argv)
         }
       } // body
       else if (tokens[0].compare("joint") == 0) {
+          /// ball joint
         int bodyId1 = atoi(tokens[1].c_str());
         int bodyId2 = atoi(tokens[2].c_str());
         std::cout << "attaching joint between " << bodyId1 << " and " << bodyId2 << std::endl;
@@ -208,9 +209,26 @@ int main (int argc, char **argv)
         dJointAttach(newJoint, body1, body2 );
         dJointSetBallAnchor(newJoint, atof(tokens[3].c_str()), atof(tokens[4].c_str()), atof(tokens[5].c_str()) );
 
-      } //body
-        else
-      {
+      } else if (tokens[0].compare("hinge") == 0) {
+        int bodyId1 = atoi(tokens[1].c_str());
+        int bodyId2 = atoi(tokens[2].c_str());
+        std::cout << "attaching joint between " << bodyId1 << " and " << bodyId2 << std::endl;
+        dJointID newJoint = dJointCreateHinge(world,0);
+        dBodyID body1 = allParts[allParts[bodyId1].id].body;
+        dBodyID body2 = allParts[allParts[bodyId2].id].body;
+        dJointAttach(newJoint, body1, body2 );
+
+        float anchx = atof(tokens[3].c_str());
+        float anchy = atof(tokens[4].c_str());
+        float anchz = atof(tokens[5].c_str());
+        dJointSetHingeAnchor(newJoint, anchx, anchy, anchz);          
+
+        float axisx = atof(tokens[6].c_str());
+        float axisy = atof(tokens[7].c_str());
+        float axisz = atof(tokens[8].c_str());
+        dJointSetHingeAxis(newJoint, axisx, axisy, axisz);          
+
+      } else {
         std::cout << "not using line: " << lines << std::endl;
       }
     } else { // tokens
