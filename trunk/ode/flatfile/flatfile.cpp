@@ -96,7 +96,14 @@ static void start()
   dsSetViewpoint (xyz,hpr);
 }
 
+struct odePart {
+  int id;
+  dGeomID geom;
+  dBodyID body;
+  float len[3];
+};
 
+std::vector<odePart> allParts;
 /* simulation loop */
 
 static void simLoop (int pause)
@@ -116,17 +123,11 @@ static void simLoop (int pause)
 
   dsSetColor (1,1,0);
   dsSetTexture (DS_WOOD);
-  //for (i=0; i<NUM; i++) dsDrawSphere (dBodyGetPosition(body[i]),
-  //				      dBodyGetRotation(body[i]),RADIUS);
+  for (i=0; i< allParts.size(); i++) {
+    dsDrawBox (dBodyGetPosition(allParts[i].body), dBodyGetRotation(allParts[i].body),allParts[i].len);
+  }
 }
 
-struct odePart {
-  int id;
-  dGeomID geom;
-  dBodyID body;
-};
-
-std::vector<odePart> allParts;
 
 int main (int argc, char **argv)
 {
@@ -143,10 +144,12 @@ int main (int argc, char **argv)
   fn.stop = 0;
   fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
 
-  
-  std::ifstream parts("odespec.txt");
+  string filename = "spec.txt";
+  if (argc > 1) filename = argv[1]; 
+
+  std::ifstream parts(filename.c_str());
   if (!parts) {
-    std::cerr << "file not found " << std::endl;
+    std::cerr << "file " << filename << " not found " << std::endl;
     return -1;
   }
 
@@ -161,37 +164,59 @@ int main (int argc, char **argv)
 
   std::string lines;
   while (getline(parts,lines)) {
-      //cout << lines << "\n";
-      vector<string> tokens = tokenize(tokenize(tokenize(lines,"\t"),"\n"),"\r");
+      vector<string> tokens = tokenize(tokenize(tokenize(tokenize(lines,"\t"),"\n"),"\r")," ");
+
+      for (int i = 0; i < tokens.size(); i++) {
+        std::cout << i << ":" << tokens[i] << " ";
+      }
+      std::cout << std::endl;
 
       if ((tokens.size() >0)
               && (tokens[0].size() >0)
               && (tokens[0][0] != '#')
-              && (tokens[0][0] != ' ')) {
+              ) {
 
-      if (tokens[0] == "body") {
-        if (tokens.size() == 8) {
+      if (tokens[0].compare("body") == 0) {
+        if (tokens.size() == 9) {
           odePart newPart;       
           newPart.id = atoi(tokens[1].c_str());
           newPart.body = dBodyCreate(world);
-          dBodySetPosition(newPart.body, atof(tokens[2].c_str()), atof(tokens[3].c_str()), atof(tokens[4].c_str()));
-          dMassSetBox(&m, 1,  atof(tokens[5].c_str()), atof(tokens[6].c_str()), atof(tokens[7].c_str()));
+          float posx = atof(tokens[2].c_str());
+          float posy = atof(tokens[3].c_str());
+          float posz = atof(tokens[4].c_str());
+          newPart.len[0] = atof(tokens[5].c_str());
+          newPart.len[1] = atof(tokens[6].c_str());
+          newPart.len[2] = atof(tokens[7].c_str());
+          dBodySetPosition(newPart.body, posx,posy,posz);
+          dMassSetBox(&m, 1,  newPart.len[0], newPart.len[1], newPart.len[2]);
           dMassAdjust(&m, atof(tokens[8].c_str()));
-          newPart.geom = dCreateBox(space, atof(tokens[5].c_str()), atof(tokens[6].c_str()), atof(tokens[7].c_str()));
+          newPart.geom = dCreateBox(space, newPart.len[0], newPart.len[1], newPart.len[2]);
           dGeomSetBody(newPart.geom, newPart.body);
           allParts.push_back(newPart);
+          std::cout << "new part " << newPart.id << " " << posx << " " << posy << " " << posz << std::endl;
+        } else {
+          std::cerr << "wrong number of tokens" << std::endl;
         }
       } // body
-
-      if (tokens[0] == "joint") {
+      else if (tokens[0].compare("joint") == 0) {
+        int bodyId1 = atoi(tokens[1].c_str());
+        int bodyId2 = atoi(tokens[2].c_str());
+        std::cout << "attaching joint between " << bodyId1 << " and " << bodyId2 << std::endl;
         dJointID newJoint = dJointCreateBall(world,0);
-        dBodyID body1 = allParts[atoi(tokens[1].c_str())].body;
-        dBodyID body2 = allParts[atoi(tokens[2].c_str())].body;
+        dBodyID body1 = allParts[allParts[bodyId1].id].body;
+        dBodyID body2 = allParts[allParts[bodyId2].id].body;
         dJointAttach(newJoint, body1, body2 );
         dJointSetBallAnchor(newJoint, atof(tokens[3].c_str()), atof(tokens[4].c_str()), atof(tokens[5].c_str()) );
-      } //body
 
-    } // tokens
+      } //body
+        else
+      {
+        std::cout << "not using line: " << lines << std::endl;
+      }
+    } else { // tokens
+      std::cout << "comment or invalid line: " << lines << std::endl;
+
+    }
   } // getline
 
   /* run simulation */
