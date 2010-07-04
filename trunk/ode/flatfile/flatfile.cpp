@@ -128,6 +128,38 @@ static void simLoop (int pause)
   }
 }
 
+static void command(int cmd)
+{
+  static int curBody = 0;
+  float forceVal = 10;
+  
+  switch(cmd) {
+    case '1':
+      curBody -= 1;
+      curBody %= allParts.size();
+      std::cout << "body " << curBody << " selected" <<std::endl;
+      break;
+
+    case '2':
+      curBody += 1;
+      curBody %= allParts.size();
+      std::cout << "body " << curBody << " selected" <<std::endl;
+      break;
+    
+    case 'w':
+      dBodyAddForce(allParts[curBody].body, 0,0,forceVal);
+      break;
+
+    case 'a':
+      dBodyAddForce(allParts[curBody].body, -forceVal,0,0);
+      break;
+    case 'd':
+      dBodyAddForce(allParts[curBody].body, -forceVal,0,0);
+      break;
+  }
+
+
+}
 
 int main (int argc, char **argv)
 {
@@ -140,7 +172,7 @@ int main (int argc, char **argv)
   fn.version = DS_VERSION;
   fn.start = &start;
   fn.step = &simLoop;
-  fn.command = 0;
+  fn.command = &command;
   fn.stop = 0;
   fn.path_to_textures = DRAWSTUFF_TEXTURE_PATH;
 
