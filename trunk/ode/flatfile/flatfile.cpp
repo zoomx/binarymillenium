@@ -166,10 +166,12 @@ int main (int argc, char **argv)
   while (getline(parts,lines)) {
       vector<string> tokens = tokenize(tokenize(tokenize(tokenize(lines,"\t"),"\n"),"\r")," ");
 
+      #if 0
       for (int i = 0; i < tokens.size(); i++) {
         std::cout << i << ":" << tokens[i] << " ";
       }
       std::cout << std::endl;
+      #endif
 
       if ((tokens.size() >0)
               && (tokens[0].size() >0)
@@ -202,17 +204,40 @@ int main (int argc, char **argv)
           /// ball joint
         int bodyId1 = atoi(tokens[1].c_str());
         int bodyId2 = atoi(tokens[2].c_str());
-        std::cout << "attaching joint between " << bodyId1 << " and " << bodyId2 << std::endl;
+        std::cout << "attaching ball joint between " << bodyId1 << " and " << bodyId2 << std::endl;
         dJointID newJoint = dJointCreateBall(world,0);
         dBodyID body1 = allParts[allParts[bodyId1].id].body;
         dBodyID body2 = allParts[allParts[bodyId2].id].body;
         dJointAttach(newJoint, body1, body2 );
         dJointSetBallAnchor(newJoint, atof(tokens[3].c_str()), atof(tokens[4].c_str()), atof(tokens[5].c_str()) );
+      } else if (tokens[0].compare("uni") == 0) {
+        int bodyId1 = atoi(tokens[1].c_str());
+        int bodyId2 = atoi(tokens[2].c_str());
+        std::cout << "attaching universal joint between " << bodyId1 << " and " << bodyId2 << std::endl;
+        dJointID newJoint = dJointCreateUniversal(world,0);
+        dBodyID body1 = allParts[allParts[bodyId1].id].body;
+        dBodyID body2 = allParts[allParts[bodyId2].id].body;
+        dJointAttach(newJoint, body1, body2 );
+
+        float anchx = atof(tokens[3].c_str());
+        float anchy = atof(tokens[4].c_str());
+        float anchz = atof(tokens[5].c_str());
+        dJointSetUniversalAnchor(newJoint, anchx, anchy, anchz);          
+
+        float axisx = atof(tokens[6].c_str());
+        float axisy = atof(tokens[7].c_str());
+        float axisz = atof(tokens[8].c_str());
+        dJointSetUniversalAxis1(newJoint, axisx, axisy,axisz);
+
+        axisx = atof(tokens[9].c_str());
+        axisy = atof(tokens[10].c_str());
+        axisz = atof(tokens[11].c_str());
+        dJointSetUniversalAxis2(newJoint, axisx, axisy,axisz);
 
       } else if (tokens[0].compare("hinge") == 0) {
         int bodyId1 = atoi(tokens[1].c_str());
         int bodyId2 = atoi(tokens[2].c_str());
-        std::cout << "attaching joint between " << bodyId1 << " and " << bodyId2 << std::endl;
+        std::cout << "attaching hinge joint between " << bodyId1 << " and " << bodyId2 << std::endl;
         dJointID newJoint = dJointCreateHinge(world,0);
         dBodyID body1 = allParts[allParts[bodyId1].id].body;
         dBodyID body2 = allParts[allParts[bodyId2].id].body;
