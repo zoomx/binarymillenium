@@ -137,13 +137,13 @@ static void command(int cmd)
     case '1':
       curBody -= 1;
       curBody %= allParts.size();
-      std::cout << "body " << curBody << " selected" <<std::endl;
+      std::cout << "body " << curBody << " selected" << std::endl;
       break;
 
     case '2':
       curBody += 1;
       curBody %= allParts.size();
-      std::cout << "body " << curBody << " selected" <<std::endl;
+      std::cout << "body " << curBody << " selected" << std::endl;
       break;
     
     case 'w':
@@ -157,8 +157,6 @@ static void command(int cmd)
       dBodyAddForce(allParts[curBody].body, -forceVal,0,0);
       break;
   }
-
-
 }
 
 int main (int argc, char **argv)
@@ -284,6 +282,11 @@ int main (int argc, char **argv)
         float axisy = atof(tokens[7].c_str());
         float axisz = atof(tokens[8].c_str());
         dJointSetHingeAxis(newJoint, axisx, axisy, axisz);          
+        
+        float lostop = atof(tokens[9].c_str());
+        dJointSetHingeParam(newJoint, dParamLoStop, lostop);
+        float histop = atof(tokens[10].c_str());
+        dJointSetHingeParam(newJoint, dParamHiStop, histop);
 
       } else {
         std::cout << "not using line: " << lines << std::endl;
