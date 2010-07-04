@@ -241,6 +241,7 @@ int main (int argc, char **argv)
         dJointAttach(newJoint, body1, body2 );
         dJointSetBallAnchor(newJoint, atof(tokens[3].c_str()), atof(tokens[4].c_str()), atof(tokens[5].c_str()) );
       } else if (tokens[0].compare("uni") == 0) {
+        /// universal joint
         int bodyId1 = atoi(tokens[1].c_str());
         int bodyId2 = atoi(tokens[2].c_str());
         std::cout << "attaching universal joint between " << bodyId1 << " and " << bodyId2 << std::endl;
@@ -264,7 +265,19 @@ int main (int argc, char **argv)
         axisz = atof(tokens[11].c_str());
         dJointSetUniversalAxis2(newJoint, axisx, axisy,axisz);
 
+        float lostop = atof(tokens[12].c_str());
+        dJointSetUniversalParam(newJoint, dParamLoStop, lostop);
+        float histop = atof(tokens[13].c_str());
+        dJointSetUniversalParam(newJoint, dParamHiStop, histop);
+
+        /// TBD not supported yet?
+        lostop = atof(tokens[14].c_str());
+        dJointSetUniversalParam(newJoint, dParamLoStop2, lostop);
+        histop = atof(tokens[15].c_str());
+        dJointSetUniversalParam(newJoint, dParamLoStop2, lostop);
+
       } else if (tokens[0].compare("hinge") == 0) {
+        /// hinge joint
         int bodyId1 = atoi(tokens[1].c_str());
         int bodyId2 = atoi(tokens[2].c_str());
         std::cout << "attaching hinge joint between " << bodyId1 << " and " << bodyId2 << std::endl;
