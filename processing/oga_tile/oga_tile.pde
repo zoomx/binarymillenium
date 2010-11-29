@@ -7,36 +7,34 @@ binarymillenium
 
 PImage tiles[];
 PImage dec[];
+PImage elev[];
+
+PImage[] loadTiles(String path) {
+  File dir = new File(path); 
+  PImage tiles[];
+  tiles = new PImage[dir.list().length];
+  for (int i = 0; i < dir.list().length; i++) {
+    println( dir.list()[i]);
+    try {
+    tiles[i] = loadImage(path + "/" + dir.list()[i]);
+    } catch (Exception e) {
+       tiles[i] = null; 
+    }
+  }
+  return tiles;
+}
 
 void setup() {
   size(64*16,64*9);
   //tiles = loadImage("iso-64x64-outside.png");
   
   String path;
-  File dir;
    
-  path = sketchPath + "/data/tiles";
-
-  dir = new File(path); 
+  tiles = loadTiles(sketchPath + "/data/tiles");
+  dec   = loadTiles(sketchPath + "/data/dec");
+  elev  = loadTiles(sketchPath + "/data/elev");
   
-  //File files = listFiles(sketchPath + "/data/tiles");
-  
-  tiles = new PImage[dir.list().length];
-  for (int i = 0; i < dir.list().length; i++) {
-    tiles[i] = loadImage(path + "/" + dir.list()[i]);
-  }
-  
-  path = sketchPath + "/data/dec";
-  dir = new File(path); 
-  
-  //File files = listFiles(sketchPath + "/data/tiles");
-  
-  dec = new PImage[dir.list().length];
-  for (int i = 0; i < dir.list().length; i++) {
-    dec[i] = loadImage(path + "/" + dir.list()[i]);
-    //println( dir.list()[i]);
-  }
-  println("dec size " + dir.list().length);
+  //println("dec size " + dir.list().length);
   //noLoop();
   frameRate(10);
 }
@@ -85,28 +83,56 @@ void draw() {
       
       int x_noise = (i + x_rnd);
       int y_noise = (j + y_rnd);
-      // get a random flat tile
+      
+      
+      //////////////////////////////////////
+      // get a random flat tile for base
       float frac = 1.0;  
      // random(tiles.length); 
       int tile_ind = (int) (tiles.length * 3.0*noise( x_noise/frac, y_noise/frac,t))%tiles.length;
      
-      image(tiles[tile_ind], x_rot, y_rot);
-          
+      if (tiles[tile_ind] != null) {
+        image(tiles[tile_ind], x_rot, y_rot);
+      }
+      
+      ///////////////////////////////////////
+      // raise the elevation
+      int elevation = 0;
+      if (noise( x_noise/frac, y_noise/frac,2100+t) > 0.7) {
+        frac = 100.0;
+        
+      final int MAX_HEIGHT=4;
+        elevation = (int) (MAX_HEIGHT*noise( x_noise/frac+2000, y_noise/frac,t));
+      
+      // draw elev tiles upwards
+      for (int k = 0; k < elevation; k++) {
+        
+        float nval =  3.0*noise( x_noise/frac,y_noise/frac, k/frac + t);
+        int ind = (int) (elev.length * nval) % elev.length;
+        if (elev[ind] != null) {
+          image(elev[ind], x_rot, y_rot - k*64 );
+        }
+      }
+      }
+         
+      //////////////////////////
       /// now put a tree on it
       if (noise( 500 + x_noise/frac, y_noise/frac,t) > 0.7) {
         frac = 10.0;
         
         float nval =  3.0*noise( 100 + x_noise/frac,y_noise/frac,t);
-        int dec_ind = (int) (dec.length * nval) % dec.length;
-        image(dec[dec_ind], x_rot, y_rot);
-        
-        if (dec_ind > dec_ind_max){ 
-          dec_ind_max = dec_ind; 
-          println(dec.length + " max " + dec_ind + " " + nval); 
+        int ind = (int) (dec.length * nval) % dec.length;
+        if (dec[ind] != null) {
+          image(dec[ind], x_rot, y_rot - elevation*64 - dec[ind].height);
         }
-        if (dec_ind < dec_ind_min){ 
-          dec_ind_min = dec_ind; 
-          println(dec.length + "  min " + dec_ind + " " + nval); 
+        
+        if (ind > dec_ind_max){ 
+          dec_ind_max = ind; 
+          println(dec.length + " max " + ind + " " + nval); 
+        }
+        if (ind < dec_ind_min){ 
+          dec_ind_min = ind; 
+          println(dec.length + "  min " + ind + " " + nval); 
         }
       }
       
