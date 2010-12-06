@@ -8,6 +8,7 @@ binarymillenium
 PImage tiles[];
 PImage dec[];
 PImage elev[];
+PImage slope[];
 
 PImage[] loadTiles(String path) {
   File dir = new File(path); 
@@ -33,6 +34,7 @@ void setup() {
   tiles = loadTiles(sketchPath + "/data/tiles");
   dec   = loadTiles(sketchPath + "/data/dec");
   elev  = loadTiles(sketchPath + "/data/elev");
+  slope  = loadTiles(sketchPath + "/data/slope");
   
   //println("dec size " + dir.list().length);
   //noLoop();
@@ -58,6 +60,23 @@ int yoff = 0;
 int dec_ind_max = 0;
 int dec_ind_min = 100000;
 
+final int MAX_HEIGHT=8;
+int getElevation(int x_noise,int y_noise)
+{
+   float frac = 3.0;
+        
+      
+   int elevation = (int) (MAX_HEIGHT*noise( x_noise/frac+2000, y_noise/frac,t));
+   
+   elevation -=4;
+   
+   if (elevation <0) elevation = 0;
+   
+   return elevation;
+      
+}
+
+
 void draw() {
   background(0);
   
@@ -73,7 +92,7 @@ void draw() {
   int y_rnd  = yoff/32;
   //println(x_part);
   
-  for (int j = -height/32; j < height/32; j++) {
+  for (int j = -height/32-1; j < height/32; j++) {
     for (int i = -2; i < width/32+1; i++) {
       float x = i*32 - x_part;
       float y = -j*32 + y_part;
@@ -97,13 +116,8 @@ void draw() {
       
       ///////////////////////////////////////
       // raise the elevation
-      int elevation = 0;
-      if (noise( x_noise/frac, y_noise/frac,2100+t) > 0.7) {
-        frac = 100.0;
-        
-      final int MAX_HEIGHT=4;
-        elevation = (int) (MAX_HEIGHT*noise( x_noise/frac+2000, y_noise/frac,t));
-      
+      int elevation = getElevation(x_noise,y_noise);
+           
       // draw elev tiles upwards
       for (int k = 0; k < elevation; k++) {
         
@@ -113,8 +127,21 @@ void draw() {
           image(elev[ind], x_rot, y_rot - k*64 );
         }
       }
-      }
-         
+      
+      /// put a slope if neighboring tiles are elevated differently
+      if (getElevation(x_noise+1,y_noise-1) > elevation) {
+        ///diagonally to left
+         image(slope[2], x_rot, y_rot - elevation*64 );
+      } else if (getElevation(x_noise-2,y_noise+1) > elevation) {
+        ///diagonally to left
+         image(slope[5], x_rot, y_rot - elevation*64 );
+      } else if (getElevation(x_noise,y_noise-1) > elevation) {
+        ///diagonally to above
+         image(slope[1], x_rot, y_rot - elevation*64 );
+      } else if (getElevation(x_noise,y_noise+1) > elevation) {
+        ///diagonally to botttom
+         image(slope[8], x_rot, y_rot - elevation*64 );
+      } else
       //////////////////////////
       /// now put a tree on it
       if (noise( 500 + x_noise/frac, y_noise/frac,t) > 0.7) {
