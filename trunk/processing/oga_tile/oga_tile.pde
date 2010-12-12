@@ -38,27 +38,39 @@ void setup() {
   
   //println("dec size " + dir.list().length);
   //noLoop();
-  frameRate(10);
+  frameRate(8);
 }
 
-int ew_mv_size = 0;
+int ew_mv_size = 32;
 int ns_mv_size = 0;
 
 void keyPressed() 
 {
+  int maxmv = 32;
+  
   if (key == 'a') {
-    ew_mv_size += 32;
+    ew_mv_size -= 32;
+    
+    if (ew_mv_size > maxmv) ew_mv_size = maxmv;
   } 
   if (key == 'd') {
-    ew_mv_size -= 32;
+    ew_mv_size += 32;
+    
+    if (ew_mv_size < -maxmv) ew_mv_size = -maxmv;
   } 
   
   if (key == 'w') {
     ns_mv_size += 16;
+    
+    if (ns_mv_size > maxmv) ns_mv_size = maxmv;
   } 
   if (key == 's') {
     ns_mv_size -= 16;
+    
+    if (ns_mv_size < -maxmv) ns_mv_size = -maxmv;
   } 
+  
+  
 }
 
 
@@ -118,52 +130,71 @@ void draw() {
       
       //////////////////////////////////////
       // get a random flat tile for base
-      float frac = 90.0;  
+      float frac = 9.0;  
      // random(tiles.length); 
-      int tile_ind = (int) (tiles.length * 3.0*noise( x_noise/frac, y_noise/frac,t))%tiles.length;
+      int tile_ind = 1+ (int) ((tiles.length-1) * 3.0*noise( x_noise/frac, y_noise/frac,t))%(tiles.length-1);
      
       if (tiles[tile_ind] != null) {
         image(tiles[tile_ind], x_rot, y_rot);
       }
       
-      if (false) {
+      if (true) {
       ///////////////////////////////////////
       // raise the elevation
       int elevation = getElevation(x_noise,y_noise);
-           
+       
+      int elev_factor = 32;
       // draw elev tiles upwards
       for (int k = 0; k < elevation; k++) {
         
         float nval =  3.0*noise( x_noise/frac,y_noise/frac, k/frac + t);
         int ind = (int) (elev.length * nval) % elev.length;
         if (elev[ind] != null) {
-          image(elev[ind], x_rot, y_rot - k*64 );
+          image(elev[ind], x_rot, y_rot - k*elev_factor);
         }
       }
       
+      bool is_slope = false;
+      
       /// put a slope if neighboring tiles are elevated differently
-      if (getElevation(x_noise+1,y_noise-1) > elevation) {
-        ///diagonally to left
-         image(slope[2], x_rot, y_rot - elevation*64 );
-      } else if (getElevation(x_noise-2,y_noise+1) > elevation) {
-        ///diagonally to left
-         image(slope[5], x_rot, y_rot - elevation*64 );
-      } else if (getElevation(x_noise,y_noise-1) > elevation) {
-        ///diagonally to above
-         image(slope[1], x_rot, y_rot - elevation*64 );
-      } else if (getElevation(x_noise,y_noise+1) > elevation) {
-        ///diagonally to botttom
-         image(slope[8], x_rot, y_rot - elevation*64 );
-      } else
+      if        (getElevation(x_noise+1,y_noise) > elevation) {
+         image(slope[2], x_rot, y_rot - elevation*elev_factor );
+         is_slope = true;
+      } else if (getElevation(x_noise, y_noise-1) > elevation) {
+         image(slope[3], x_rot, y_rot - elevation*elev_factor );
+         is_slope = true;
+      }  else if (getElevation(x_noise-1,y_noise) > elevation) {
+         image(slope[7], x_rot, y_rot - elevation*elev_factor );
+         is_slope = true;
+      } else if (getElevation(x_noise, y_noise+1) > elevation) {
+         image(slope[6], x_rot, y_rot - elevation*elev_factor );
+         is_slope = true;
+      } 
+      
+        else if (getElevation(x_noise+1,y_noise-1) > elevation) {
+        /// directly above
+         image(slope[1], x_rot, y_rot - elevation*elev_factor );
+         is_slope = true;
+      } else if (getElevation(x_noise+1,y_noise+1) > elevation) {
+        ///
+         image(slope[4], x_rot, y_rot - elevation*elev_factor );
+         is_slope = true;
+      } else if (getElevation(x_noise-1,y_noise-1) > elevation) {
+        ///
+         image(slope[5], x_rot, y_rot - elevation*elev_factor );
+         is_slope = true;
+      } 
+      
+      else
       //////////////////////////
       /// now put a tree on it
-      if (noise( 500 + x_noise/frac, y_noise/frac,t) > 0.7) {
-        frac = 10.0;
+      if ((!is_slope) && (noise( 500 + x_noise/frac, y_noise/frac,t) > 0.6)) {
+        frac = 5.0;
         
         float nval =  3.0*noise( 100 + x_noise/frac,y_noise/frac,t);
-        int ind = (int) (dec.length * nval) % dec.length;
+        int ind = 1+ (int) ((dec.length-1) * nval) % (dec.length-1);
         if (dec[ind] != null) {
-          image(dec[ind], x_rot, y_rot - elevation*64 - dec[ind].height);
+          image(dec[ind], x_rot, y_rot - elevation*elev_factor - dec[ind].height);
         }
         
         if (ind > dec_ind_max){ 
