@@ -26,7 +26,7 @@ PImage[] loadTiles(String path) {
 }
 
 void setup() {
-  size(64*16,64*9);
+  size(48*16,48*9);
   //tiles = loadImage("iso-64x64-outside.png");
   
   String path;
@@ -115,9 +115,9 @@ void draw() {
   //println(x_part);
   
 
-  for (int i = 10; i>= -10/*-2; i < width/32+1*/; i--) {
+  for (int i = 7; i>= -7/*-2; i < width/32+1*/; i--) {
     // diagonal down to right
-    for (int j = -10; j <=10; j++) {
+    for (int j = -7; j <=7; j++) {
       float x =  j*32 - x_part;
       float y = -i*32 + y_part;
            
@@ -154,7 +154,7 @@ void draw() {
         }
       }
       
-      bool is_slope = false;
+      boolean is_slope = false;
       
       /// put a slope if neighboring tiles are elevated differently
       if        (getElevation(x_noise+1,y_noise) > elevation) {
@@ -188,13 +188,13 @@ void draw() {
       else
       //////////////////////////
       /// now put a tree on it
-      if ((!is_slope) && (noise( 500 + x_noise/frac, y_noise/frac,t) > 0.6)) {
-        frac = 5.0;
+      if ((!is_slope) && (noise( 500 + x_noise/frac, y_noise/frac,t) > 0.55)) {
+        frac = 11.0;
         
         float nval =  3.0*noise( 100 + x_noise/frac,y_noise/frac,t);
         int ind = 1+ (int) ((dec.length-1) * nval) % (dec.length-1);
         if (dec[ind] != null) {
-          image(dec[ind], x_rot, y_rot - elevation*elev_factor - dec[ind].height);
+          image(dec[ind], x_rot, y_rot - (elevation-2)*elev_factor - dec[ind].height);
         }
         
         if (ind > dec_ind_max){ 
