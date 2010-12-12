@@ -42,14 +42,22 @@ void setup() {
 }
 
 int ew_mv_size = 0;
+int ns_mv_size = 0;
 
 void keyPressed() 
 {
   if (key == 'a') {
-    ew_mv_size += 4;
+    ew_mv_size += 32;
   } 
   if (key == 'd') {
-    ew_mv_size -= 3;
+    ew_mv_size -= 32;
+  } 
+  
+  if (key == 'w') {
+    ns_mv_size += 16;
+  } 
+  if (key == 's') {
+    ns_mv_size -= 16;
   } 
 }
 
@@ -80,25 +88,29 @@ int getElevation(int x_noise,int y_noise)
 void draw() {
   background(0);
   
-  t += 0.00001;
-  int mv_size = 8;
+  //t += 0.00001;
   xoff += ew_mv_size;
-  yoff -= ew_mv_size/2;
+  yoff -= ns_mv_size;
+  
+  ew_mv_size =0;
+  ns_mv_size =0;
   
   int x_part = xoff % 32;
-  int x_rnd = xoff/32;
+  int x_rnd  = xoff/32;
   
-  int y_part = yoff % 32;
-  int y_rnd  = yoff/32;
+  int y_part = yoff % 16;
+  int y_rnd  = yoff/16;
   //println(x_part);
   
-  for (int j = -height/32-1; j < height/32; j++) {
-    for (int i = -2; i < width/32+1; i++) {
-      float x = i*32 - x_part;
-      float y = -j*32 + y_part;
+
+  for (int i = 10; i>= -10/*-2; i < width/32+1*/; i--) {
+    // diagonal down to right
+    for (int j = -10; j <=10; j++) {
+      float x =  j*32 - x_part;
+      float y = -i*32 + y_part;
            
-      float x_rot = x;
-      float y_rot = x/2 - y;
+      float x_rot = x   - y/2 + width/2 + i*16 -32;
+      float y_rot = x/2 + y   + height/2 + i*16 -16*3;
       
       int x_noise = (i + x_rnd);
       int y_noise = (j + y_rnd);
@@ -106,7 +118,7 @@ void draw() {
       
       //////////////////////////////////////
       // get a random flat tile for base
-      float frac = 1.0;  
+      float frac = 90.0;  
      // random(tiles.length); 
       int tile_ind = (int) (tiles.length * 3.0*noise( x_noise/frac, y_noise/frac,t))%tiles.length;
      
@@ -114,6 +126,7 @@ void draw() {
         image(tiles[tile_ind], x_rot, y_rot);
       }
       
+      if (false) {
       ///////////////////////////////////////
       // raise the elevation
       int elevation = getElevation(x_noise,y_noise);
@@ -163,7 +176,9 @@ void draw() {
         }
       }
       
-    }  
-  }
+      } // extra terrain
+      
+    }  // i loop
+  } // j loop
   
 }
