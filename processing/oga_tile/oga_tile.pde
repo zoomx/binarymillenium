@@ -31,10 +31,10 @@ void setup() {
   
   String path;
    
-  tiles = loadTiles(sketchPath + "/data/tiles");
-  dec   = loadTiles(sketchPath + "/data/dec");
-  elev  = loadTiles(sketchPath + "/data/elev");
-  slope  = loadTiles(sketchPath + "/data/slope");
+  tiles = loadTiles(dataPath("tiles"));
+  dec   = loadTiles(dataPath("dec"));
+  elev  = loadTiles(dataPath("elev"));
+  slope  = loadTiles(dataPath("slope"));
   
   //println("dec size " + dir.list().length);
   //noLoop();
