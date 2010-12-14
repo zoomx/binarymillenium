@@ -26,7 +26,7 @@ PImage[] loadTiles(String path) {
 }
 
 void setup() {
-  size(48*16,48*9);
+  size(940,560);
   //tiles = loadImage("iso-64x64-outside.png");
   
   String path;
