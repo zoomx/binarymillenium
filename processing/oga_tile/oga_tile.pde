@@ -1,8 +1,15 @@
-/*
-binarymillenium 
- November 2010
- GNU GPL v3 
-*/
+/**
+ * binarymillenium 
+ * November-December 2010
+ * GNU GPL v3 
+ *
+ * 'w','a','s','d' to move.
+ * 
+ * Art from http://opengameart.org/content/isometric-64x64-outside-tileset
+ * Yar
+ * CC-BY 3.0
+ *
+ */ 
 
 
 PImage tiles[];
@@ -159,7 +166,7 @@ PImage[] loadTiles(String[] paths) {
   for (int i = 0; i < paths.length; i++) {
 
     try {
-    tiles[i] = loadImage(dataPath(paths[i]));
+    tiles[i] = loadImage(/*dataPath*/(paths[i]));
     } catch (Exception e) {
        tiles[i] = null; 
     }
