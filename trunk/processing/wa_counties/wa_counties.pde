@@ -91,22 +91,26 @@ void setup() {
 
 void draw() {
 
-  stroke(128);
+  stroke(0);
  
    float sc_sc = width;
   
   for (int i = 0; i < counties.size(); i++) {
+    fill (255*i/counties.size());
+    
+    beginShape();
+
     County cur_county = (County) counties.get(i);
     for (int j = 1; j < cur_county.latlong.size(); j++) {
       LL xy1 = (LL) cur_county.latlong.get(j-1);
       LL xy2 = (LL) cur_county.latlong.get(j);
-      line((float) ((xy1.x_lat -x_min)/sc)*sc_sc,
-           (float) ((xy1.y_long-y_min)/sc)*sc_sc,
+      vertex(
            (float) ((xy2.x_lat -x_min)/sc)*sc_sc,
            (float) ((xy2.y_long-y_min)/sc)*sc_sc
             );    
     //println(xs[i] + " " + y_lat[i]);
     }
+    endShape(CLOSE);
   }
   
   
