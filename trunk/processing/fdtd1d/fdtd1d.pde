@@ -13,7 +13,7 @@ final int nx_sc = 12;
 void setup() {
   size(320,nx_sc*20);
   
-  frameRate(5);
+  frameRate(15);
   
   nx = width/nx_sc;
   pas = new float[nx];
@@ -25,7 +25,7 @@ void setup() {
   x = nx*dx;
   
   // wave speed 
-  c = 1;
+  c = 0.9;
   
   dt = dx/c*prop;
   ctdx2 = (c*dt/dx)*(c*dt/dx);
@@ -38,7 +38,7 @@ float t = 0;
 void draw() {
   PImage tex = get();
   image(tex,-2,-4,width-1, height-1);
-  fill(100,100,190,20);
+  fill(100,100,190,50);
   rect(0,0,width,height);
  
   t += dt;
@@ -63,23 +63,27 @@ void draw() {
   
   for (int i = 1; i < nx-1; i++) {
     fut[i] = ctdx2*(now[i+1] - 2*now[i] + now[i-1]) + 2 * now[i] - pas[i]; 
-    
-    //print(fut[i] + " " );
-   
-
   }
-  //println("");
+
+  float f = 1.0;
+  // these absorbers assume the direction of the wave- need to decompose
+  // wave equation into left and right hand travel directions.
   
-  // right hand boundary condition
-  float f = 0.6;
-  fut[nx-1] = f*now[nx-2];// ctdx2*(now[nx-1]*0.5 - 2*now[nx-1] + now[nx-2]) + 2 * now[nx-1] - pas[nx-1];
+  // u(t+dt) = dt c (u(x) - u(x-1))/dx - u(t) )
+   // right hand boundary condition
+  //fut[nx-1] = dt*c/dx * (now[nx-1] - now[nx-2]) - now[nx-1];
+  fut[nx-1] = f*now[nx-2];
   
+  // ctdx2*(now[nx-1]*0.5 - 2*now[nx-1] + now[nx-2]) + 2 * now[nx-1] - pas[nx-1];
+  // left hand boundary condition
   fut[0] = f*now[1]; 
   
-  final float maxDt = 2.0;
+  final float maxDt = 1.0;
+  final int src_x = nx/3;
   if ( t < maxDt ) {
     float env = -0.5*cos(t/maxDt*2*PI) + 0.5;
-    fut[0] = env*noise(t/2.0,t/3.0);
+    fut[src_x] = env*noise(t/2.0,t/3.0);
+    //if (t + dt > maxDt) println("done sourcing signal");
   } 
 
   for (int i = 0; i < fut.length; i++) {
@@ -93,6 +97,15 @@ void draw() {
       fill(105,10,100.0+255.0*fut[i],200);
       stroke(95,55,210,200);
     }
+    
+    if ((i == nx-1) || (i == 0)) {
+      fill(0,10,155.0*fut[i],200);
+    }
+    
+    if ((i == src_x) && (t < maxDt)) {
+      fill(0,200,155.0*fut[i],200);
+    }
+    
     rect((float)(nx_sc*i), height/2.0, nx_sc,  - fut[i]*sc);
   }
    
