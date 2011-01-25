@@ -1,6 +1,6 @@
 CC=g++
 #CCFLAGS=-g -Wall -fPIC
-CCFLAGS=  -I../../.. -c
+CCFLAGS=  -I. -fPIC -c
 
 # still compiles with these
 #CCFLAGS+=  -D__WXMSW__

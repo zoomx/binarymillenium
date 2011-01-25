@@ -27,7 +27,7 @@
 #else
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/extensions/XShm.h>
+//#include <X11/extensions/XShm.h>
 #endif
 
 extern "C" {
@@ -242,6 +242,7 @@ void f0r_update(f0r_instance_t instance, double time,
 
  
  #ifdef USEWX
+  {
   if (!wxScreenCapture(inst->dc, inst->x, inst->y, inst->width, inst->height,
 	 inst->bmp, inst->bitmap, inst->savewximage))
 	return;
@@ -277,54 +278,65 @@ void f0r_update(f0r_instance_t instance, double time,
   }
   DeleteObject(inst->bitmap);
 	inst->bitmap = NULL;
+  }
 #else
     
 
     /// this will crash if x + width is bigger than the screen size
     /// TBD how to find out the screen size?
-    if (inst->x + inst->width >= 1024) inst->x = 1024-inst->width-1;
-    if (inst->y + inst->height >= 800) inst->y = 800-inst->height-1;
-    
-    XImage *ximage = XShmCreate(inst->dpy, , 32, inst->width, inst->height,  ZPixmap, );
-    //ximage = XGetImage(inst->dpy, RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
-    //                   2*inst->x, inst->y,
-    //                   inst->width, inst->height, AllPlanes, ZPixmap);
-    XShmGetImage(inst->dpy, RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
-                    ximage,
-                    0,0,
-                    AllPlanes);
+    const int SCWD =1024;
+    const int SCHT = 700;
+    if (inst->x + inst->width >= SCWD) inst->x = SCWD-inst->width-1;
+    if (inst->y + inst->height >= SCHT) inst->y = SCHT-inst->height-1;
+    if (inst->x < 0) inst->x = 0;
+    if (inst->y < 0) inst->y = 0;
+   
+    XImage *ximage = NULL;
+    //ximage = XShmCreate(inst->dpy, , 32,y inst->width, inst->height,  ZPixmap );
+    //XShmGetImage(inst->dpy, RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
+    //             ximage,
+    //             0,0,
+    //             AllPlanes);
+    ximage = XGetImage(inst->dpy, 
+                       RootWindow(inst->dpy, DefaultScreen(inst->dpy)) ,
+                       2*inst->x, inst->y,
+                       inst->width, inst->height, AllPlanes, ZPixmap);
+
+    //std::cout << inst->x << ", " << inst->y << " : " <<inst->height << ", " << inst->width << std::endl;
 
     if (!ximage) {
         std::cerr << "XGetImage failed" << std::endl;
-    } 
+    } else { 
 
 
-    for (unsigned i = 0; (i < inst->height); i++) {
+      for (unsigned i = 0; (i < inst->height); i++) {
         for (unsigned j = 0; (j < inst->width); j++) {
-            int ind = i*inst->width + j;
+          int ind = i*inst->width + j;
 
-            bool flip = ((i > inst->height/4-1) && (i < 3*inst->height/4) &&
-                    (j > inst->width/4-1)  && (j < 3*inst->width/4));
-            flip = !flip;
-            flip = true;
+          bool flip = ((i > inst->height/4-1) && (i < 3*inst->height/4) &&
+              (j > inst->width/4-1)  && (j < 3*inst->width/4));
+          flip = !flip;
+          flip = true;
 
-            unsigned long thepix = 0; //ximage->data + ind*3; 
-                thepix = XGetPixel(ximage, j,i); //ximage->data + ind*3; i
-            unsigned short red   = (thepix & ximage->red_mask) >> 16;
-            unsigned short green = (thepix & ximage->green_mask) >> 8;
-            unsigned short blue  = (thepix & ximage->blue_mask) >> 0;
+          unsigned long thepix = 0; //ximage->data + ind*3; 
+          thepix = XGetPixel(ximage, j,i); //ximage->data + ind*3; i
+          if (i == 0 && j == 0) std::cout << thepix << std::endl;
+          unsigned short red   = (thepix & ximage->red_mask) >> 16;
+          unsigned short green = (thepix & ximage->green_mask) >> 8;
+          unsigned short blue  = (thepix & ximage->blue_mask) >> 0;
 
-            int incr = 4;
-            dst[ind*incr+2] = flip ? red   : 255-red;
-            dst[ind*incr+1] = flip ? green : 255-green;
-            dst[ind*incr+0] = flip ? blue  : 255-blue;
-            //dst[ind*4+3] = 1.0;
+          int incr = 4;
+          dst[ind*incr+2] = flip ? red   : 255-red;
+          dst[ind*incr+1] = flip ? green : 255-green;
+          dst[ind*incr+0] = flip ? blue  : 255-blue;
+          //dst[ind*4+3] = 1.0;
 
-	        //dst += incr;
+          //dst += incr;
         } 
-    }
+      }
 
-    XDestroyImage(ximage);
+      XDestroyImage(ximage);
+    }
 #endif
 
 }
