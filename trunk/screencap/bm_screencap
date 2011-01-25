@@ -1,0 +1,109 @@
+<graph>
+<id>IDSTARTscreencapENDID</id>
+<name>screencap</name>
+<data>
+</data>
+<nodes>
+<node> <id>1</id> <type>mod_screencap</type>
+<data>
+<dataitem> <key>0</key> <buf>164 17</buf> </dataitem>
+</data>
+</node>
+<node> <id>2</id> <type>mod_frboutmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>277 22</buf> </dataitem>
+</data>
+</node>
+<node> <id>4</id> <type>mod_staticcolormodule</type>
+<data>
+<dataitem> <key>0</key> <buf>95 9</buf> </dataitem>
+</data>
+</node>
+<node> <id>6</id> <type>mod_number2colormodule</type>
+<data>
+<dataitem> <key>0</key> <buf>39 16</buf> </dataitem>
+</data>
+</node>
+<node> <id>7</id> <type>mod_signalmodule</type>
+<data>
+<dataitem> <key>0</key> <buf>-21 39</buf> </dataitem>
+</data>
+</node>
+</nodes>
+<connections>
+<connect>
+<from> <node_id>4</node_id> <plug_id>r</plug_id> </from>
+<to> <node_id>1</node_id> <plug_id>frei0r_input</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>1</node_id> <plug_id>frei0r_output</plug_id> </from>
+<to> <node_id>2</node_id> <plug_id>in</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>6</node_id> <plug_id>color</plug_id> </from>
+<to> <node_id>4</node_id> <plug_id>col</plug_id> </to>
+</connect>
+<connect>
+<from> <node_id>7</node_id> <plug_id>Signal</plug_id> </from>
+<to> <node_id>6</node_id> <plug_id>r</plug_id> </to>
+</connect>
+</connections>
+<snapshots>
+<snapshot> <id>IDSTARTscreencapENDID</id> <name>default</name>
+<values>
+<value><plug> <node_id>1</node_id> <plug_id>frei0r_input</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>x_offset</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>y_offset</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>1</node_id> <plug_id>frei0r_time</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>in</plug_id> </plug>
+<buf>~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>options</plug_id> </plug>
+<buf>2~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>xsize</plug_id> </plug>
+<buf>320~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>ysize</plug_id> </plug>
+<buf>240~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>brightness</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>contrast</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>gamma</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>monitor</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>driver</plug_id> </plug>
+<buf>default~00</buf></value>
+<value><plug> <node_id>2</node_id> <plug_id>server</plug_id> </plug>
+<buf>default~00</buf></value>
+<value><plug> <node_id>4</node_id> <plug_id>col</plug_id> </plug>
+<buf>[0.5 0.5 0.5]~00</buf></value>
+<value><plug> <node_id>4</node_id> <plug_id>xsize</plug_id> </plug>
+<buf>320~00</buf></value>
+<value><plug> <node_id>4</node_id> <plug_id>ysize</plug_id> </plug>
+<buf>240~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>r</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>g</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>6</node_id> <plug_id>b</plug_id> </plug>
+<buf>0.5~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>Amplitude</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>Frequenz</plug_id> </plug>
+<buf>1~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>Phase</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>Position</plug_id> </plug>
+<buf>0~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>signal</plug_id> </plug>
+<buf>sinus~00</buf></value>
+<value><plug> <node_id>7</node_id> <plug_id>mode</plug_id> </plug>
+<buf>real~00</buf></value>
+</values>
+</snapshot>
+</snapshots>
+</graph>
