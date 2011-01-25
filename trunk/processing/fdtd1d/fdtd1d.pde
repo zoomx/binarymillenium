@@ -7,13 +7,18 @@ float x,dx,c;
 int nx;
 float dt, ctdx2;
 
-float prop = 0.99;
+float prop =  0.93ar;//sqrt(0.5);
+float f = 1.0;
 
 final int nx_sc = 12;
+float maxDt = dt;//*31;
+
+PImage tex;
+
 void setup() {
   size(320,nx_sc*20);
   
-  frameRate(15);
+  frameRate(10);
   
   nx = width/nx_sc;
   pas = new float[nx];
@@ -25,20 +30,46 @@ void setup() {
   x = nx*dx;
   
   // wave speed 
-  c = 0.9;
+  c = 1.0;
   
   dt = dx/c*prop;
+ 
   ctdx2 = (c*dt/dx)*(c*dt/dx);
   
+  maxDt = dt*31;
+ 
+  println("ctdx2 = " + ctdx2);
+  
   background(100,100,100);
+  
+  tex = get();
 }
+
 
 float t = 0;
 
+void keyPressed( ) {
+   if (key == 'a') {
+      t = 0;
+
+   } 
+   
+   if (key == 'r') {
+           
+        pas = new float[nx];
+  fut = new float[nx];
+  now = new float[nx];
+  
+   }
+}
+
+
+
 void draw() {
-  PImage tex = get();
+  
   image(tex,-2,-4,width-1, height-1);
-  fill(100,100,190,50);
+  fill(100,100,190,20);
+  noStroke();
   rect(0,0,width,height);
  
   t += dt;
@@ -54,42 +85,50 @@ void draw() {
    ( u(T+dt) - 2*u(T) + u(T-dt) )/dt^2 = c^2 ( u(x+1) - 2*u(x) + u(x-1) ) /dx^2
    
    u(T+dt) = (dt^2 * c^2 / dx^2) * ( u(x+1) - 2*u(x) + u(x-1) ) + 2 u(t) - u(T-dt)
-           
+       
+   u(T+dt) = (dt^2 * c^2 / dx^2) * ( u(x+1,t) + u(x-1,t) ) + 2*(1 - (dt^2 * c^2 / dx^2)) u(x,t) - u(x,T-dt)    
+   
+   u(T+dt) = prop^2*(u(x+1,t) + u(x-1,t)) + 2*(1 - prop^2)*u(x,t) - u(x,T-dt)    
+ 
   */
   
   final  float sc = height*0.5;
   
-  
-  
   for (int i = 1; i < nx-1; i++) {
-    fut[i] = ctdx2*(now[i+1] - 2*now[i] + now[i-1]) + 2 * now[i] - pas[i]; 
+    //fut[i] = ctdx2*(now[i+1] - 2*now[i] + now[i-1]) + 2 * now[i] - pas[i]; 
+    fut[i] = ctdx2*(now[i+1] + now[i-1]) + 2 * (1 - ctdx2) * now[i] - pas[i]; 
   }
 
-  float f = 1.0;
   // these absorbers assume the direction of the wave- need to decompose
-  // wave equation into left and right hand travel directions.
+  // wave equation into left and right hand travel directions?
+  // that doesn't really make sense, every value can be thought of as a point source
+  // which will propagate forward and backward, so on the edge the 
   
-  // u(t+dt) = dt c (u(x) - u(x-1))/dx - u(t) )
+  // u(t+dt) = dt c (u(x+0.5) - u(x-0.5))/dx - u(t) )
    // right hand boundary condition
-  //fut[nx-1] = dt*c/dx * (now[nx-1] - now[nx-2]) - now[nx-1];
+  //fut[nx-1] = dt*c/dx * (pas[nx-1] - now[nx-1])/2.0 - now[nx-1];
   fut[nx-1] = f*now[nx-2];
   
   // ctdx2*(now[nx-1]*0.5 - 2*now[nx-1] + now[nx-2]) + 2 * now[nx-1] - pas[nx-1];
   // left hand boundary condition
   fut[0] = f*now[1]; 
   
-  final float maxDt = 1.0;
+
   final int src_x = nx/3;
   if ( t < maxDt ) {
     float env = -0.5*cos(t/maxDt*2*PI) + 0.5;
-    fut[src_x] = env*noise(t/2.0,t/3.0);
+    float val = 1.0;// /*(1-t/maxDt) */cos(t/dt*PI);
+    /// tbd shouldn't it be +=?
+    fut[src_x] = val*env; //env*noise(t/2.0,t/3.0);
     //if (t + dt > maxDt) println("done sourcing signal");
   } 
 
   for (int i = 0; i < fut.length; i++) {
     pas[i] = now[i];
-    now[i] = fut[i]; 
-    
+    now[i] = fut[i];   
+  }
+  
+  for (int i = 0; i < fut.length; i++) { 
     if (fut[i] > 0) {
       fill(128.0+255.0*fut[i],0,0,200);
       stroke(155,155,200,200);
@@ -104,6 +143,28 @@ void draw() {
     
     if ((i == src_x) && (t < maxDt)) {
       fill(0,200,155.0*fut[i],200);
+    }
+    
+    rect((float)(nx_sc*i), height/2.0, nx_sc,  - fut[i]*sc);
+  }
+  
+  tex = get();
+  
+  for (int i = 0; i < fut.length; i++) { 
+    if (fut[i] > 0) {
+      fill(128.0+355.0*fut[i],0,0,200);
+      stroke(255,255,200,200);
+    } else {
+      fill(105,10,100.0+355.0*fut[i],200);
+      stroke(95,55,255,200);
+    }
+    
+    if ((i == nx-1) || (i == 0)) {
+      fill(0,10,255.0*fut[i],200);
+    }
+    
+    if ((i == src_x) && (t < maxDt)) {
+      fill(0,2550,155.0*fut[i],200);
     }
     
     rect((float)(nx_sc*i), height/2.0, nx_sc,  - fut[i]*sc);
