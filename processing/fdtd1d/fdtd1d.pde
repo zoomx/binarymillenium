@@ -9,10 +9,13 @@ float dt, ctdx2;
 
 float prop = 0.99;
 
+final int nx_sc = 12;
 void setup() {
-  size(800,400);
+  size(320,nx_sc*20);
   
-  nx = width;
+  frameRate(5);
+  
+  nx = width/nx_sc;
   pas = new float[nx];
   fut = new float[nx];
   now = new float[nx];
@@ -33,7 +36,9 @@ void setup() {
 float t = 0;
 
 void draw() {
-  fill(200,100,100,230);
+  PImage tex = get();
+  image(tex,-2,-4,width-1, height-1);
+  fill(100,100,190,20);
   rect(0,0,width,height);
  
   t += dt;
@@ -51,26 +56,44 @@ void draw() {
    u(T+dt) = (dt^2 * c^2 / dx^2) * ( u(x+1) - 2*u(x) + u(x-1) ) + 2 u(t) - u(T-dt)
            
   */
-  for (int i = 1; i < fut.length-1; i++) {
+  
+  final  float sc = height*0.5;
+  
+  
+  
+  for (int i = 1; i < nx-1; i++) {
     fut[i] = ctdx2*(now[i+1] - 2*now[i] + now[i-1]) + 2 * now[i] - pas[i]; 
     
     //print(fut[i] + " " );
-    float sc = height*1.0;
-    fill(255,0,0,200);
-    line((float)i, height/2.0, (float)i, height/2.0 - fut[i]*sc);
+   
+
   }
   //println("");
   
-  for (int i = 0; i < fut.length-1; i++) {
+  // right hand boundary condition
+  float f = 0.6;
+  fut[nx-1] = f*now[nx-2];// ctdx2*(now[nx-1]*0.5 - 2*now[nx-1] + now[nx-2]) + 2 * now[nx-1] - pas[nx-1];
+  
+  fut[0] = f*now[1]; 
+  
+  final float maxDt = 2.0;
+  if ( t < maxDt ) {
+    float env = -0.5*cos(t/maxDt*2*PI) + 0.5;
+    fut[0] = env*noise(t/2.0,t/3.0);
+  } 
+
+  for (int i = 0; i < fut.length; i++) {
     pas[i] = now[i];
     now[i] = fut[i]; 
+    
+    if (fut[i] > 0) {
+      fill(128.0+255.0*fut[i],0,0,200);
+      stroke(155,155,200,200);
+    } else {
+      fill(105,10,100.0+255.0*fut[i],200);
+      stroke(95,55,210,200);
+    }
+    rect((float)(nx_sc*i), height/2.0, nx_sc,  - fut[i]*sc);
   }
-  
-  if ( t < 2.5 ) {
-    fut[0] = noise(t/100.0)-0.5;
-  }  else {
-    fut[0] = 0;
-  }
-  
-  
+   
 }
