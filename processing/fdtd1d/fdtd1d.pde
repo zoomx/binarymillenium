@@ -7,16 +7,17 @@ float x,dx,c;
 int nx;
 float dt, ctdx2;
 
-float prop =  0.93ar;//sqrt(0.5);
+float prop =  0.93;//sqrt(0.5);
 float f = 1.0;
 
-final int nx_sc = 12;
-float maxDt = dt;//*31;
+final int nx_sc = 2;
+float maxDt;
+float maxDtMult = 25;
 
 PImage tex;
 
 void setup() {
-  size(320,nx_sc*20);
+  size(320,nx_sc*60);
   
   frameRate(10);
   
@@ -36,7 +37,7 @@ void setup() {
  
   ctdx2 = (c*dt/dx)*(c*dt/dx);
   
-  maxDt = dt*31;
+  maxDt = dt*maxDtMult;
  
   println("ctdx2 = " + ctdx2);
   
@@ -105,19 +106,23 @@ void draw() {
   // which will propagate forward and backward, so on the edge the 
   
   // u(t+dt) = dt c (u(x+0.5) - u(x-0.5))/dx - u(t) )
+  if (false ) {
    // right hand boundary condition
-  //fut[nx-1] = dt*c/dx * (pas[nx-1] - now[nx-1])/2.0 - now[nx-1];
-  fut[nx-1] = f*now[nx-2];
-  
-  // ctdx2*(now[nx-1]*0.5 - 2*now[nx-1] + now[nx-2]) + 2 * now[nx-1] - pas[nx-1];
+  fut[nx-1] =  ctdx2*now[nx-2] + 2*(1 - ctdx2)*now[nx-1] + (ctdx2-1)*pas[nx-1]; //f*now[nx-2];
   // left hand boundary condition
-  fut[0] = f*now[1]; 
+  fut[0] = ctdx2*(now[1] + pas[0]) + 2 * (1 - ctdx2) * now[0] - pas[0];  //f*now[1]; 
+  } else if (false) {
+    // right hand boundary condition
+    fut[nx-1] = f*now[nx-2];
+    // left hand boundary condition
+    fut[0] = f*now[1]; 
+  }
   
-
+  // the source signal
   final int src_x = nx/3;
   if ( t < maxDt ) {
     float env = -0.5*cos(t/maxDt*2*PI) + 0.5;
-    float val = 1.0;// /*(1-t/maxDt) */cos(t/dt*PI);
+    float val = 0.5;// /*(1-t/maxDt) */cos(t/dt*PI);
     /// tbd shouldn't it be +=?
     fut[src_x] = val*env; //env*noise(t/2.0,t/3.0);
     //if (t + dt > maxDt) println("done sourcing signal");
