@@ -1,4 +1,4 @@
-
+final int sc = 4;
 final int nx = 91;
 final int ny = 91;
 
@@ -34,6 +34,9 @@ final float UpCoefABC = c*dt/dy;
 float[][] Hx = new float[nx][ny-1];
 float[][] Hy = new float[nx-1][ny];
 float[][] Ez = new float[nx][ny];
+
+/// blocking mass
+boolean[][] Mm = new boolean[nx][ny];
 /// ABC storage
 float[][] EzCurLeft = new float[2][ny];
 float[][] EzPastLeft = new float[2][ny];
@@ -45,7 +48,7 @@ float[][] EzCurUp = new float[nx][2];
 
 PImage tex;
 
-final int sc = 8;
+
 void setup() {
   size(nx*sc,ny*sc);
   
@@ -86,9 +89,28 @@ void keyPressed( ) {
    }
 }
 
-
+int SX = 45;
+int SY = 45;
+    
+void mouseClicked( ) {
+  if (mousePressed && (mouseButton == LEFT)) {
+  SX = mouseX/sc;
+  SY = mouseY/sc;
+      t = 0;
+      n = 0;
+  }
+  
+ 
+}
 
 void draw() {
+  
+   if (mousePressed && (mouseButton == RIGHT)) {
+    int x = mouseX/sc;
+    int y = mouseY/sc;
+    
+    Mm[x][y] = true;
+  }
   
   //image(tex,-2,-4,width-1, height-1);
   fill(255,0,0,20);
@@ -112,15 +134,16 @@ void draw() {
     //  update Ez (Eq: 4.7)
     for (int i = 1; i < nx-1; i++) {
       for (int j = 1; j < ny-1; j++) {
-        Ez[i][j] += ez_coef*((Hy[i][j] - Hy[i-1][j]) - (Hx[i][j] - Hx[i][j-1]));
+        if (!Mm[i][j]) {
+          Ez[i][j] += ez_coef*((Hy[i][j] - Hy[i-1][j]) - (Hx[i][j] - Hx[i][j-1]));
+        }
         
         if (Ez[i][j] > max_ez) { max_ez = Ez[i][j]; }
         if (Ez[i][j] < min_ez) { min_ez = Ez[i][j]; }
     }}
     
 
-    final int SX = 45;
-    final int SY = 45;
+ 
     //  additive source */
     if (n*dt<=2e-9) {
       Ez[SX][SY] += (10-15*cos(2*PI*1e9*n*dt)+6*cos(4*PI*1e9*n*dt)-cos(6*PI*1e9*n*dt))/32;
@@ -133,29 +156,34 @@ void draw() {
         float maxm = max_ez;
     if (-min_ez > maxm) maxm = -min_ez;
     
-    final int csc = 255*40;
-    final int csc2 = csc*10;
+    final int csc = 6000;
+    final int csc2 = 28000;
     
-    for (int i = 1; i < nx ; i++) {
-      for (int j = 1; j < ny; j++) {
+    for (int i = 0; i < nx ; i++) {
+      for (int j = 0; j < ny; j++) {
         
         
+        if (!Mm[i][j]) {
         // normalized e field
         float val = (Ez[i][j]);
-        float lval = val;//log(val);
+        float lval = log(1+abs(val));
         ///maxm;
         stroke(0,0,0);
         
         if (val > 0 ) {
           fill( 0,csc*lval, csc2*lval);
         } else {
-          fill(- csc*lval, 255+csc2*lval, 0);
+          fill( csc*lval, 0, csc2*lval);
+        }
+        } else {
+           fill(255,255,0); 
         }
         rect(i*sc,j*sc, sc,sc);
         //point(i,j);
     }}
 
-   // println(n + "\t" + t + ":\t" + (max_ez) + "\t" + (min_ez) + ",\tsrc " + (int)(csc*Ez[SX][SY]));
+    //println(n + "\t" + t + ":\t" + (max_ez) + "\t" + (min_ez) + ",\tsrc " + 
+    println((int)(csc*log(1+abs(Ez[SX][SY]))));
     /////////////
 
   t += dt;
