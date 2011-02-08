@@ -10,7 +10,7 @@ float dt, ctdx2;
 float prop =  0.93;//sqrt(0.5);
 float f = 1.0;
 
-final int nx_sc = 2;
+final int nx_sc = 4;
 float maxDt;
 float maxDtMult = 25;
 
@@ -106,12 +106,18 @@ void draw() {
   // which will propagate forward and backward, so on the edge the 
   
   // u(t+dt) = dt c (u(x+0.5) - u(x-0.5))/dx - u(t) )
+  
+  // the right hand wave is du/dx = -(1/c)*du/dt
+  // du/dx = -du/dt
+  // fut[i+1] - fut[i] = - (fut[i] - now[i]) 
+  // -> fut[i+1] = now[i] 
+  
   if (false ) {
    // right hand boundary condition
   fut[nx-1] =  ctdx2*now[nx-2] + 2*(1 - ctdx2)*now[nx-1] + (ctdx2-1)*pas[nx-1]; //f*now[nx-2];
   // left hand boundary condition
   fut[0] = ctdx2*(now[1] + pas[0]) + 2 * (1 - ctdx2) * now[0] - pas[0];  //f*now[1]; 
-  } else if (false) {
+  } else if (true) {
     // right hand boundary condition
     fut[nx-1] = f*now[nx-2];
     // left hand boundary condition
