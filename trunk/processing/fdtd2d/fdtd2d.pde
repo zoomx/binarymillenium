@@ -64,6 +64,7 @@ int n = 0;
 void keyPressed( ) {
    if (key == 'a') {
      // start source over
+     println("restarting src");
       t = 0;
       n = 0;
    } 
@@ -132,7 +133,9 @@ void draw() {
         float maxm = max_ez;
     if (-min_ez > maxm) maxm = -min_ez;
     
-    final int csc = 255;
+    final int csc = 255*40;
+    final int csc2 = csc*10;
+    
     for (int i = 1; i < nx ; i++) {
       for (int j = 1; j < ny; j++) {
         
@@ -144,9 +147,9 @@ void draw() {
         stroke(0,0,0);
         
         if (val > 0 ) {
-          fill( 0,csc*lval, 0);
+          fill( 0,csc*lval, csc2*lval);
         } else {
-          fill(- csc*lval, 0, 0);
+          fill(- csc*lval, 255+csc2*lval, 0);
         }
         rect(i*sc,j*sc, sc,sc);
         //point(i,j);
