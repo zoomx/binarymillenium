@@ -49,7 +49,7 @@ final int sc = 8;
 void setup() {
   size(nx*sc,ny*sc);
   
-  frameRate(10);
+  frameRate(30);
  
   
   background(100,100,100);
@@ -106,8 +106,8 @@ void draw() {
         Hy[i][j] += hy_coef*(Ez[i+1][j] - Ez[i][j]);
     }}
 
-    float max_ez = 0;
-    float min_ez = 0;
+    float max_ez = -1e9;
+    float min_ez = 1e9;
     //  update Ez (Eq: 4.7)
     for (int i = 1; i < nx-1; i++) {
       for (int j = 1; j < ny-1; j++) {
@@ -117,33 +117,43 @@ void draw() {
         if (Ez[i][j] < min_ez) { min_ez = Ez[i][j]; }
     }}
     
-    float maxm = max_ez;
+
+    final int SX = 45;
+    final int SY = 45;
+    //  additive source */
+    if (n*dt<=2e-9) {
+      Ez[SX][SY] += (10-15*cos(2*PI*1e9*n*dt)+6*cos(4*PI*1e9*n*dt)-cos(6*PI*1e9*n*dt))/32;
+    
+    } else {
+      //Ez[SX][SY] = 0.0;
+    }
+    
+    ///
+        float maxm = max_ez;
     if (-min_ez > maxm) maxm = -min_ez;
     
+    final int csc = 255;
     for (int i = 1; i < nx ; i++) {
       for (int j = 1; j < ny; j++) {
         
         
         // normalized e field
-        float val = Ez[i][j]/maxm;
+        float val = (Ez[i][j]);
+        float lval = val;//log(val);
+        ///maxm;
         stroke(0,0,0);
+        
         if (val > 0 ) {
-          fill( 0,255*val, 0);
+          fill( 0,csc*lval, 0);
         } else {
-          fill( -255*val, 0, 0);
+          fill(- csc*lval, 0, 0);
         }
         rect(i*sc,j*sc, sc,sc);
         //point(i,j);
     }}
 
-    println(n + " " + t + ": " + max_ez + " " + min_ez);
-    
-    //  additive source */
-    if (true) { //if (n*dt<=10e-9) {
-      Ez[45][45] = cos(t*100);// (10-15*cos(2*PI*1e9*n*dt)+6*cos(4*PI*1e9*n*dt)-cos(6*PI*1e9*n*dt))/32;
-    } else {
-      Ez[45][45] = 0.0;
-    }
+   // println(n + "\t" + t + ":\t" + (max_ez) + "\t" + (min_ez) + ",\tsrc " + (int)(csc*Ez[SX][SY]));
+    /////////////
 
   t += dt;
   n++;
