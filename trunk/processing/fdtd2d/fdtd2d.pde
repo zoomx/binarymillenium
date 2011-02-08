@@ -1,4 +1,5 @@
-final int sc = 4;
+final int sc =  6;
+
 final int nx = 91;
 final int ny = 91;
 
@@ -93,7 +94,7 @@ int SX = 45;
 int SY = 45;
     
 void mouseClicked( ) {
-  if (mousePressed && (mouseButton == LEFT)) {
+  if (mouseButton == LEFT)) {
   SX = mouseX/sc;
   SY = mouseY/sc;
       t = 0;
@@ -152,7 +153,33 @@ void draw() {
       //Ez[SX][SY] = 0.0;
     }
     
-    ///
+    /////////////////////////////////////////////////////////////////////////////////
+    /// ABC
+    
+    float cdtpdx = (c*dt + dx);
+    float f_order1 = (c*dt-dx)/cdtpdx;
+    float f_order2 = 2*dx/cdtpdx;
+    float f_order3 = (c*dt)*(c*dt)*dx / (2*(dy*dy)*cdtpdx);
+    
+    int xl_abc = 0;
+    for (int j = 1; j < ny-1; j++) {
+        //-----------------------/2nd-order Taflove ABC at x = 0.
+        Ez[xl_abc][j] = -EzPastLeft[1][j] 
+            + f_order1 * (Ez[xl_abc+1][j]   + EzPastLeft[0][j]) 
+            + f_order2 * (EzCurLeft[0][j] +  EzCurLeft[1][j]) 
+            + f_order3 * (EzCurLeft[0][j+1] - 2*EzCurLeft[0][j] + EzCurLeft[0][j-1] 
+                        + EzCurLeft[1][j+1] - 2*EzCurLeft[1][j] + EzCurLeft[1][j-1]);
+    }
+    /// ABC update
+    for (int j = 0; j < ny; j++) {
+      for (int ind = 0; ind < 2; ind++) {
+        EzPastLeft[ind][j] = EzCurLeft[ind][j];
+        EzCurLeft[ind][j]  = Ez[xl_abc+ind][j];
+      }
+    }
+      
+    ////////////////////////////////////////////////////////////////////////////////
+    /// Drawing stuff
         float maxm = max_ez;
     if (-min_ez > maxm) maxm = -min_ez;
     
@@ -183,7 +210,7 @@ void draw() {
     }}
 
     //println(n + "\t" + t + ":\t" + (max_ez) + "\t" + (min_ez) + ",\tsrc " + 
-    println((int)(csc*log(1+abs(Ez[SX][SY]))));
+    //println((int)(csc*log(1+abs(Ez[SX][SY]))));
     /////////////
 
   t += dt;
