@@ -42,10 +42,11 @@ float[][] Ez_cl = new float[2][ny];
 float[][] Ez_pl = new float[2][ny];
 float[][] Ez_cr = new float[2][ny];
 float[][] Ez_pr = new float[2][ny];
-float[][] Ez_cb = new float[nx][2];
-float[][] Ez_pb = new float[nx][2];
-float[][] Ez_cu = new float[nx][2];
-float[][] Ez_pu = new float[nx][2];
+/// should be rotated [nx][2] but this makes code more consistent
+float[][] Ez_cb = new float[2][nx];
+float[][] Ez_pb = new float[2][nx];
+float[][] Ez_cu = new float[2][nx];
+float[][] Ez_pu = new float[2][nx];
 
 PImage tex;
 
@@ -82,10 +83,11 @@ void keyPressed( ) {
       Ez_pl = new float[2][ny];
       Ez_cr = new float[2][ny];
       Ez_pr = new float[2][ny];
-      Ez_cb = new float[nx][2];
-      Ez_pb = new float[nx][2];
-      Ez_cu = new float[nx][2]; 
-      Ez_pu = new float[nx][2]; 
+      
+      Ez_cb = new float[2][nx];
+      Ez_pb = new float[2][nx];
+      Ez_cu = new float[2][nx]; 
+      Ez_pu = new float[2][nx]; 
    }
 }
 
@@ -176,35 +178,76 @@ void draw() {
     }
     
     /////////////////////////////////////////////////////////////////////////////////
-    /// ABC
+    /// ABC left right
     
     float cdtpdx = (c*dt + dx);
-    float f_order1 = (c*dt-dx)/cdtpdx;
-    float f_order2 = 2*dx/cdtpdx;
-    float f_order3 = (c*dt)*(c*dt)*dx / (2*(dy*dy)*cdtpdx);
+    float fx_order1 = (c*dt-dx)/cdtpdx;
+    float fx_order2 = 2*dx/cdtpdx;
+    float fx_order3 = (c*dt)*(c*dt)*dx / (2*(dy*dy)*cdtpdx);
     
     for (int j = 1; j < ny-1; j++) {
         //-----------------------/2nd-order Taflove ABC at x = 0.
         Ez[0][j] = -Ez_pl[1][j] 
-            + f_order1 * (Ez[1][j]      +   Ez_pl[0][j]) 
-            + f_order2 * (Ez_cl[0][j]   +   Ez_cl[1][j]) 
-            + f_order3 * (Ez_cl[0][j+1] - 2*Ez_cl[0][j] + Ez_cl[0][j-1] 
-                        + Ez_cl[1][j+1] - 2*Ez_cl[1][j] + Ez_cl[1][j-1]);
+            + fx_order1 * (Ez[1][j]      +   Ez_pl[0][j]) 
+            + fx_order2 * (Ez_cl[0][j]   +   Ez_cl[1][j]) 
+            + fx_order3 * (Ez_cl[0][j+1] - 2*Ez_cl[0][j] + Ez_cl[0][j-1] 
+                        +  Ez_cl[1][j+1] - 2*Ez_cl[1][j] + Ez_cl[1][j-1]);
                         
         Ez[nx-1][j] = -Ez_pr[1][j] 
-            + f_order1 * (Ez[nx-2][j]   +   Ez_pr[0][j]) 
-            + f_order2 * (Ez_cr[0][j]   +   Ez_cr[1][j]) 
-            + f_order3 * (Ez_cr[0][j+1] - 2*Ez_cr[0][j] + Ez_cr[0][j-1] 
-                        + Ez_cr[1][j+1] - 2*Ez_cr[1][j] + Ez_cr[1][j-1]);
+            + fx_order1 * (Ez[nx-2][j]   +   Ez_pr[0][j]) 
+            + fx_order2 * (Ez_cr[0][j]   +   Ez_cr[1][j]) 
+            + fx_order3 * (Ez_cr[0][j+1] - 2*Ez_cr[0][j] + Ez_cr[0][j-1] 
+                        +  Ez_cr[1][j+1] - 2*Ez_cr[1][j] + Ez_cr[1][j-1]);
     }
+    
     /// ABC update
     for (int j = 0; j < ny; j++) {
       for (int ind = 0; ind < 2; ind++) {
         Ez_pl[ind][j] = Ez_cl[ind][j];
+        // it seems like the current boundary value is 1 dt in the past
+        // by the time this value is used
         Ez_cl[ind][j] = Ez[ind][j];
         
         Ez_pr[ind][j] = Ez_cr[ind][j];
         Ez_cr[ind][j] = Ez[nx-ind-1][j];
+      }
+    }
+    
+    /// ABC up/bottom
+    float cdtpdy = (c*dt + dy);
+    float fy_order1 = (c*dt-dy)/cdtpdy;
+    float fy_order2 = 2*dy/cdtpdy;
+    float fy_order3 = (c*dt)*(c*dt)*dy / (2*(dx*dx)*cdtpdy);
+    
+    for (int j = 1; j < nx-1; j++) {
+        //-----------------------/2nd-order Taflove ABC at y = 0.
+        // coordinates loook inconsistent because we want to make the matrices
+        // the same indexing in both dimensions
+        Ez[j][0] = -Ez_pu[1][j] 
+            + fy_order1 * (Ez[j][1]      +   Ez_pu[0][j]) 
+            + fy_order2 * (Ez_cu[0][j]   +   Ez_cu[1][j]) 
+            + fy_order3 * (Ez_cu[0][j+1] - 2*Ez_cu[0][j] + Ez_cu[0][j-1] 
+                        +  Ez_cu[1][j+1] - 2*Ez_cu[1][j] + Ez_cu[1][j-1]);
+                   
+                        
+        Ez[j][ny-1] = -Ez_pb[1][j] 
+            + fy_order1 * (Ez[j][ny-2]   +   Ez_pb[0][j]) 
+            + fy_order2 * (Ez_cb[0][j]   +   Ez_cb[1][j]) 
+            + fy_order3 * (Ez_cb[0][j+1] - 2*Ez_cb[0][j] + Ez_cb[0][j-1] 
+                        +  Ez_cb[1][j+1] - 2*Ez_cb[1][j] + Ez_cb[1][j-1]);
+                        
+    }
+    
+        /// ABC update
+    for (int j = 0; j < nx; j++) {
+      for (int ind = 0; ind < 2; ind++) {
+        Ez_pu[ind][j] = Ez_cu[ind][j];
+        // it seems like the current boundary value is 1 dt in the past
+        // by the time this value is used
+        Ez_cu[ind][j] = Ez[j][ind];
+        
+        Ez_pb[ind][j] = Ez_cb[ind][j];
+        Ez_cb[ind][j] = Ez[j][ny-ind-1];
       }
     }
       
