@@ -140,6 +140,7 @@ void draw() {
     float max_ez = -1e9;
     float min_ez = 1e9;
   
+    /// combined for loops should be faster
     for (int i = 0; i < nx; i++) {
       for (int j = 0; j < ny; j++) {
         
@@ -182,20 +183,28 @@ void draw() {
     float f_order2 = 2*dx/cdtpdx;
     float f_order3 = (c*dt)*(c*dt)*dx / (2*(dy*dy)*cdtpdx);
     
-    int xl_abc = 0;
     for (int j = 1; j < ny-1; j++) {
         //-----------------------/2nd-order Taflove ABC at x = 0.
-        Ez[xl_abc][j] = -Ez_pl[1][j] 
-            + f_order1 * (Ez[1][j]   + Ez_pl[0][j]) 
-            + f_order2 * (Ez_cl[0][j]    +  Ez_cl[1][j]) 
+        Ez[0][j] = -Ez_pl[1][j] 
+            + f_order1 * (Ez[1][j]      +   Ez_pl[0][j]) 
+            + f_order2 * (Ez_cl[0][j]   +   Ez_cl[1][j]) 
             + f_order3 * (Ez_cl[0][j+1] - 2*Ez_cl[0][j] + Ez_cl[0][j-1] 
                         + Ez_cl[1][j+1] - 2*Ez_cl[1][j] + Ez_cl[1][j-1]);
+                        
+        Ez[nx-1][j] = -Ez_pr[1][j] 
+            + f_order1 * (Ez[nx-2][j]   +   Ez_pr[0][j]) 
+            + f_order2 * (Ez_cr[0][j]   +   Ez_cr[1][j]) 
+            + f_order3 * (Ez_cr[0][j+1] - 2*Ez_cr[0][j] + Ez_cr[0][j-1] 
+                        + Ez_cr[1][j+1] - 2*Ez_cr[1][j] + Ez_cr[1][j-1]);
     }
     /// ABC update
     for (int j = 0; j < ny; j++) {
       for (int ind = 0; ind < 2; ind++) {
         Ez_pl[ind][j] = Ez_cl[ind][j];
         Ez_cl[ind][j] = Ez[ind][j];
+        
+        Ez_pr[ind][j] = Ez_cr[ind][j];
+        Ez_cr[ind][j] = Ez[nx-ind-1][j];
       }
     }
       
