@@ -210,6 +210,8 @@ void draw()
  
  
  
+ ///////////
+ 
  float z = 100;
  final float zsc = 1.5;
  
@@ -218,6 +220,17 @@ void draw()
    z_final /= zsc;
  }
  float x_off = width/2 - road.width/(2*z_final) + roadCurve(z_final, cnt, 0);
+ 
+ 
+ // draw background mountains
+ for (int i = 0; i < width; i++) {
+   float hgt = 20 * noise( (i + 2*x_off)/60.0 ) + 8 * noise ( (i + 2*x_off)/5.0 );
+   stroke(78);
+   line(i, height/2-hgt, i, height/2 );
+ }
+ 
+ //
+ 
  
  for (int ind = 20; ind >= 0; ind -= 1) {
    
