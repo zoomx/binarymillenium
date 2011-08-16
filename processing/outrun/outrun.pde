@@ -144,7 +144,25 @@ PImage noiseImage(int w, int h, boolean radial_fade)
 // the screen
 float roadCurve(float z, int i, int j) 
 {
- return (20/z * (noise(z/5.0 + (i + j)/25.0)-0.5));
+  //float val = (30/z * (noise(z/50.0 + (i + j)/55.0)-0.5));
+  float nval = (noise(z/50.0 + (i + j)/55.0) - 0.5);
+    float val = (width * nval);
+    
+    print(z + " " + j + " " + nval  + " " + val + "\n");
+  return val;
+  /*
+  float r = width * (noise(1000.0 + (i + j)/36.0) - 0.5);
+  
+  // off = r - r cos(theta) 
+  // z = r sin(theta)
+  // off = r - r cos(asin(z/r))
+  float theta = asin( j/r);
+  float off = 500 * (r - r * cos(theta) ); 
+  
+  print(z + " " + j + " " + theta + " " + r + " " + off + "\n");
+  
+  return off;
+  */
 }
 
 
@@ -193,10 +211,11 @@ void draw()
  
  
  float z = 100;
+ final float zsc = 1.5;
  
  float z_final = z;
  for (int ind = 20; ind > 0; ind -= 1) {
-   z_final /= 1.5;
+   z_final /= zsc;
  }
  float x_off = width/2 - road.width/(2*z_final) + roadCurve(z_final, cnt, 0);
  
@@ -204,13 +223,13 @@ void draw()
    
  //for (float z = 100; z > 0.05; z /= 1.5) {
    float x = width/2 - road.width/(2*z) + roadCurve(z, cnt, ind);
-   x -= x_off;
+   x -= x_off + 50.0*(noise(cnt/10.0)-0.5);
    float y = height/2 + 6/z ;
    image(road, x, y, img.width/z, img.height/z);
    //ind += 1;
-   z /= 1.5;
+   z /= zsc;
  }
  
- cnt+=1;
+ cnt += 1;
  t += 0.008;
 }
