@@ -4,6 +4,8 @@ void setup()
 {
   size(720,480);
   frameRate(5);
+  
+  background(0);
 }
 
 PImage multImg(PImage i1, PImage i2) 
@@ -101,7 +103,7 @@ return edgeImg;
 
 float t = 0;
 
-PImage noiseImage(int w, int h )
+PImage noiseImage(int w, int h, boolean radial_fade)
 {
   
   PImage img = createImage(w, h, RGB);
@@ -114,21 +116,23 @@ PImage noiseImage(int w, int h )
   for (int y = 0; y < img.height; y++) {
     for (int x = 0; x < img.width; x++) {
       
-      float val = noise(x/19.0,y/12.0, t);
+      float val = noise(x/15.0,y/8.0, t);
       float val2 = noise(x/50.0,y/30.0, t);
       float val3 = noise(x/2.0,y/2.0, t);
-      float tval = (val*0.5+val2*0.2 + val3*0.3);
+      float tval = (val*0.7 + val2*0.2 + val3*0.1);
       
+      if (radial_fade) {
       float r = sqrt( (y-HW)*(y-HW) + (x-HW)*(x-HW));
       
       if (r > MAX_R) {r = MAX_R; }
       if (r > LIM_R) {
         tval *=  1.0 - (r - LIM_R)/(MAX_R - LIM_R);  
       }
-      tval *= tval;
+      }
       
+      tval *= tval;    
       
-      img.pixels[y*img.width+x] = color(595*tval);
+      img.pixels[y * img.width + x] = color(595*tval);
   }}
   
   img.updatePixels();
@@ -136,11 +140,21 @@ PImage noiseImage(int w, int h )
  return img; 
 }
 
+// TBD need to rethink this to generate curves into the distance- the target is always in the center of
+// the screen
+float roadCurve(float z, int i, int j) 
+{
+ return (20/z * (noise(z/5.0 + (i + j)/25.0)-0.5));
+}
+
+
+int cnt = 0;
+
 void draw() 
 {
   loadPixels();
   
-  PImage img = noiseImage(32, 32);
+  PImage img = noiseImage(32, 32, true);
   
   PImage bin_img = binarize(img, 56, 255);
   // this doesn't work flexibily enough
@@ -148,14 +162,55 @@ void draw()
   
   PImage edge_img = edgeDetect(bin_img);
   edge_img = binarize(edge_img, 16, 255);
+  img.filter(INVERT);
   PImage fin_img = (multImg(edge_img, img));
   fin_img.filter(POSTERIZE, 8);
-    
- image(img,      0,           0, img.width, img.height);
- image(bin_img,  img.width,   0, img.width, img.height);
- noSmooth();
- final int SC = 16;
- image(fin_img, img.width*2, 0, img.width*SC, img.height*SC);
+  
+  fin_img.format = ARGB;
+  fin_img.loadPixels();
+    for (int y = 0; y < img.height; y++) {
+    for (int x = 0; x < img.width; x++) {
+      final int ind = y*img.width+x;
+      
+      if (red(fin_img.pixels[ind]) < 6) {
+        fin_img.pixels[ind] = color(0, 0);
+      }
+    }
+  }
+  fin_img.updatePixels();
  
- t+= 0.008;
+ PImage road = noiseImage(16, 1, false);
+    
+ /////////////
+ background(0);
+ 
+ //image(img,      0,           0, img.width, img.height);
+ //image(bin_img,  img.width,   0, img.width, img.height);
+ noSmooth();
+ //float sc = 16 * (0.5 + t * 5);
+ //image(fin_img, img.width*2, 0, img.width*sc, img.height*sc);
+ 
+ 
+ 
+ float z = 100;
+ 
+ float z_final = z;
+ for (int ind = 20; ind > 0; ind -= 1) {
+   z_final /= 1.5;
+ }
+ float x_off = width/2 - road.width/(2*z_final) + roadCurve(z_final, cnt, 0);
+ 
+ for (int ind = 20; ind >= 0; ind -= 1) {
+   
+ //for (float z = 100; z > 0.05; z /= 1.5) {
+   float x = width/2 - road.width/(2*z) + roadCurve(z, cnt, ind);
+   x -= x_off;
+   float y = height/2 + 6/z ;
+   image(road, x, y, img.width/z, img.height/z);
+   //ind += 1;
+   z /= 1.5;
+ }
+ 
+ cnt+=1;
+ t += 0.008;
 }
