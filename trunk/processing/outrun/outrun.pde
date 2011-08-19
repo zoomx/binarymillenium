@@ -104,7 +104,7 @@ return edgeImg;
 float t = 0;
 float mtn_off = 0;
 
-PImage noiseImage(int w, int h, boolean radial_fade)
+PImage noiseImage(int w, int h, float nval, boolean radial_fade)
 {
   
   PImage img = createImage(w, h, RGB);
@@ -117,9 +117,9 @@ PImage noiseImage(int w, int h, boolean radial_fade)
   for (int y = 0; y < img.height; y++) {
     for (int x = 0; x < img.width; x++) {
       
-      float val = noise(x/15.0,y/8.0, t);
-      float val2 = noise(x/50.0,y/30.0, t);
-      float val3 = noise(x/2.0,y/2.0, t);
+      float val = noise(x/15.0,y/8.0, nval);
+      float val2 = noise(x/50.0,y/30.0, nval);
+      float val3 = noise(x/2.0,y/2.0, nval);
       float tval = (val*0.7 + val2*0.2 + val3*0.1);
       
       if (radial_fade) {
@@ -149,7 +149,7 @@ float roadCurve(float z, int i, int j)
   float nval = (noise(z/500.0 + (i + j)/55.0) - 0.5);
     float val = (width * nval);
     
-    print(z + " " + j + " " + nval  + " " + val + "\n");
+   // print(z + " " + j + " " + nval  + " " + val + "\n");
   return val;
   /*
   float r = width * (noise(1000.0 + (i + j)/36.0) - 0.5);
@@ -166,14 +166,9 @@ float roadCurve(float z, int i, int j)
   */
 }
 
-
-int cnt = 0;
-
-void draw() 
+PImage treeImage()
 {
-  loadPixels();
-  
-  PImage img = noiseImage(32, 32, true);
+   PImage img = noiseImage(32, 32, t,  true);
   
   PImage bin_img = binarize(img, 56, 255);
   // this doesn't work flexibily enough
@@ -198,10 +193,36 @@ void draw()
   }
   fin_img.updatePixels();
  
- PImage road = noiseImage(16, 1, false);
-    
- /////////////
- background(0);
+ return fin_img; 
+}
+
+float car_off = 0.0;
+
+void keyPressed()
+{
+  if (key == 'a') {
+    car_off += 4.1;
+    print(car_off + "\n");
+  }
+  if (key == 'd') {
+    car_off -= 4.1;
+    print(car_off + "\n");
+  }
+}
+
+
+int cnt = 0;
+
+void draw() 
+{
+  loadPixels();
+  
+  PImage road = noiseImage(16, 1, t + 100, false);
+  PImage tree = treeImage();
+  PImage car = noiseImage(32,4,  t + 10, false);
+  PImage car_top = noiseImage(24,4, t +2000, false);
+  /////////////
+  background(0);
  
  //image(img,      0,           0, img.width, img.height);
  //image(bin_img,  img.width,   0, img.width, img.height);
@@ -209,19 +230,19 @@ void draw()
  //float sc = 16 * (0.5 + t * 5);
  //image(fin_img, img.width*2, 0, img.width*sc, img.height*sc);
  
- 
- 
  ///////////
- 
- float z = 100;
+ // TBD these numbers are too magic
+ float z = 70;
  final float zsc = 1.5;
+ final int NUM_STEPS = 20;
  
+ // find the smallest z
  float z_final = z;
- for (int ind = 20; ind > 0; ind -= 1) {
+ for (int ind = NUM_STEPS; ind > 0; ind -= 1) {
    z_final /= zsc;
  }
- float x_off = width/2 - road.width/(2*z_final) + roadCurve(z_final, cnt, 0);
- 
+ float road_curve = roadCurve(z_final, cnt, 0);
+ //float x_off = width/2 - road.width/(2*z_final) + road_curve;
  
  //////////////////////////////////////////////////////////////////////////////////
  // draw background mountains
@@ -230,31 +251,42 @@ void draw()
    stroke(78);
    line(i, height/2-hgt, i, height/2 );
  }
- mtn_off -= x_off/25.0;
+ mtn_off -= road_curve/45.0;
  
  //////////////////////////////////////////////////////////////////////////////////
+ float y = 0;
  
- 
- for (int ind = 20; ind >= 0; ind -= 1) {
+ for (int ind = NUM_STEPS; ind >= 0; ind -= 1) {
    
  //for (float z = 100; z > 0.05; z /= 1.5) {
-   float x = width/2  + roadCurve(z, cnt, ind);
-   x -= x_off; // + 50.0*(noise(cnt/10.0)-0.5);
-   float y = height/2 + 6/z ;
-   image(road, x - road.width/(2*z), y, img.width/z, img.height/z);
+   float x = width/2 + roadCurve(z, cnt, ind) + car_off;
+   //x -= x_off; // + 50.0*(noise(cnt/10.0)-0.5);
+   y = height/2 + 4.0/z;
+   image(road, x - road.width/(2*z), y - 2*road.height/(2*z), 
+               road.width/z, 2*road.height/z);
    
    // draw things on side of road
    if (noise(ind + cnt) > 0.6) {
-     image(fin_img, x + 3*road.width/z, height/2 - 0.5*fin_img.height/z, fin_img.width/z, fin_img.height/z);
+     image(tree, x + 3.5*road.width/z, y - tree.height/(2*z), 
+                 tree.width/z, tree.height/z);
    }
    if (noise(10000 + ind + cnt) > 0.6) {
-     image(fin_img, x - 3*road.width/z, height/2 - 0.5*fin_img.height/z, fin_img.width/z, fin_img.height/z);
+     image(tree, x - 3.5*road.width/z, y - tree.height/(2*z), 
+                 tree.width/z, tree.height/z);
    }
-   
+     
    //ind += 1;
    z /= zsc;
  }
- 
+
+ {
+   float car_y = y - 20;
+ image(car, width/2 - 8*car.width/2, car_y, 
+             car.width*8, car.height*16);
+ image(car_top, width/2 - 8*car_top.width/2, car_y - car.height*16, 
+                car_top.width*8, car_top.height*16 );
+ }
+  
  cnt += 1;
  t += 0.008;
 }
