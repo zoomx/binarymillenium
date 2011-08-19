@@ -102,6 +102,7 @@ return edgeImg;
 //image(edgeImg, 100, 0); // Draw the new image
 
 float t = 0;
+float mtn_off = 0;
 
 PImage noiseImage(int w, int h, boolean radial_fade)
 {
@@ -145,7 +146,7 @@ PImage noiseImage(int w, int h, boolean radial_fade)
 float roadCurve(float z, int i, int j) 
 {
   //float val = (30/z * (noise(z/50.0 + (i + j)/55.0)-0.5));
-  float nval = (noise(z/50.0 + (i + j)/55.0) - 0.5);
+  float nval = (noise(z/500.0 + (i + j)/55.0) - 0.5);
     float val = (width * nval);
     
     print(z + " " + j + " " + nval  + " " + val + "\n");
@@ -222,23 +223,34 @@ void draw()
  float x_off = width/2 - road.width/(2*z_final) + roadCurve(z_final, cnt, 0);
  
  
+ //////////////////////////////////////////////////////////////////////////////////
  // draw background mountains
  for (int i = 0; i < width; i++) {
-   float hgt = 20 * noise( (i + 2*x_off)/60.0 ) + 8 * noise ( (i + 2*x_off)/5.0 );
+   float hgt = 20 * noise( (i + 2*mtn_off)/60.0 ) + 8 * noise ( (i + 2*mtn_off)/5.0 );
    stroke(78);
    line(i, height/2-hgt, i, height/2 );
  }
+ mtn_off -= x_off/25.0;
  
- //
+ //////////////////////////////////////////////////////////////////////////////////
  
  
  for (int ind = 20; ind >= 0; ind -= 1) {
    
  //for (float z = 100; z > 0.05; z /= 1.5) {
-   float x = width/2 - road.width/(2*z) + roadCurve(z, cnt, ind);
-   x -= x_off + 50.0*(noise(cnt/10.0)-0.5);
+   float x = width/2  + roadCurve(z, cnt, ind);
+   x -= x_off; // + 50.0*(noise(cnt/10.0)-0.5);
    float y = height/2 + 6/z ;
-   image(road, x, y, img.width/z, img.height/z);
+   image(road, x - road.width/(2*z), y, img.width/z, img.height/z);
+   
+   // draw things on side of road
+   if (noise(ind + cnt) > 0.6) {
+     image(fin_img, x + 3*road.width/z, height/2 - 0.5*fin_img.height/z, fin_img.width/z, fin_img.height/z);
+   }
+   if (noise(10000 + ind + cnt) > 0.6) {
+     image(fin_img, x - 3*road.width/z, height/2 - 0.5*fin_img.height/z, fin_img.width/z, fin_img.height/z);
+   }
+   
    //ind += 1;
    z /= zsc;
  }
