@@ -1,11 +1,28 @@
-
+ 
+ // TBD these numbers are too magic
+ final float z_start = 1.8;
+ final float z_step = 0.02;
+ 
+ // find the smallest z
+ float z_final; 
+ float first_road_curve;
+ float cnt = 0;
+ float cnt_step = 0;//1.0;
+ 
+int count;
 
 void setup()
 {
-  size(720,480);
+  size(1290,730);
   frameRate(5);
   
   background(0);
+  
+ for (z_final = z_start; z_final > 2*z_step; z_final -= z_step) {
+ }
+ println("z_final " + z_final);
+ 
+ first_road_curve = roadCurve(z_final + cnt);
 }
 
 PImage multImg(PImage i1, PImage i2) 
@@ -104,6 +121,8 @@ return edgeImg;
 float t = 0;
 float mtn_off = 0;
 
+///////////////////
+
 PImage noiseImage(int w, int h, float nval, boolean radial_fade)
 {
   
@@ -141,13 +160,14 @@ PImage noiseImage(int w, int h, float nval, boolean radial_fade)
  return img; 
 }
 
+////////////////////////////////////////////////////////////////////////////
 // TBD need to rethink this to generate curves into the distance- the target is always in the center of
 // the screen
-float roadCurve(float z, int i, int j) 
+float roadCurve(float z) 
 {
   //float val = (30/z * (noise(z/50.0 + (i + j)/55.0)-0.5));
-  float nval = (noise(z/500.0 + (i + j)/55.0) - 0.5);
-    float val = (width * nval);
+  float nval = (noise(z/15.0 ) - 0.5);
+  float val = 9*(width * nval);
     
    // print(z + " " + j + " " + nval  + " " + val + "\n");
   return val;
@@ -200,27 +220,39 @@ float car_off = 0.0;
 
 void keyPressed()
 {
+  final float steer_sz = 5 + 68.1 * cnt_step;
+  
   if (key == 'a') {
-    car_off += 4.1;
+    car_off += steer_sz;
     print(car_off + "\n");
   }
   if (key == 'd') {
-    car_off -= 4.1;
+    car_off -= steer_sz;
     print(car_off + "\n");
+  }
+  
+    if (key == 'w') {
+      final float MAX_SPEED = 0.75;
+    cnt_step += 0.012;
+    if (cnt_step > MAX_SPEED) { cnt_step = MAX_SPEED; }
+    print(cnt_step + "\n");
+  }
+  if (key == 's') {
+    cnt_step *= 0.9;
+    print(cnt_step + "\n");
   }
 }
 
 
-int cnt = 0;
-
+ 
 void draw() 
 {
   loadPixels();
   
   PImage road = noiseImage(16, 1, t + 100, false);
   PImage tree = treeImage();
-  PImage car = noiseImage(32,4,  t + 10, false);
-  PImage car_top = noiseImage(24,4, t +2000, false);
+  PImage car = noiseImage(16,2,  t + 10, false);
+  PImage car_top = noiseImage(12, 2, t +2000, false);
   /////////////
   background(0);
  
@@ -231,62 +263,89 @@ void draw()
  //image(fin_img, img.width*2, 0, img.width*sc, img.height*sc);
  
  ///////////
- // TBD these numbers are too magic
- float z = 70;
- final float zsc = 1.5;
- final int NUM_STEPS = 20;
+
  
- // find the smallest z
- float z_final = z;
- for (int ind = NUM_STEPS; ind > 0; ind -= 1) {
-   z_final /= zsc;
- }
- float road_curve = roadCurve(z_final, cnt, 0);
+ float road_curve = roadCurve(z_final + cnt);
  //float x_off = width/2 - road.width/(2*z_final) + road_curve;
  
+ if ((road_curve + car_off - first_road_curve) > 10) {
+   
+ }
+ 
+ //////////////////////////////////////////////////////////////////////////////////
  //////////////////////////////////////////////////////////////////////////////////
  // draw background mountains
- for (int i = 0; i < width; i++) {
-   float hgt = 20 * noise( (i + 2*mtn_off)/60.0 ) + 8 * noise ( (i + 2*mtn_off)/5.0 );
+ int MTN_SC = 4;
+ for (int i = 0; i < width/MTN_SC; i++) {
+   float hgt = 12 * noise( (i + 2*mtn_off)/60.0 ) + 8 * noise ( (i + 2*mtn_off)/5.0 );
    stroke(78);
-   line(i, height/2-hgt, i, height/2 );
+   fill(78);
+   rect(i*MTN_SC, height/2 - hgt*MTN_SC, MTN_SC, hgt*MTN_SC );
  }
- mtn_off -= road_curve/45.0;
+ mtn_off -= cnt_step*road_curve/145.0;
+ 
  
  //////////////////////////////////////////////////////////////////////////////////
- float y = 0;
- 
- for (int ind = NUM_STEPS; ind >= 0; ind -= 1) {
+ // draw road
+  for (float z = z_start; z > z_step; z -= z_step) {
    
- //for (float z = 100; z > 0.05; z /= 1.5) {
-   float x = width/2 + roadCurve(z, cnt, ind) + car_off;
+   final float pos = z + cnt;
+
+   final float x = width/2 + roadCurve(pos) + car_off - first_road_curve;
+   
    //x -= x_off; // + 50.0*(noise(cnt/10.0)-0.5);
-   y = height/2 + 4.0/z;
-   image(road, x - road.width/(2*z), y - 2*road.height/(2*z), 
-               road.width/z, 2*road.height/z);
+   final float y = height/2 + 8.0/z;
    
-   // draw things on side of road
-   if (noise(ind + cnt) > 0.6) {
-     image(tree, x + 3.5*road.width/z, y - tree.height/(2*z), 
+   float h = road.height*3;
+   image(road, x - road.width/(2*z),  y - 2*h/(2*z), 
+               road.width/z, 2*h/z);
+
+   // center line
+   int z_ind = (int) ((z-z_final)/z_step);
+   
+   if (cnt_step > z_step) { z_ind += count; }
+   else { z_ind += (float)cnt/(float)z_step; }
+   if (z_ind % 2 == 0) {
+     noStroke();
+     fill(0);
+     rect( x - 1.0/(2*z),  y - 2*h/(2*z), 
+               1.0/z, 2*h/z);
+   }
+   
+   
+   final float TSC = 0.13;
+   // draw tree things on side of road
+   if (noise( (pos)/TSC) > 0.7) {
+     image(tree, x + 3.5*road.width/z, y - tree.height/(1.5*z), 
                  tree.width/z, tree.height/z);
    }
-   if (noise(10000 + ind + cnt) > 0.6) {
-     image(tree, x - 3.5*road.width/z, y - tree.height/(2*z), 
+   if (noise(10000 + (pos)/TSC) > 0.7) {
+     image(tree, x - 3.5*road.width/z, y - tree.height/(1.5*z), 
                  tree.width/z, tree.height/z);
    }
      
-   //ind += 1;
-   z /= zsc;
  }
 
- {
-   float car_y = y - 20;
- image(car, width/2 - 8*car.width/2, car_y, 
-             car.width*8, car.height*16);
- image(car_top, width/2 - 8*car_top.width/2, car_y - car.height*16, 
-                car_top.width*8, car_top.height*16 );
+ // draw car
+ if (true) {
+   float CAR_SC = 2.0;
+   
+   float car_y = 0.8*height - 20;
+   image(car, width/2 - CAR_SC*8*car.width/2, car_y, 
+             car.width*8 *CAR_SC, car.height*16*CAR_SC);
+   image(car_top, width/2 - CAR_SC*8*car_top.width/2, car_y - CAR_SC*car.height*16, 
+                car_top.width*8 * CAR_SC, car_top.height*16 *CAR_SC);
+                
+                 noStroke();
+     fill(5);
+     rect(  width/2 + CAR_SC*(8*car.width/3 ),            car_y + car.height*16 * CAR_SC, 
+             16 * CAR_SC, car.height*16 * CAR_SC);
+     rect(  width/2 - CAR_SC*(8*car.width/3 + 16), car_y + car.height*16 * CAR_SC, 
+             16 * CAR_SC, car.height*16 * CAR_SC);
  }
   
- cnt += 1;
+ cnt += cnt_step;
+ cnt_step *= 0.99;
  t += 0.008;
+ count += 1;
 }
