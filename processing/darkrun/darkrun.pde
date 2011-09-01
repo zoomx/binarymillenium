@@ -1,4 +1,6 @@
- 
+ // binarymillenium 2011
+ // GPL 3.0
+
  // TBD these numbers are too magic
  final float z_start = 1.8;
  final float z_step = 0.02;
