@@ -90,7 +90,7 @@ class leaf
   }
 }
 
-
+/////////////////////////////////////////////////////////////////////////////
 class tree {
   
   pt base;
@@ -98,7 +98,7 @@ class tree {
   float wd;
   float ht;
   
-  leaf grass[] = new leaf[35];
+  leaf grass[] = new leaf[25];
   
   tree(pt base, float wd, float ht) 
   {
@@ -130,13 +130,22 @@ class tree {
     vertex(base.x + wd/2, base.y);    
     endShape(); 
     
+    beginShape();
+    curveVertex(base.x - wd/2, base.y - ht);
+    
+    for (int i = 0; i < 5; i++) {
+      curveVertex(base.x - wd/2 - i*random(5), base.y - ht - i*25 - i*random(5));
+    }
+    curveVertex(base.x + wd/2, base.y - ht);
+    endShape();
+    
     for (int i = 0; i < grass.length; i++) {    
       grass[i].draw();
     }
   }
 }
 
-tree trees[] = new tree[30];
+tree trees[] = new tree[5];
 
 leaf lf[] = new leaf[50];
 
@@ -163,7 +172,7 @@ void setup() {
   
   for (int i = 0; i < trees.length; i++) {
     trees[i] = new tree(new pt(random(width), height*0.8 + (float)i/trees.length*50),
-                        10 + random(20) + i, random(30 + i) + 210 + i
+                        10 + random(10) + i/3, random(30 + i) + 210 + i
                           );
   }
 
@@ -179,7 +188,7 @@ void draw() {
   for (int i = 0; i < trees.length; i++) {
     trees[i].draw();
     
-    if (i % (int)(trees.length/10) == 0) {
+    if (i % (int)(trees.length/10+1) == 0) {
        fill(90, 110, 60, 10);
        rect(0, 0, width, height);
     }
