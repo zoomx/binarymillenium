@@ -23,6 +23,7 @@ class pt {
  
 };
 
+//////////////////////////////////////////////////////////////////////////////////
 class leaf 
 {
 
@@ -99,6 +100,7 @@ class tree {
   float ht;
   
   leaf grass[] = new leaf[25];
+  leaf lf[] = new leaf[50];
   
   tree(pt base, float wd, float ht) 
   {
@@ -116,7 +118,64 @@ class tree {
        pt pt2 = new pt(pt1.x  + random(-5, 5),   base.y -  5 - random(5));
        grass[i] = new leaf( random(2000), pt1, pt2, 25 + random(5), 160 + random(10), 1 ); 
      }
+     
+     
+     for (int i = 0; i < lf.length; i++) {
+    
+    pt pt1 = new pt();
+    float rng = 70;
+    pt1.x = base.x + random(-rng, rng);
+    pt1.y = base.y - ht - 70 + random(-rng/2, rng/2);
+
+    pt pt2 = new pt();
+    float rng2 = 25;
+    pt2.x = pt1.x + random(-rng2,rng2);
+    pt2.y = pt1.y + random(-rng2,rng2);
+    lf[i] = new leaf(i*0.1, pt1, pt2, 120 + random(20), 20 + random(10), random(5));
+  }
    }
+  
+  void drawBranch(pt tg)
+  {
+    beginShape();
+    curveVertex(base.x - wd/2, base.y - ht + 1 + random(10));
+    curveVertex(base.x - wd/2, base.y - ht + 1);
+    
+    for (int i = 1; i < 5; i++) {
+      float x = base.x - wd/2 - random(5-i) + tg.x*i/5.0;
+      float y = base.y - ht  - random(5) - tg.y*i/5.0;
+      curveVertex(x, y);
+    }    
+    curveVertex(base.x + tg.x + random(5), base.y - ht - tg.y - random(5));
+    curveVertex(base.x + tg.x + random(5), base.y - ht - tg.y - random(5));
+     
+    for (int i = 5; i > 0; i--) {
+       float x = base.x + wd/2 + random(5-i) + tg.x*i/5.0;
+      float y = base.y - ht  - random(5) - tg.y*i/5.0;
+      curveVertex(x, y);
+    }
+    
+    curveVertex(base.x + wd/2, base.y - ht + 1);
+    curveVertex(base.x + wd/2, base.y - ht + 1 + random(10));
+    endShape();
+  }
+  
+  void update()
+  {
+    base.x += random(-1,1);  
+    
+    for (int i = 0; i < grass.length; i++) { 
+       grass[i].pt2.x += random(-1,1); 
+    }
+    
+     for (int i = 0; i < lf.length; i++) {
+      lf[i].update(t);
+      lf[i].pt1.x += random(-1,1);
+      lf[i].pt1.y += random(-1,1);
+      lf[i].pt2.x += random(-1,1);
+      lf[i].pt2.y += random(-1,1);
+     }
+  }
   
   void draw()
   {
@@ -130,27 +189,29 @@ class tree {
     vertex(base.x + wd/2, base.y);    
     endShape(); 
     
-    beginShape();
-    curveVertex(base.x - wd/2, base.y - ht);
-    
-    for (int i = 0; i < 5; i++) {
-      curveVertex(base.x - wd/2 - i*random(5), base.y - ht - i*25 - i*random(5));
+    int num_branch = 5;
+    for (int i = -num_branch/2; i < num_branch/2; i++) {
+      drawBranch(new pt(i*40,  80 + random(10)));
+ 
     }
-    curveVertex(base.x + wd/2, base.y - ht);
-    endShape();
     
     for (int i = 0; i < grass.length; i++) {    
       grass[i].draw();
     }
+    
+    for (int i = 0; i < lf.length; i++) {
+      lf[i].draw();
+   }
   }
 }
 
-tree trees[] = new tree[5];
+tree trees[] = new tree[4];
 
-leaf lf[] = new leaf[50];
+
 
 void setup() {
-  size(640, 480); 
+  //size(640, 480); 
+  size(1280, 720); 
   background(20,40,5); 
   stroke(34, 10, 0);
   strokeWeight(2);
@@ -158,21 +219,11 @@ void setup() {
 
   //smooth(); 
   
-  for (int i = 0; i < lf.length; i++) {
-    
-    pt pt1 = new pt();
-    pt1.x = random(width);
-    pt1.y = random(height/10);
 
-    pt pt2 = new pt();
-    pt2.x = pt1.x + random(width/10);
-    pt2.y = pt1.y + random(height/30);
-    lf[i] = new leaf(i*0.1, pt1, pt2, 120 + random(20), 20 + random(10), random(5));
-  }
   
   for (int i = 0; i < trees.length; i++) {
     trees[i] = new tree(new pt(random(width), height*0.8 + (float)i/trees.length*50),
-                        10 + random(10) + i/3, random(30 + i) + 210 + i
+                        width/80 + random(width/80) + i/3, random(height/4 + 2*i) + height/3 + i
                           );
   }
 
@@ -181,23 +232,21 @@ void setup() {
 float t = 0;
 
 void draw() { 
-  background(190, 170, 100);
+  background(140, 150, 130);
   fill(155,125,0);
-  rect(0, height*0.82, width, height);
+  rect(0, height*0.8 +random(1), width, height);
   
   for (int i = 0; i < trees.length; i++) {
+    trees[i].update();
     trees[i].draw();
     
     if (i % (int)(trees.length/10+1) == 0) {
-       fill(90, 110, 60, 10);
+       fill(90, 110, 60, 13);
        rect(0, 0, width, height);
     }
   }
   
-   for (int i = 0; i < lf.length; i++) {
-    lf[i].update(t);
-    lf[i].draw();
-   }
+  saveFrame();
 
 t += 0.01;
 
