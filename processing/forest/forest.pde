@@ -1,3 +1,9 @@
+/*
+This code is licensed under the GPL 3.0
+
+Binarymillenium September 2011
+*/
+
 class pt {
   float x;
   float y; 
@@ -99,8 +105,8 @@ class tree {
   float wd;
   float ht;
   
-  leaf grass[] = new leaf[25];
-  leaf lf[] = new leaf[50];
+  leaf grass[] = new leaf[35];
+  leaf lf[] = new leaf[80];
   
   tree(pt base, float wd, float ht) 
   {
@@ -205,7 +211,7 @@ class tree {
   }
 }
 
-tree trees[] = new tree[4];
+tree trees[] = new tree[65];
 
 
 
@@ -223,7 +229,7 @@ void setup() {
   
   for (int i = 0; i < trees.length; i++) {
     trees[i] = new tree(new pt(random(width), height*0.8 + (float)i/trees.length*50),
-                        width/80 + random(width/80) + i/3, random(height/4 + 2*i) + height/3 + i
+                        width/90 + random(width/90) + i/3, random(height/4 + 2*i) + height/5 + i
                           );
   }
 
