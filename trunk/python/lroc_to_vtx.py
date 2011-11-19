@@ -25,7 +25,12 @@ bindat = array.array('h')
 bindat.fromfile(fraw, offset)
 
 # TBD magic numbers from IMG header
-size = 1440, 720
+if (len(sys.argv) > 3):
+  size = int(sys.argv[2]), int(sys.argv[3])
+else:
+  size = 1440, 720
+
+sys.stderr.write(str(size) + '\n')
 sub_size = size #1440, 2
 im = Image.new("F", sub_size)
 pix = im.load()
@@ -61,103 +66,106 @@ while(True and count < sub_size[1]):
     sys.stderr.write(str(count) + ' row size ' + str(len(bindat)) + '\t' + str(min_elev) + '\t' + str(max_elev) + '\n')
   count = count + 1
 
-if False:
+sys.stderr.write(str(count) + ' row size ' + str(len(bindat)) + '\t' + str(min_elev) + '\t' + str(max_elev) + '\n')
+if True:
   im.show()
-  im.save("moon.tif", "TIFF")
+  im.save(filename + ".tif", "TIFF")
 
-# TBD magic numbers from IMG header
-base_elev = 1737400.0 - math.pow(2,15)
-scale = 100000.0
+if False:
 
-num_verts = sub_size[0] * sub_size[1]
+  # TBD magic numbers from IMG header
+  base_elev = 1737400.0 - math.pow(2,15)
+  scale = 100000.0
 
-num_faces = (sub_size[0]) * (sub_size[1]-1) * 2
-#num_faces = 0
+  num_verts = sub_size[0] * sub_size[1]
 
-sys.stderr.write('num_faces ' + str(num_faces) + ' num_verts ' + str(num_verts) + '\n')
+  num_faces = (sub_size[0]) * (sub_size[1]-1) * 2
+  #num_faces = 0
 
-header = """ply
-format ascii 1.0
-element vertex """
-header = header + str(num_verts)
-header = header + """
-property float x
-property float y
-property float z
-property uchar red
-property uchar green
-property uchar blue
-element face """
-header = header + str(num_faces)
-header = header + """
-property list uchar int vertex_indices
-end_header
-"""
+  sys.stderr.write('num_faces ' + str(num_faces) + ' num_verts ' + str(num_verts) + '\n')
 
-sys.stdout.write(header)
+  header = """ply
+  format ascii 1.0
+  element vertex """
+  header = header + str(num_verts)
+  header = header + """
+  property float x
+  property float y
+  property float z
+  property uchar red
+  property uchar green
+  property uchar blue
+  element face """
+  header = header + str(num_faces)
+  header = header + """
+  property list uchar int vertex_indices
+  end_header
+  """
 
-sys.stderr.write('outputting ply\n')
+  sys.stdout.write(header)
 
-for j in range(sub_size[1]):
-  for i in range(sub_size[0]):
-    elev = pix[i,j];
-    longitude = 2.0*math.pi*i/float(size[0])
-    latitude = math.pi*j/float(size[1]) - math.pi/2
-    radius = base_elev + elev/255.0 * math.pow(2,16)
-    
-    x = radius/scale * math.cos(latitude) * math.cos(longitude)
-    y = radius/scale * math.cos(latitude) * math.sin(longitude)
-    z = radius/scale * math.sin(latitude)
-    
-    es = str(int(elev))
-    col = es + ' ' + es + ' ' + es  
-    sys.stdout.write(str(x) + ' ' + str(y) + ' ' + str(z) + ' ' + col + '\n')
+  sys.stderr.write('outputting ply\n')
 
-sys.stderr.write('finished vertices\n')
+  for j in range(sub_size[1]):
+    for i in range(sub_size[0]):
+      elev = pix[i,j];
+      longitude = 2.0*math.pi*i/float(size[0])
+      latitude = math.pi*j/float(size[1]) - math.pi/2
+      radius = base_elev + elev/255.0 * math.pow(2,16)
+      
+      x = radius/scale * math.cos(latitude) * math.cos(longitude)
+      y = radius/scale * math.cos(latitude) * math.sin(longitude)
+      z = radius/scale * math.sin(latitude)
+      
+      es = str(int(elev))
+      col = es + ' ' + es + ' ' + es  
+      sys.stdout.write(str(x) + ' ' + str(y) + ' ' + str(z) + ' ' + col + '\n')
 
-
-face_count = 0
-for j in range(sub_size[1] - 1):
-  for i in range(sub_size[0] - 1):
-    base_ind = j*sub_size[0] + i  
-    # TBD need to reverse facing
-    
-    ind1 = base_ind + sub_size[0]
-    ind2 = base_ind + 1
-    ind3 = base_ind
-    ind4 = base_ind + sub_size[0] + 1
-
-    sys.stdout.write('3 ' + str(ind3) + ' ' + str(ind2) + ' ' + str(ind1) + '\n') 
-    sys.stdout.write('3 ' + str(ind2) + ' ' + str(ind4) + ' ' + str(ind1) + '\n') 
-    face_count += 2
-   
-
-# size = 5,2
-#   0---1  2  3  4   0
-#   | / |
-#   5---6  7  8  9   5
-#
-#   0 1 5        4 0 9
-#   1 6 5        0 5 9
+  sys.stderr.write('finished vertices\n')
 
 
-if (sub_size[0] == size[0]):
-  sys.stderr.write('connecting loop\n')
-
-  #sys.stdout.write('#\n')
-  i = sub_size[0] - 1
+  face_count = 0
   for j in range(sub_size[1] - 1):
-    base_ind = j * sub_size[0] + i
+    for i in range(sub_size[0] - 1):
+      base_ind = j*sub_size[0] + i  
+      # TBD need to reverse facing
+      
+      ind1 = base_ind + sub_size[0]
+      ind2 = base_ind + 1
+      ind3 = base_ind
+      ind4 = base_ind + sub_size[0] + 1
 
-    ind1 = base_ind + sub_size[0]
-    ind2 = base_ind + 1 - sub_size[0]
-    ind3 = base_ind
-    ind4 = base_ind + 1
+      sys.stdout.write('3 ' + str(ind3) + ' ' + str(ind2) + ' ' + str(ind1) + '\n') 
+      sys.stdout.write('3 ' + str(ind2) + ' ' + str(ind4) + ' ' + str(ind1) + '\n') 
+      face_count += 2
+     
 
-    sys.stdout.write('3 ' + str(ind3) + ' ' + str(ind2) + ' ' + str(ind1) + '\n') 
-    sys.stdout.write('3 ' + str(ind2) + ' ' + str(ind4) + ' ' + str(ind1) + '\n') 
-    
-    face_count += 2
-   
+  # size = 5,2
+  #   0---1  2  3  4   0
+  #   | / |
+  #   5---6  7  8  9   5
+  #
+  #   0 1 5        4 0 9
+  #   1 6 5        0 5 9
 
-sys.stderr.write('done ' + str(count) + ' ' + str(face_count) + '\n')
+
+  if (sub_size[0] == size[0]):
+    sys.stderr.write('connecting loop\n')
+
+    #sys.stdout.write('#\n')
+    i = sub_size[0] - 1
+    for j in range(sub_size[1] - 1):
+      base_ind = j * sub_size[0] + i
+
+      ind1 = base_ind + sub_size[0]
+      ind2 = base_ind + 1 - sub_size[0]
+      ind3 = base_ind
+      ind4 = base_ind + 1
+
+      sys.stdout.write('3 ' + str(ind3) + ' ' + str(ind2) + ' ' + str(ind1) + '\n') 
+      sys.stdout.write('3 ' + str(ind2) + ' ' + str(ind4) + ' ' + str(ind1) + '\n') 
+      
+      face_count += 2
+     
+
+  sys.stderr.write('done ' + str(count) + ' ' + str(face_count) + '\n')
