@@ -299,11 +299,21 @@ int main( int argc, char* argv[] )
         }
 
         cvtColor(new_data.bgr, new_data.depth, CV_BGR2GRAY);
-        
+       
+        bool bright_is_distant = false;
+        if (bright_is_distant)
+          new_data.depth = 255 - new_data.depth;
+
         new_data.valid = new_data.depth.clone();
-        threshold(new_data.valid, new_data.valid, 50, 255, cv::THRESH_BINARY_INV);
         
-        new_data.depth.convertTo( new_data.depth, CV_16UC1, 255 );
+        if (bright_is_distant)
+          threshold(new_data.valid, new_data.valid, 200, 255, cv::THRESH_BINARY_INV);
+        else
+          threshold(new_data.valid, new_data.valid, 50, 255, cv::THRESH_BINARY_INV);
+
+        imshow("temp", new_data.valid);
+        
+        new_data.depth.convertTo( new_data.depth, CV_16UC1, 32); // 255 );
         cap_all = true;
       }
 
@@ -321,9 +331,11 @@ int main( int argc, char* argv[] )
           new_data.depth = new_data.depth + valid16;//.clone();
 
           const float scaleFactor = 0.05f;
-          Mat show; 
+          Mat show;
+
           new_data.depth.convertTo( show, CV_8UC1, scaleFactor );
           imshow( "depth map", show );
+
         }
 
         // save only 30 seconds in buffer
