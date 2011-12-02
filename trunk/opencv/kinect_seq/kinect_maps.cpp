@@ -203,12 +203,11 @@ int main( int argc, char* argv[] )
     cout << "Can not open a capture object." << endl;
     using_kinect = false;
 
-    VideoCapture capture( 0 );
     
-    if (!capture.isOpened()) {
+    //if (!capture.isOpened()) {
     
      capture.open(0);
-    }
+    //}
     if (!capture.isOpened()) {
       cout << "can't open webcam" << endl;
       return -1;
@@ -237,11 +236,12 @@ int main( int argc, char* argv[] )
 
   for(;;)
   {
+
     if( !capture.grab() )
     {
       cout << "Can not grab images." << endl;
       //continue;
-      //return -1;
+      return -1;
     }
     else
     {
@@ -288,7 +288,15 @@ int main( int argc, char* argv[] )
         imshow( "gray image", grayImage );
       
       } else {
+        ////// Non kinect webcam ////////////////////////////////
+        
+        //capture >> new_data.bgr;
+
         capture.retrieve(new_data.bgr); 
+        if (new_data.bgr.empty()) {
+          cout << "bad capture" << endl;
+          continue;
+        }
 
         cvtColor(new_data.bgr, new_data.depth, CV_BGR2GRAY);
         
