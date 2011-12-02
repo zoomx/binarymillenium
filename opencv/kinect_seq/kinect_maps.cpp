@@ -176,6 +176,9 @@ struct depthCam {
 /*
  * To work with Kinect the user must install OpenNI library and PrimeSensorModule for OpenNI and
  * configure OpenCV with WITH_OPENNI flag is ON (using CMake).
+
+TBD have a mode that takes a webcam, uses brightness as depth, and thresholds it for the valid map
+
  */
 int main( int argc, char* argv[] )
 {
@@ -194,12 +197,26 @@ int main( int argc, char* argv[] )
 
   int count = 0;
 
+  bool using_kinect = true;
   if( !capture.isOpened() )
   {
     cout << "Can not open a capture object." << endl;
-    return -1;
+    using_kinect = false;
+
+    VideoCapture capture( 0 );
+    
+    if (!capture.isOpened()) {
+    
+     capture.open(0);
+    }
+    if (!capture.isOpened()) {
+      cout << "can't open webcam" << endl;
+      return -1;
+    }
+    cout << "opened standard webcam instead" << endl;
   }
 
+  if (using_kinect) {
   if( isSetSXGA )
     capture.set( CV_CAP_OPENNI_IMAGE_GENERATOR_OUTPUT_MODE, CV_CAP_OPENNI_SXGA_15HZ );
   else
@@ -216,13 +233,15 @@ int main( int argc, char* argv[] )
     "FRAME_WIDTH    " << capture.get( CV_CAP_OPENNI_IMAGE_GENERATOR+CV_CAP_PROP_FRAME_WIDTH ) << endl <<
     "FRAME_HEIGHT   " << capture.get( CV_CAP_OPENNI_IMAGE_GENERATOR+CV_CAP_PROP_FRAME_HEIGHT ) << endl <<
     "FPS    " << capture.get( CV_CAP_OPENNI_IMAGE_GENERATOR+CV_CAP_PROP_FPS ) << endl;
+  }
 
   for(;;)
   {
     if( !capture.grab() )
     {
       cout << "Can not grab images." << endl;
-      return -1;
+      //continue;
+      //return -1;
     }
     else
     {
@@ -232,6 +251,7 @@ int main( int argc, char* argv[] )
       Mat grayImage;
       bool cap_all = true;
 
+      if (using_kinect) {
       if( capture.retrieve( new_data.depth, CV_CAP_OPENNI_DEPTH_MAP ) )
       {
       } else cap_all = false;
@@ -245,9 +265,6 @@ int main( int argc, char* argv[] )
           Mat validColorDisparityMap;
           colorDisparityMap.copyTo( validColorDisparityMap, disparityMap != 0 );
           imshow( "colorized disparity map", validColorDisparityMap );
-
-
-
         }
         else
         {
@@ -269,7 +286,18 @@ int main( int argc, char* argv[] )
 
       if( retrievedImageFlags[4] && capture.retrieve( grayImage, CV_CAP_OPENNI_GRAY_IMAGE ) )
         imshow( "gray image", grayImage );
+      
+      } else {
+        capture.retrieve(new_data.bgr); 
 
+        cvtColor(new_data.bgr, new_data.depth, CV_BGR2GRAY);
+        
+        new_data.valid = new_data.depth.clone();
+        threshold(new_data.valid, new_data.valid, 50, 255, cv::THRESH_BINARY_INV);
+        
+        new_data.depth.convertTo( new_data.depth, CV_16UC1, 255 );
+        cap_all = true;
+      }
 
       if (cap_all) {
         count++;
