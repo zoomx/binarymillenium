@@ -16,8 +16,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ###############################################################################
 set(CMAKE_FIND_LIBRARY_SUFFICES ".a;.so")
 find_library(OPEN_CV2 opencv_core opencv_imgproc opencv_highgui opencv_calib3d $ENV{HOME}/other/install/lib )
-#find_library(OPEN_CV2 opencv_core opencv_imgproc opencv_highgui opencv_calib3d $ENV{HG_CLONE_DIR}/external/lib )
-#find_library(OPEN_CV2 opencv_core opencv_imgproc opencv_highgui opencv_calib3d $ENV{HOME}/newton/external/lib )
 
 if (NOT OPEN_CV2)
   MESSAGE("OpenCV not found")
