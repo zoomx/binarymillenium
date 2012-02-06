@@ -1,6 +1,7 @@
 // GPL 3.0
 // binarymillenium 2011-2012
-	
+// see https://sites.google.com/site/wsacul/home/geovis
+
 double x_min =  1e10;
 double x_max = -1e10;
 double y_min =  1e10;
