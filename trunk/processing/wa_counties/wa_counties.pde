@@ -1,3 +1,5 @@
+// GPL 3.0
+// binarymillenium 2011-2012
 	
 double x_min =  1e10;
 double x_max = -1e10;
@@ -43,7 +45,7 @@ int findCountyInd( int cd) {
 double sc;
 
 void setup() {
-  size(800,600);
+  size(1020,680);
   
   counties = new ArrayList();
   
@@ -91,12 +93,13 @@ void setup() {
 
 void draw() {
 
-  stroke(0);
+  noStroke();
+  //stroke(0);
  
    float sc_sc = width;
   
   for (int i = 0; i < counties.size(); i++) {
-    fill (255*i/counties.size());
+    fill ( random(255), random(255), 255*i/counties.size());
     
     beginShape();
 
