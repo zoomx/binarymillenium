@@ -1,7 +1,7 @@
 // Lucas Walter 2012
 // GNU GPL 3.0
-float world_y = 500; //1080;
-float world_x = 400; //1920;
+float world_y = 1280; //500; //1080;
+float world_x = 720; // 400; //1920;
 
 int NUM_CARS = (int) (world_x*0.05);
 float ymax = 1.0;
@@ -14,6 +14,17 @@ float yaccstep = 0.005;
 float ydec = 0.12; //0.88; 
 int pix_thresh = 10;
 
+void drawRotatedRect(float x, float y, float wd, float ht, float angle)
+{
+      float ca = cos(angle);
+    float sa = sin(angle);
+
+    quad(x + wd/2*ca + ht/2*sa, y -wd/2*sa + ht/2*ca,
+         x + wd/2*ca - ht/2*sa, y -wd/2*sa - ht/2*ca,
+         x - wd/2*ca - ht/2*sa, y +wd/2*sa - ht/2*ca,
+         x - wd/2*ca + ht/2*sa, y +wd/2*sa + ht/2*ca);
+    
+}
 
 // x and y are relative to the angle
 
@@ -47,8 +58,9 @@ float testPixel(float cx, float cy, float rx, float ry, float angle)
   }
   
   noStroke();
-  fill(0.0, 255.0- 30*val*255.0, 30.0*val2*255);
-  rect(xt,yt,1,1);
+  fill(20 + 5.0*val2*255.0, 255.0- 20*val2*255.0, 40.0*val2*255,10);
+  int w = 2;
+  rect(xt-w,yt-w,2*w,2*w);
   
   return val2;
 }
@@ -95,7 +107,7 @@ class Car {
     fr = (testPixel(x,y, - wd*2.0, ht*2.2, angle)) ;
     d_xvel += fr * xaccstep;  
       
-    fr = (testPixel(x,y, - wd*1.5, ht*2.8, angle)) ;
+    fr = (testPixel(x,y, - wd*1.2, ht*2.8, angle)) ;
     yvel *= 1.0 - fr * ydec * 0.4;
     d_xvel += fr * xaccstep;  
     
@@ -115,7 +127,7 @@ class Car {
     fr = (testPixel(x,y, + wd*2.0, ht*2.2, angle)) ;
     d_xvel -= fr * xaccstep;  
     
-    fr = (testPixel(x,y, wd*1.5, ht*2.9, angle));
+    fr = (testPixel(x,y, wd*1.2, ht*2.9, angle));
     yvel *= 1.0 - fr*ydec * 0.4; 
     d_xvel -= fr * xaccstep;
   
@@ -184,21 +196,16 @@ class Car {
     //xvel *= yvel/ymax;
   }
   
-  void draw(float offx, float offy) {
-     fill(60, 175, 10,20);
+  void draw() {
+     fill(255, 175, 10,150);
     noStroke();
-    //rect(offx+x-wd,offy+y-ht, wd*2,ht*2); 
-    fill(225, 255,225,125);
+    
+    drawRotatedRect(x,y, wd*2.0,ht*1.4, angle);
+    
+    fill(225, 255,225,255);
     stroke(128,15);
     
-    float ca = cos(angle);
-    float sa = sin(angle);
-    //float dx =  wd/2*ca + ht/2*sa;
-    //float dy = -wd/2*sa + ht/2*ca;
-    quad(x + wd/2*ca + ht/2*sa, y -wd/2*sa + ht/2*ca,
-         x + wd/2*ca - ht/2*sa, y -wd/2*sa - ht/2*ca,
-         x - wd/2*ca - ht/2*sa, y +wd/2*sa - ht/2*ca,
-         x - wd/2*ca + ht/2*sa, y +wd/2*sa + ht/2*ca);
+    drawRotatedRect(x,y, wd,ht, angle);
     //rect(offx+x-wd/2,offy+y-ht/2, wd,ht); 
     
   }
@@ -230,7 +237,7 @@ void update() {
 }
 
 void draw() {
-  fill(0, 0, 10, 15);
+  fill(0, 0, 10, 19);
   rect(0,0,width,height);
   loadPixels();
   
@@ -240,7 +247,7 @@ void draw() {
     // An ArrayList doesn't know what it is storing so we have to cast the object coming out
     Car car = (Car) cars.get(i);
     
-    car.draw(0,0);
+    car.draw();
     }
   
   //saveFrame("highwayr#####.png"); 
