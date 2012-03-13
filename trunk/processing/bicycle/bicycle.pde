@@ -1,6 +1,6 @@
 // Lucas Walter 2012
 // GNU GPL 3.0
-int NUM_CARS=1;
+int NUM_CARS=5;
 float world_y = 500; //500; //1080;
 float world_x = 500; // 400; //1920;
 
@@ -48,6 +48,7 @@ class Car {
   //float old_y;
   
   float steer_noise_offset;
+  float forward_noise_offset;
   
   Car(float x, float y) {
     this.x = x;
@@ -60,6 +61,7 @@ class Car {
     steering_angle = 0;
     
     steer_noise_offset = 0;
+    forward_noise_offset = 0;
   }
   
   void move(float steering_delta, float forward_acc) 
@@ -68,8 +70,14 @@ class Car {
     
     forward_vel += forward_acc;
     
-    if (forward_vel > ht/13.0) {forward_vel = ht/13.0;}
-    if (forward_vel < 0) { forward_vel = 0; }
+    if (forward_vel > ht/13.0) {
+      forward_noise_offset = random(10000);
+      forward_vel = ht/13.0;
+    }
+    if (forward_vel < -ht/60.0) { 
+      forward_vel = -ht/60.0;
+      forward_noise_offset = random(10000);
+    }
     
     if (steering_angle > PI/4) {
       steering_angle = PI/4;
@@ -133,13 +141,13 @@ class Car {
     
     fill(255, 175, 10,150);
 //    noStroke();
-    stroke(0,15);
+    stroke(0,20);
     
     drawRotatedRect(x,y, ht,wd, orientation,0,0,0);
 
     // draw tires    
     fill(225, 255,225,255);
-    stroke(0,25);
+    stroke(0,35);
     
     // rear tires
     drawRotatedRect(x,y, ht/4, wd/4, orientation , -ht/2, -wd/2, 0);    
@@ -181,10 +189,12 @@ void update() {
     for (int i = cars.size()-1; i >= 0; i--) {
       Car car = (Car) cars.get(i);
       
-      float steer_acc = noise(t*25.0 + i * 10.0 + car.steer_noise_offset) -0.3;
-      float forward_acc = noise(t + i * 100.0 +10000) - 0.5;
+      float steer_acc = noise(t*55.0 + i * 10.0 + car.steer_noise_offset) -0.5;
+      float forward_acc = noise(t + i * 100.0 +10000 + car.forward_noise_offset) - 0.5;
       //println(i + " " + steer_acc + " " + forward_acc);
-      steer_acc /= 2.0;
+      steer_acc += random(-0.1,0.1);
+      forward_acc += random(-0.1,0.1);
+      steer_acc /= 3.0;
       forward_acc /= 5.0;
       car.move(steer_acc, forward_acc);
     }
