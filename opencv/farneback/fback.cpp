@@ -3,6 +3,7 @@
 #include "opencv2/highgui/highgui.hpp"
 
 #include <iostream>
+#include <fstream>
 
 using namespace cv;
 using namespace std;
@@ -17,7 +18,7 @@ void help()
 			"This reads from video camera 0\n" << endl;
 }
 void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step,
-                    double, const Scalar& color)
+                    double, const Scalar& color, std::string flowname )
 {
   cv::Mat log_flow, log_flow_neg;
   //log_flow = cv::abs( flow/3.0 );
@@ -28,10 +29,26 @@ void drawOptFlowMap(const Mat& flow, Mat& cflowmap, int step,
   
   float max_flow = 0.0;
 
+  const std::string m_magicNumber = "flow_sV";
+  const char m_version = 1;
+  const int width = cflowmap.cols;
+  const int height = cflowmap.rows;
+
+  // make an sVflow file like  FlowRW_sV::save()
+  std::ofstream file(flowname.c_str(), std::ios_base::out|std::ios_base::binary);
+  file.write((char*) m_magicNumber.c_str(), m_magicNumber.length()*sizeof(char));
+  file.write((char*) &m_version, sizeof(char));
+  file.write((char*) &width, sizeof(int));
+  file.write((char*) &height, sizeof(int));
+
     for(int y = 0; y < cflowmap.rows; y += step)
         for(int x = 0; x < cflowmap.cols; x += step)
         {
             const Point2f& fxyo = flow.at<Point2f>(y, x);
+            
+            file.write((char*) &fxyo.x, sizeof(float));
+            file.write((char*) &fxyo.y, sizeof(float));
+
             Point2f& fxy = log_flow.at<Point2f>(y, x);
             const Point2f& fxyn = log_flow_neg.at<Point2f>(y, x);
 
@@ -64,6 +81,7 @@ int main(int argc, char* argv[])
     prevgray = imread(argv[1], 0);
     gray = imread(argv[2],0);
 
+    std::string flowname = argv[3];
     //cvtColor(l1, prevgray, CV_BGR2GRAY);
     //cvtColor(l2, gray, CV_BGR2GRAY);
 
@@ -80,8 +98,8 @@ int main(int argc, char* argv[])
             const int flags = 0;
             // TBD need sliders for all these parameters
             calcOpticalFlowFarneback(
-                prevgray, 
-                gray, 
+                prevgray, gray, 
+                //gray, prevgray,  // TBD this seems to match V3D output better but a sign flip could also do that
                 flow, 
                 pyrScale, //0.5, 
                 levels, //3, 
@@ -93,9 +111,9 @@ int main(int argc, char* argv[])
                 );
             cvtColor(prevgray, cflow, CV_GRAY2BGR);
             //drawOptFlowMap(flow, cflow, 16, 1.5, CV_RGB(0, 255, 0));
-            drawOptFlowMap(flow, cflow, 1, 1.5, CV_RGB(0, 255, 0));
+            drawOptFlowMap(flow, cflow, 1, 1.5, CV_RGB(0, 255, 0), flowname);
             //imshow("flow", cflow);
-            imwrite(argv[3],cflow);
+            imwrite(argv[4],cflow);
         }
         
         //waitKey(0);
