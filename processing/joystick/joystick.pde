@@ -39,7 +39,7 @@ void setup(){
   
   joypad.printSticks();
   
-  col1 = color(255,0,0);
+  col1 = color(255,128,128);
   col2 = color(0,0,255);
   
   background(0);
@@ -61,11 +61,9 @@ void handleButton1Release(){
 
 void handleMovement() //final float i_x,final float i_y)
 {
- println("test");
+// println("test");
  // transY += i_y;
 }
-
-
 
 void draw(){
   fill(0,2);
@@ -92,6 +90,18 @@ void draw(){
   }
   
   {
+    float r1 = red(col1);
+    r1 = 128 + stick2.getY() * 128;
+    if (r1 > 255) { r1 = 255; }
+    //r1 %= 255;
+    
+    float g1 = green(col1);
+    g1 = 128 + stick2.getX() * 128;
+    //g1 %= 255;
+    
+    col1 = color(r1, g1, blue(col1));
+  }
+  if (false) {
 
   float x1 = width/2  + fr*stick2.getY()*width/2 -wd/2;
   float y1 = height/2 + fr*stick2.getX()*height/2-wd/2;
