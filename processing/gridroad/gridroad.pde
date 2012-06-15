@@ -30,23 +30,27 @@ void setup()
 float x = BWD*NUM/2;
 float y;
 float z = BWD*3*NUM/4;
-float rot;
 
+float y_off;
+
+float yvel;
+float xvel, zvel;
+float rot;
 
 void keyPressed()
 {
-  float sc = BWD/4;
+  float sc = BWD/8;
   if (key == 'w') {
-    z -= sc*1;
+    zvel -= sc*1;
   }
   if (key == 's') {
-    z += sc*1;
+    zvel += sc*1;
   }  
   if (key == 'a') {
-    x -= sc*1;
+    xvel -= sc*1;
   }
   if (key == 'd') {
-    x += sc*1;
+    xvel += sc*1;
   }  
   if (key == 'q') {
     yvel += sc*1;
@@ -64,8 +68,7 @@ void keyPressed()
   }
 }
 
-float y_off;
-float yvel;
+
 
 void draw()
 {
@@ -88,8 +91,9 @@ void draw()
   }
   //println(x + ", x=" + j_loc + ", " + z + ", z=" + i_loc + ", y " + y + "," +  y_off);
 
-  rotateY(rot);
+  rotateY(-rot);
   
+  yvel *= 0.95;
   yvel -= 1.4;
   y += yvel;
   
@@ -97,8 +101,20 @@ void draw()
     y = y_off; 
     yvel = 0; 
   }
+  
+  xvel *= 0.6;
+  zvel *= 0.6; 
+  
+  x += xvel * cos(rot) + zvel*sin(rot);
+  z += -xvel * sin(rot) + zvel*cos(rot);
+  
+  translate(-x,
+            BWD + y, 
+             -z);
 
-  translate(-x, BWD + y , -z);
+  //translate(-x*cos(rot) -z*sin(rot),
+  //          BWD + y, 
+  //           x*sin(rot) -z*cos(rot));
   
   
   //stroke(50);
