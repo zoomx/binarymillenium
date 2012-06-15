@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
         {
             const float pyrScale = 0.5;
             const float levels = 3;
-            const float winsize = 15;
+            const float winsize = 35;
             const float iterations = 3;
             const float polyN = 5;
             const float polySigma = 1.2;
