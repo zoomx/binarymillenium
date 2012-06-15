@@ -30,11 +30,12 @@ void setup()
 float x = BWD*NUM/2;
 float y;
 float z = BWD*3*NUM/4;
+float rot;
 
 
 void keyPressed()
 {
-  float sc = BWD;
+  float sc = BWD/4;
   if (key == 'w') {
     z -= sc*1;
   }
@@ -48,18 +49,30 @@ void keyPressed()
     x += sc*1;
   }  
   if (key == 'q') {
-    y += sc*1;
+    yvel += sc*1;
   }
   if (key == 'z') {
-    y -= sc*1;
+    yvel -= sc*1;
   }  
+  
+  if (key== 'j') {
+     rot += 0.1; 
+  }
+  
+  if (key == 'l') {
+     rot -= 0.1; 
+  }
 }
 
 float y_off;
+float yvel;
+
 void draw()
 {
-  background(0);
+  background(10,90,200);
   
+  ambientLight(50, 50, 200);
+
   directionalLight(255,255,220,0.2,1.0,-0.3);
   
   
@@ -69,12 +82,24 @@ void draw()
   int i_loc = (int)((z+BWD/2.0)/BWD );
   int j_loc = (int)((x+BWD/2.0)/BWD );
   
+  y_off = 0;
   if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
    y_off = elev[i_loc][j_loc];
   }
-  println(x + ", x=" + j_loc + ", " + z + ", z=" + i_loc + ", y " + y + "," +  y_off);
+  //println(x + ", x=" + j_loc + ", " + z + ", z=" + i_loc + ", y " + y + "," +  y_off);
+
+  rotateY(rot);
   
-  translate(-x, BWD + y + y_off, -z);
+  yvel -= 1.4;
+  y += yvel;
+  
+  if (y < y_off) { 
+    y = y_off; 
+    yvel = 0; 
+  }
+
+  translate(-x, BWD + y , -z);
+  
   
   //stroke(50);
   
