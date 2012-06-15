@@ -113,6 +113,16 @@ void draw()
   int j_loc = (int)((x+BWD/2.0)/BWD );
   
   y_off = 0;
+  
+  i_loc %= NUM;
+  j_loc %= NUM;
+  
+  if (j_loc < 0) j_loc+= NUM;
+  if (i_loc < 0) i_loc+= NUM;
+  
+  println(i_loc + " " + j_loc);
+
+  
   if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
    y_off = elev[i_loc][j_loc];
   }
@@ -154,17 +164,27 @@ void draw()
 
   
   noStroke();
-  for (int i = 0; i < NUM; i++) {
-    pushMatrix();
-    for (int j = 0; j < NUM; j++) {
+  for (int i = i_loc- NUM/2; i < i_loc + NUM/2; i++) {
+    //pushMatrix();
+    for (int j = j_loc - NUM/2; j < j_loc + NUM/2; j++) {
       pushMatrix();
-      translate(0, -elev[i][j], 0);
+      
+      int j2 = j;
+      int i2 = i;
+      
+      if (j2 < 0) j2+= NUM;
+      if (i2 < 0) i2+= NUM;
+      
+      j2 = j2 % NUM;
+      i2 = i2 % NUM;
+      //if ((j2 < 0) || (i2 < 0)) {println(j2 + " " + i2);}
+      translate(j*BWD, -elev[i2][j2], i*BWD);
       box(BWD);
       popMatrix();
-      translate(BWD,0,0);
+      //translate(BWD,0,0);
     }
-    popMatrix();
-    translate(0,0,BWD);
+    //popMatrix();
+    //translate(0,0,BWD);
     //translate(-10*20, 0, 10);
     
   }
