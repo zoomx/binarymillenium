@@ -22,7 +22,10 @@ void setup()
   for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
       //elev[i][j] = -0.2*(i*j);
-      elev[i][j] = 10*BWD*(noise(i*nsc1,j*nsc1)-0.5);
+      float hills = (noise(100+i*nsc1,10+j*nsc1)-0.5);
+      if (hills < 0.0) hills = 0;
+      hills *= 10*BWD;
+      elev[i][j] = 1*BWD*(noise(i*nsc1,j*nsc1)-0.5) + hills - 5*BWD;
     }
   }
 }
@@ -35,12 +38,16 @@ float y_off;
 
 float yvel;
 float xvel, zvel;
-float rot, rotx;
+float rot;
+float rotx = -PI/8;
+boolean ground_contact = false;
 boolean pause= false;
 
 void keyPressed()
 {
   float sc = BWD/8;
+  
+  if (ground_contact) {
   if (key == 'w') {
     zvel -= sc*1;
   }
@@ -59,6 +66,7 @@ void keyPressed()
   if (key == 'z') {
     yvel -= sc*1;
   }  
+  }
   
   if (key== 'j') {
      rot += 0.1; 
@@ -85,7 +93,38 @@ void keyPressed()
   }
 }
 
-
+void drawCar(float SZ)
+{
+  pushMatrix();
+  //translate(0,BWD*0.5, 0 );
+  translate(0,-SZ/8, 0 );
+  
+  fill(200);
+  pushMatrix();
+  box(SZ/2.5, SZ/8, SZ/2);
+  translate(0,-SZ/8, 0 );
+  box(SZ/2.5, SZ/8, SZ/5);
+  popMatrix();
+ 
+ // draw four wheels
+  fill(10);
+  translate(0,SZ/10, SZ*0.23 );
+  
+  // back wheels
+  translate(-SZ/5,0 , 0 );
+  sphere(SZ/16);
+  translate(SZ/2.5,0 , 0 );
+  sphere(SZ/16);
+  
+  // forward wheel
+  fill(50);
+  translate(0,0 , -SZ*0.46);
+  sphere(SZ/16);
+  fill(50);
+  translate(-SZ/2.5,0 , 0 );
+  sphere(SZ/16);
+  popMatrix();
+}
 
 void draw()
 {
@@ -95,19 +134,17 @@ void draw()
 
   directionalLight(255,255,220,0.2,1.0,-0.3);
   
-  
   // TBD where does BWD*13 come from?
   translate(width/2, height/2, BWD*13 );
   
+  // how far behind the car the camera should be
+  float car_sz = BWD/8;
+  translate(0, BWD/4, BWD/4 );
   
-  translate(0,0, -BWD );
-  fill(200);
-  pushMatrix();
-  translate(0,BWD/2, 0 );
-  box(BWD/2, BWD/4, BWD/2);
-  translate(0,-BWD/4, 0 );
-  sphere(BWD/4);
-  popMatrix();
+  rotateX(rotx);
+    
+  drawCar(car_sz);
+
   
   int i_loc = (int)((z+BWD/2.0)/BWD );
   int j_loc = (int)((x+BWD/2.0)/BWD );
@@ -128,7 +165,7 @@ void draw()
   }
   //println(x + ", x=" + j_loc + ", " + z + ", z=" + i_loc + ", y " + y + "," +  y_off);
 
-  rotateX(rotx);
+
   rotateY(-rot);
   
   
@@ -138,8 +175,11 @@ void draw()
   y += yvel;
   
   if (y < y_off) { 
+    ground_contact = true;
     y = y_off; 
     yvel = 0; 
+  } else {
+    ground_contact = false; 
   }
   
   xvel *= 0.6;
@@ -150,7 +190,7 @@ void draw()
   }
   
   translate(-x,
-            BWD + y, 
+            BWD/2 + y, 
              -z);
 
   //translate(-x*cos(rot) -z*sin(rot),
