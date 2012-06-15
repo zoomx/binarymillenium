@@ -6,49 +6,52 @@
 
 
 float BWD = 50.0;
-int NUM = 50;
+// much above 120 is too intensive for my i5 laptop
+int NUM = 80;
 
 float[][] elev;//[NUM][NUM];
 
 void setup()
 {
-  size(800, 600, P3D);
+  size(800, 800, P3D);
   frameRate(10);
   
   elev = new float[NUM][NUM];
   
+  float nsc1 = 0.05;
   for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
-      elev[i][j] = -0.5*(i*j);//(noise(i*0.1,j*0.1)-0.5);
+      //elev[i][j] = -0.2*(i*j);
+      elev[i][j] = 10*BWD*(noise(i*nsc1,j*nsc1)-0.5);
     }
   }
 }
 
-float x;
+float x = BWD*NUM/2;
 float y;
-float z;
+float z = BWD*3*NUM/4;
 
 
 void keyPressed()
 {
-  float sc = 10;
+  float sc = BWD;
   if (key == 'w') {
-    z -= sc*1.21;
+    z -= sc*1;
   }
   if (key == 's') {
-    z += sc*3;
+    z += sc*1;
   }  
   if (key == 'a') {
-    x -= sc*3.11;
+    x -= sc*1;
   }
   if (key == 'd') {
-    x += sc*3;
+    x += sc*1;
   }  
   if (key == 'q') {
-    y -= sc*3.11;
+    y += sc*1;
   }
   if (key == 'z') {
-    y += sc*3;
+    y -= sc*1;
   }  
 }
 
@@ -59,17 +62,19 @@ void draw()
   
   directionalLight(255,255,220,0.2,1.0,-0.3);
   
-  translate(width/2- NUM*BWD/2, height/2, width/2 - NUM*BWD/2);
   
-  int i_loc = (int)((z+BWD/2.0)/BWD + NUM/2);
-  int j_loc = (int)((x+BWD/2.0)/BWD + NUM/2);
+  // TBD where does BWD*13 come from?
+  translate(width/2, height/2, BWD*13 );
   
-  if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc <= NUM)) {
+  int i_loc = (int)((z+BWD/2.0)/BWD );
+  int j_loc = (int)((x+BWD/2.0)/BWD );
+  
+  if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
    y_off = elev[i_loc][j_loc];
   }
-  println(x + ", " + j_loc + ", " + z + ", " + i_loc + ", y " + y + "," +  y_off);
+  println(x + ", x=" + j_loc + ", " + z + ", z=" + i_loc + ", y " + y + "," +  y_off);
   
-  translate(-x, -y + y_off, -z);
+  translate(-x, BWD + y + y_off, -z);
   
   //stroke(50);
   

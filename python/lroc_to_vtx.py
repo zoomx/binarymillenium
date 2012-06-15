@@ -30,6 +30,16 @@ if (len(sys.argv) > 3):
 else:
   size = 1440, 720
 
+if (len(sys.argv) > 4):
+  do_ply = bool(sys.argv[4])
+else:
+  do_ply = False
+if (len(sys.argv) > 5):
+  do_im = bool(sys.argv[5])
+else:
+  do_im = True
+
+
 sys.stderr.write(str(size) + '\n')
 sub_size = size #1440, 2
 im = Image.new("F", sub_size)
@@ -67,11 +77,12 @@ while(True and count < sub_size[1]):
   count = count + 1
 
 sys.stderr.write(str(count) + ' row size ' + str(len(bindat)) + '\t' + str(min_elev) + '\t' + str(max_elev) + '\n')
-if True:
-  im.show()
-  im.save(filename + ".tif", "TIFF")
 
-if False:
+if do_im:
+  im.save(filename + ".tif", "TIFF")
+  im.show()
+
+if do_ply:
 
   # TBD magic numbers from IMG header
   base_elev = 1737400.0 - math.pow(2,15)
