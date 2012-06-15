@@ -35,7 +35,8 @@ float y_off;
 
 float yvel;
 float xvel, zvel;
-float rot;
+float rot, rotx;
+boolean pause= false;
 
 void keyPressed()
 {
@@ -47,10 +48,10 @@ void keyPressed()
     zvel += sc*1;
   }  
   if (key == 'a') {
-    xvel -= sc*1;
+    xvel -= sc*0.5;
   }
   if (key == 'd') {
-    xvel += sc*1;
+    xvel += sc*0.5;
   }  
   if (key == 'q') {
     yvel += sc*1;
@@ -65,6 +66,22 @@ void keyPressed()
   
   if (key == 'l') {
      rot -= 0.1; 
+  }
+  
+  if (key == 'p') {
+     pause = !pause; 
+  }
+  
+  if (key == 'i') {
+     rotx += 0.1; 
+     
+     if (rotx > PI/2) { rotx = PI/2; }
+  }
+  
+  if (key == 'k'){
+     rotx -= 0.1; 
+     
+     if (rotx < -PI/2) { rotx = -PI/2; }
   }
 }
 
@@ -82,6 +99,16 @@ void draw()
   // TBD where does BWD*13 come from?
   translate(width/2, height/2, BWD*13 );
   
+  
+  translate(0,0, -BWD );
+  fill(200);
+  pushMatrix();
+  translate(0,BWD/2, 0 );
+  box(BWD/2, BWD/4, BWD/2);
+  translate(0,-BWD/4, 0 );
+  sphere(BWD/4);
+  popMatrix();
+  
   int i_loc = (int)((z+BWD/2.0)/BWD );
   int j_loc = (int)((x+BWD/2.0)/BWD );
   
@@ -91,8 +118,11 @@ void draw()
   }
   //println(x + ", x=" + j_loc + ", " + z + ", z=" + i_loc + ", y " + y + "," +  y_off);
 
+  rotateX(rotx);
   rotateY(-rot);
   
+  
+  if (!pause) {
   yvel *= 0.95;
   yvel -= 1.4;
   y += yvel;
@@ -107,6 +137,7 @@ void draw()
   
   x += xvel * cos(rot) + zvel*sin(rot);
   z += -xvel * sin(rot) + zvel*cos(rot);
+  }
   
   translate(-x,
             BWD + y, 
