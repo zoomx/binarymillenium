@@ -3,18 +3,18 @@
 
 */
 
-import processing.opengl.*;
+//import processing.opengl.*;
 
 float BWD = 100.0;
 // much above 120 is too intensive for my i5 laptop
-int NUM = 80;
+int NUM = 1500;
 
 float[][] elev;//[NUM][NUM];
 
 void setup()
 {
   //size(800, 800, OPENGL);
-  size(400, 400, P3D);
+  size(600, 400, P3D);
   frameRate(10);
   
   elev = new float[NUM][NUM];
@@ -136,7 +136,7 @@ void draw()
   directionalLight(255,255,220,0.2,1.0,-0.3);
   
   // TBD where does BWD*13 come from?
-  translate(width/2, height/2, width*.81 );
+  translate(width/2, height/2, height*.81 );
   
   // how far behind the car the camera should be
   float car_sz = 15;
@@ -152,13 +152,15 @@ void draw()
   
   y_off = 0;
   
+  /*
   i_loc %= NUM;
   j_loc %= NUM;
   
   if (j_loc < 0) j_loc+= NUM;
   if (i_loc < 0) i_loc+= NUM;
+  */
   
-  println(i_loc + " " + j_loc);
+  //println(i_loc + " " + j_loc);
 
   
   if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
@@ -184,7 +186,7 @@ void draw()
   }
   
   xvel *= 0.6;
-  zvel *= 0.6; 
+  zvel *= 0.9; 
   
   x += xvel * cos(rot) + zvel*sin(rot);
   z += -xvel * sin(rot) + zvel*cos(rot);
@@ -210,12 +212,12 @@ void drawTerrain(int i_loc, int j_loc)
 
   pushMatrix();
   noStroke();
-  for (int i = i_loc- NUM/2; i < i_loc + NUM/2; i++) {
+  for (int i = i_loc- 40; i < i_loc + 40; i++) {
     //pushMatrix();
-    for (int j = j_loc - NUM/2; j < j_loc + NUM/2; j++) {
+    for (int j = j_loc - 40; j < j_loc + 40; j++) {
       pushMatrix();
       
-      int j2 = j;
+      /*int j2 = j;
       int i2 = i;
       
       if (j2 < 0) j2+= NUM;
@@ -225,10 +227,15 @@ void drawTerrain(int i_loc, int j_loc)
       i2 = i2 % NUM;
       //if ((j2 < 0) || (i2 < 0)) {println(j2 + " " + i2);}
       translate(j*BWD, -elev[i2][j2], i*BWD);
+      */
       
+      if (!((i >=0) && (i < NUM) && (j >= 0) && (j < NUM))) {
+        continue;
+      }
+       translate(j*BWD, -elev[i][j], i*BWD);
 
        
-      if ( (abs(i2 - i_loc) < 2) && (abs(j2 - j_loc) < 2) ) {
+      if ( (abs(i - i_loc) < 2) && (abs(j - j_loc) < 2) ) {
       //stroke(0);
       beginShape(TRIANGLE_FAN);
       vertex( 0,     0, 0);
