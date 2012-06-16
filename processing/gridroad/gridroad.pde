@@ -3,9 +3,9 @@
 
 */
 
+import processing.opengl.*;
 
-
-float BWD = 50.0;
+float BWD = 100.0;
 // much above 120 is too intensive for my i5 laptop
 int NUM = 80;
 
@@ -13,7 +13,8 @@ float[][] elev;//[NUM][NUM];
 
 void setup()
 {
-  size(800, 800, P3D);
+  //size(800, 800, OPENGL);
+  size(400, 400, P3D);
   frameRate(10);
   
   elev = new float[NUM][NUM];
@@ -135,17 +136,17 @@ void draw()
   directionalLight(255,255,220,0.2,1.0,-0.3);
   
   // TBD where does BWD*13 come from?
-  translate(width/2, height/2, BWD*13 );
+  translate(width/2, height/2, width*.81 );
   
   // how far behind the car the camera should be
-  float car_sz = BWD/8;
-  translate(0, BWD/4, BWD/4 );
+  float car_sz = 15;
+  translate(0, car_sz/2, 0);//car_sz*2 );
   
   rotateX(rotx);
     
   drawCar(car_sz);
 
-  
+  // get current position on map
   int i_loc = (int)((z+BWD/2.0)/BWD );
   int j_loc = (int)((x+BWD/2.0)/BWD );
   
@@ -163,15 +164,15 @@ void draw()
   if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
    y_off = elev[i_loc][j_loc];
   }
+  
   //println(x + ", x=" + j_loc + ", " + z + ", z=" + i_loc + ", y " + y + "," +  y_off);
-
 
   rotateY(-rot);
   
   
   if (!pause) {
   yvel *= 0.95;
-  yvel -= 1.4;
+  yvel -= 1.1;
   y += yvel;
   
   if (y < y_off) { 
@@ -189,20 +190,25 @@ void draw()
   z += -xvel * sin(rot) + zvel*cos(rot);
   }
   
-  translate(-x,
-            BWD/2 + y, 
-             -z);
+  translate(-x, y, -z);
 
   //translate(-x*cos(rot) -z*sin(rot),
   //          BWD + y, 
   //           x*sin(rot) -z*cos(rot));
   
   
-  //stroke(50);
-  
-  fill(0,150,0);
+ 
+ drawTerrain(i_loc, j_loc);
 
-  
+    
+}
+
+void drawTerrain(int i_loc, int j_loc)
+{
+  fill(0,150,0);
+   //stroke(50);
+
+  pushMatrix();
   noStroke();
   for (int i = i_loc- NUM/2; i < i_loc + NUM/2; i++) {
     //pushMatrix();
@@ -219,7 +225,28 @@ void draw()
       i2 = i2 % NUM;
       //if ((j2 < 0) || (i2 < 0)) {println(j2 + " " + i2);}
       translate(j*BWD, -elev[i2][j2], i*BWD);
-      box(BWD);
+      
+
+       
+      if ( (abs(i2 - i_loc) < 2) && (abs(j2 - j_loc) < 2) ) {
+      //stroke(0);
+      beginShape(TRIANGLE_FAN);
+      vertex( 0,     0, 0);
+      vertex( BWD/2, 0, 0); 
+      vertex( BWD/2, 0, BWD/2); 
+      vertex(0,      0, BWD/2); 
+      vertex(-BWD/2, 0, BWD/2); 
+      vertex(-BWD/2, 0, 0); 
+      vertex(-BWD/2, 0,-BWD/2); 
+      vertex( 0,     0,-BWD/2); 
+      vertex( BWD/2, 0,-BWD/2);
+      vertex( BWD/2, 0, 0); 
+      endShape();
+      } else {
+        translate(0,BWD/2,0);
+        box(BWD);
+      }
+
       popMatrix();
       //translate(BWD,0,0);
     }
@@ -228,5 +255,5 @@ void draw()
     //translate(-10*20, 0, 10);
     
   }
-    
+  popMatrix();
 }
