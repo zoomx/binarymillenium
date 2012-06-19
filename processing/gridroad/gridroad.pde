@@ -48,7 +48,7 @@ boolean pause= false;
 
 void keyPressed()
 {
-  float sc = BWD/24;
+  float sc = BWD/170.0;
   
   if (ground_contact) {
   if (key == 'w') {
@@ -232,33 +232,37 @@ beginShape(TRIANGLE_FAN);
 
 float t = 0;
 
-void drawGrass(int num, int i_loc, int j_loc)
+//////////////////////////////////////////////
+void drawGrass(int num, int i, int j)
 {
    strokeWeight(3);
    stroke(24,125,10);
    
-   for (int ind = 0; ind < num; ind++) {
-      float x = 1.5*BWD*(noise(i_loc+ind)-0.5);
-      float z = 1.5*BWD*(noise(j_loc+ind)-0.5);
+   float dx = 3.5*(noise(0.2*t + i/100.0)-0.5);
+   float dz = 3.5*(noise(0.2*t + j/100.0)-0.5);
+      
+   for (int ind = 0; ind < num*2; ind++) {
+      float x = 1.6 * BWD * (noise(i + ind)-0.5);
+      float z = 1.6 * BWD * (noise(j + ind)-0.5);
           
       // TBD wind blowing effect here
-      line(x , 0, z, x, -2, z);
+      line(x , 0, z, x + dx, -2, z + dz);
    }
    
-  fill(45,105,3);
+  fill(45,135,3);
   noStroke();
-  for (int ind = 0; ind < 100; ind++) {
-    float x = 1.5*BWD*(noise(0.1*i_loc+ind)-0.5);
-    float z = 1.5*BWD*(noise(0.1*j_loc+ind)-0.5);
+  for (float ind = 0; ind < 100.0; ind+= 1.0) {
+    float x = 1.6*(float)BWD*(noise(0.1*i + ind + t/2000.0)-0.5);
+    float z = 1.6*(float)BWD*(noise(0.1*j + ind + t/2000.0)-0.5);
     
     pushMatrix();
-    translate(x,0,z);    
+    translate(x,ind/100.0,z);    
     box(BWD/80);
     popMatrix();
   }
   noStroke(); 
 }
-
+////////////////////////////////////////////
 void drawTerrain(int i_loc, int j_loc)
 {
   fill(0,150,0);
@@ -291,16 +295,16 @@ void drawTerrain(int i_loc, int j_loc)
 
        
       if ( (abs(i - i_loc) < 3) && (abs(j - j_loc) < 3) ) {
-      //stroke(0);
-      fill(0,150,0);
-      drawTriFan(BWD);
+        //stroke(0);
+        fill(0,150,0);
+        drawTriFan(BWD);
       
         // draw grass
-        drawGrass(50,  i_loc,  j_loc);
+        drawGrass(50,  i,  j);
       
       } else {
-        fill(0,150,0);
-        translate(0,BWD/2,0);
+        fill(0, 130, 0);
+        translate(0, BWD/2, 0);
         box(BWD);
       }
 
