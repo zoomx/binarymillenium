@@ -9,13 +9,15 @@ float BWD = 100.0;
 // much above 120 is too intensive for my i5 laptop
 int NUM = 1500;
 
+float dt = 0.1;
+
 float[][] elev;//[NUM][NUM];
 
 void setup()
 {
   //size(800, 800, OPENGL);
   size(600, 400, P3D);
-  frameRate(10);
+  frameRate(1.0/dt);
   
   elev = new float[NUM][NUM];
   
@@ -46,20 +48,20 @@ boolean pause= false;
 
 void keyPressed()
 {
-  float sc = BWD/8;
+  float sc = BWD/24;
   
   if (ground_contact) {
   if (key == 'w') {
     zvel -= sc*1;
   }
   if (key == 's') {
-    zvel += sc*1;
+    zvel += sc*0.5;
   }  
   if (key == 'a') {
-    xvel -= sc*0.5;
+    xvel -= sc*0.25;
   }
   if (key == 'd') {
-    xvel += sc*0.5;
+    xvel += sc*0.25;
   }  
   if (key == 'q') {
     yvel += sc*1;
@@ -129,6 +131,7 @@ void drawCar(float SZ)
 
 void draw()
 {
+  t += dt;
   background(10,90,200);
   
   ambientLight(50, 50, 200);
@@ -185,8 +188,14 @@ void draw()
     ground_contact = false; 
   }
   
-  xvel *= 0.6;
-  zvel *= 0.9; 
+  
+  if (ground_contact) {
+    xvel *= 0.6;
+    zvel *= 0.6; 
+  } else {
+       xvel *= 0.95;
+    zvel *= 0.95; 
+  }
   
   x += xvel * cos(rot) + zvel*sin(rot);
   z += -xvel * sin(rot) + zvel*cos(rot);
@@ -205,16 +214,62 @@ void draw()
     
 }
 
+void drawTriFan(float sz)
+{
+beginShape(TRIANGLE_FAN);
+      vertex( 0,    0, 0);
+      vertex( sz/2, 0, 0); 
+      vertex( sz/2, 0, sz/2); 
+      vertex(0,     0, sz/2); 
+      vertex(-sz/2, 0, sz/2); 
+      vertex(-sz/2, 0, 0); 
+      vertex(-sz/2, 0,-sz/2); 
+      vertex( 0,    0,-sz/2); 
+      vertex( sz/2, 0,-sz/2);
+      vertex( sz/2, 0, 0); 
+      endShape();
+}
+
+float t = 0;
+
+void drawGrass(int num, int i_loc, int j_loc)
+{
+   strokeWeight(3);
+   stroke(24,125,10);
+   
+   for (int ind = 0; ind < num; ind++) {
+      float x = 1.5*BWD*(noise(i_loc+ind)-0.5);
+      float z = 1.5*BWD*(noise(j_loc+ind)-0.5);
+          
+      // TBD wind blowing effect here
+      line(x , 0, z, x, -2, z);
+   }
+   
+  fill(45,105,3);
+  noStroke();
+  for (int ind = 0; ind < 100; ind++) {
+    float x = 1.5*BWD*(noise(0.1*i_loc+ind)-0.5);
+    float z = 1.5*BWD*(noise(0.1*j_loc+ind)-0.5);
+    
+    pushMatrix();
+    translate(x,0,z);    
+    box(BWD/80);
+    popMatrix();
+  }
+  noStroke(); 
+}
+
 void drawTerrain(int i_loc, int j_loc)
 {
   fill(0,150,0);
    //stroke(50);
 
+  int DRAW_NUM = 25;
   pushMatrix();
   noStroke();
-  for (int i = i_loc- 40; i < i_loc + 40; i++) {
+  for (int i = i_loc- DRAW_NUM; i < i_loc + DRAW_NUM; i++) {
     //pushMatrix();
-    for (int j = j_loc - 40; j < j_loc + 40; j++) {
+    for (int j = j_loc - DRAW_NUM; j < j_loc + DRAW_NUM; j++) {
       pushMatrix();
       
       /*int j2 = j;
@@ -235,21 +290,16 @@ void drawTerrain(int i_loc, int j_loc)
        translate(j*BWD, -elev[i][j], i*BWD);
 
        
-      if ( (abs(i - i_loc) < 2) && (abs(j - j_loc) < 2) ) {
+      if ( (abs(i - i_loc) < 3) && (abs(j - j_loc) < 3) ) {
       //stroke(0);
-      beginShape(TRIANGLE_FAN);
-      vertex( 0,     0, 0);
-      vertex( BWD/2, 0, 0); 
-      vertex( BWD/2, 0, BWD/2); 
-      vertex(0,      0, BWD/2); 
-      vertex(-BWD/2, 0, BWD/2); 
-      vertex(-BWD/2, 0, 0); 
-      vertex(-BWD/2, 0,-BWD/2); 
-      vertex( 0,     0,-BWD/2); 
-      vertex( BWD/2, 0,-BWD/2);
-      vertex( BWD/2, 0, 0); 
-      endShape();
+      fill(0,150,0);
+      drawTriFan(BWD);
+      
+        // draw grass
+        drawGrass(50,  i_loc,  j_loc);
+      
       } else {
+        fill(0,150,0);
         translate(0,BWD/2,0);
         box(BWD);
       }
