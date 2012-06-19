@@ -1,9 +1,19 @@
 
 /**
-
+ Lucas Walter
+ 
+ June 2012
+ 
+ GPL 3.0
 */
 
 //import processing.opengl.*;
+
+import java.util.Stack;
+
+Stack<Float> cx = new Stack<Float>();
+Stack<Float> cy = new Stack<Float>();
+Stack<Float> cz = new Stack<Float>();
 
 float BWD = 100.0;
 // much above 120 is too intensive for my i5 laptop
@@ -14,6 +24,8 @@ float dt = 0.1;
 float[][] elev;//[NUM][NUM];
 
 PImage img; 
+
+ 
 
 void setup()
 {
@@ -41,18 +53,22 @@ void setup()
       img.pixels[i * img.height + j] = color(12, 120 + 80 * noise(i/10.0,j/10.0), 11); 
   }}
   
-img.updatePixels();
+  img.updatePixels();
+
+ 
 }
 
 float x = BWD*NUM/2;
 float y;
 float z = BWD*3*NUM/4;
+float rot;
 
 float y_off;
 
 float yvel;
 float xvel, zvel;
-float rot;
+float rot_vel;
+
 float rotx = -PI/8;
 boolean ground_contact = false;
 boolean pause= false;
@@ -75,19 +91,19 @@ void keyPressed()
     xvel += sc*0.25;
   }  
   if (key == 'q') {
-    yvel += sc*1;
+    yvel += sc*15;
   }
   if (key == 'z') {
-    yvel -= sc*1;
+    yvel -= sc*15;
   }  
   }
   
   if (key== 'j') {
-     rot += 0.1; 
+     rot_vel += 0.04; 
   }
   
   if (key == 'l') {
-     rot -= 0.1; 
+     rot_vel -= 0.04; 
   }
   
   if (key == 'p') {
@@ -109,6 +125,9 @@ void keyPressed()
 
 void drawCar(float SZ)
 {
+  strokeWeight(10);
+  stroke(0);
+  
   pushMatrix();
   //translate(0,BWD*0.5, 0 );
   translate(0,-SZ/8, 0 );
@@ -124,25 +143,31 @@ void drawCar(float SZ)
   fill(10);
   translate(0,SZ/10, SZ*0.23 );
   
+  noStroke();
+  
   // back wheels
+  float tire_sz = SZ/16;
   translate(-SZ/5,0 , 0 );
-  sphere(SZ/16);
+  sphere(tire_sz);
   translate(SZ/2.5,0 , 0 );
-  sphere(SZ/16);
+  sphere(tire_sz);
   
   // forward wheel
   fill(50);
   translate(0,0 , -SZ*0.46);
-  sphere(SZ/16);
+  sphere(tire_sz);
   fill(50);
   translate(-SZ/2.5,0 , 0 );
-  sphere(SZ/16);
+  sphere(tire_sz);
   popMatrix();
 }
 
+int  count = 0;
 void draw()
 {
   t += dt;
+  count += 1;
+  
   background(10,90,200);
   
   ambientLight(50, 50, 200);
@@ -159,6 +184,8 @@ void draw()
   rotateX(rotx);
     
   drawCar(car_sz);
+  
+
 
   // get current position on map
   int i_loc = (int)((z+BWD/2.0)/BWD );
@@ -203,13 +230,16 @@ void draw()
   if (ground_contact) {
     xvel *= 0.6;
     zvel *= 0.6; 
+    rot_vel *= 0.46;
   } else {
-       xvel *= 0.95;
+    xvel *= 0.95;
     zvel *= 0.95; 
+    rot_vel *= 0.95;
   }
   
-  x += xvel * cos(rot) + zvel*sin(rot);
-  z += -xvel * sin(rot) + zvel*cos(rot);
+  x +=  xvel * cos(rot) + zvel * sin(rot);
+  z += -xvel * sin(rot) + zvel * cos(rot);
+  rot += rot_vel;
   }
   
   translate(-x, y, -z);
@@ -222,6 +252,33 @@ void draw()
  
  drawTerrain(i_loc, j_loc);
 
+
+  if ((cx.size() == 0 ) || (count %5 == 0)) {
+  cx.push(x);
+  cy.push(y);
+  cz.push(z);
+ 
+  if (cx.size() > 100) {
+    cx.pop();
+    cy.pop();
+    cz.pop();
+  }
+  
+
+  //println(cx.size() + " " + cx.get(0));
+  }
+  
+    stroke(255,200,0);
+    strokeWeight(10);
+    
+    int i =  0;
+    for (i = 0; i < cx.size()-1; i++) {
+      //println( str(cx.get(i)) + ' ' +  str(cy.get(i)) + ' ' + str(cz.get(i)) );
+      line(cx.get(i) ,  -cy.get(i), cz.get(i), 
+           cx.get(i+1), -cy.get(i+1),cz.get(i+1));
+    }
+    
+    line(x,-y,z, cx.get(i), -cy.get(i), cz.get(i));
     
 }
 
@@ -282,7 +339,7 @@ void drawTerrain(int i_loc, int j_loc)
   fill(0,150,0);
    //stroke(50);
 
-  int DRAW_NUM = 25;
+  int DRAW_NUM = 20;
   pushMatrix();
   noStroke();
   for (int i = i_loc- DRAW_NUM; i < i_loc + DRAW_NUM; i++) {
