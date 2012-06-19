@@ -13,6 +13,8 @@ float dt = 0.1;
 
 float[][] elev;//[NUM][NUM];
 
+PImage img; 
+
 void setup()
 {
   //size(800, 800, OPENGL);
@@ -31,6 +33,15 @@ void setup()
       elev[i][j] = 1*BWD*(noise(i*nsc1,j*nsc1)-0.5) + hills - 5*BWD;
     }
   }
+  
+  img = createImage(10, 10, RGB);
+  img.loadPixels();
+  for (int i = 0; i < img.width; i++) {
+    for (int j = 0; j < img.height; j++) {
+      img.pixels[i * img.height + j] = color(12, 120 + 80 * noise(i/10.0,j/10.0), 11); 
+  }}
+  
+img.updatePixels();
 }
 
 float x = BWD*NUM/2;
@@ -216,17 +227,20 @@ void draw()
 
 void drawTriFan(float sz)
 {
-beginShape(TRIANGLE_FAN);
-      vertex( 0,    0, 0);
-      vertex( sz/2, 0, 0); 
-      vertex( sz/2, 0, sz/2); 
-      vertex(0,     0, sz/2); 
-      vertex(-sz/2, 0, sz/2); 
-      vertex(-sz/2, 0, 0); 
-      vertex(-sz/2, 0,-sz/2); 
-      vertex( 0,    0,-sz/2); 
-      vertex( sz/2, 0,-sz/2);
-      vertex( sz/2, 0, 0); 
+  textureMode(NORMALIZED);
+  beginShape(TRIANGLE_FAN);
+  //stroke(0);
+ // texture(img);
+      vertex( 0,    0,  0);//,    0.50, 0.50);
+      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
+      vertex( sz/2, 0,  sz/2);//, 1.00, 1.00); 
+      vertex(0,     0,  sz/2);//, 0.50, 1.00); 
+      vertex(-sz/2, 0,  sz/2);//, 0,    1.00); 
+      vertex(-sz/2, 0,  0);//,    0,    0.50); 
+      vertex(-sz/2, 0, -sz/2);//, 0,    0); 
+      vertex( 0,    0, -sz/2);//, 0.50, 0); 
+      vertex( sz/2, 0, -sz/2);//, 1.00, 0);
+      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
       endShape();
 }
 
@@ -298,6 +312,24 @@ void drawTerrain(int i_loc, int j_loc)
         //stroke(0);
         fill(0,150,0);
         drawTriFan(BWD);
+        
+        if (true) {
+        pushMatrix();
+        rotateX(PI/2);
+        translate(0, BWD/2,-BWD*0.499);
+        drawTriFan(BWD);
+        translate(0, -BWD,0);
+        drawTriFan(BWD);
+        popMatrix();
+      }
+         pushMatrix();
+        rotateZ(PI/2);
+        translate(BWD*0.499,-BWD*0.5,0);
+        drawTriFan(BWD);
+        translate(0, BWD,0);
+        drawTriFan(BWD);
+        popMatrix();
+       
       
         // draw grass
         drawGrass(50,  i,  j);
