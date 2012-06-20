@@ -281,11 +281,19 @@ void draw()
     ground_contact = false; 
   }
   
+  int loc = i_loc*NUM + j_loc;
+  boolean is_road = roads.containsKey(loc);
   
   if (ground_contact) {
+    if (is_road) {
+      xvel *= 0.65;
+      zvel *= 0.8; 
+      rot_vel *= 0.66;
+    } else {
     xvel *= 0.6;
     zvel *= 0.6; 
     rot_vel *= 0.46;
+    } 
   } else {
     xvel *= 0.95;
     zvel *= 0.95; 
@@ -405,11 +413,7 @@ void drawTerrain(int i_loc, int j_loc)
   for (int i = i_loc- DRAW_NUM; i < i_loc + DRAW_NUM; i++) {
     //pushMatrix();
     for (int j = j_loc - DRAW_NUM; j < j_loc + DRAW_NUM; j++) {
-      
-      int loc = i*NUM + j;
-      
-      
-      
+
       /*int j2 = j;
       int i2 = i;
       
@@ -456,6 +460,7 @@ void drawTerrain(int i_loc, int j_loc)
         sc = 2;
       }
       
+      int loc = i*NUM + j;
       boolean is_road = roads.containsKey(loc);
       
       pushMatrix();
@@ -482,16 +487,13 @@ void drawTerrain(int i_loc, int j_loc)
         drawTriFan(BWD);
         popMatrix();
       }
-         pushMatrix();
+        pushMatrix();
         rotateZ(PI/2);
         translate(BWD*0.499,-BWD*0.5,0);
         drawTriFan(BWD);
         translate(0, BWD,0);
         drawTriFan(BWD);
-        popMatrix();
-       
-      
-       
+        popMatrix();   
        
       } else {
         if (is_road) {
@@ -499,8 +501,7 @@ void drawTerrain(int i_loc, int j_loc)
         } else {
           fill(0,130,0);
         }
-        
-        
+         
         if (mdist < 6) {
           if (is_road) {
             fill(135);
