@@ -257,6 +257,7 @@ void draw()
   cx.push(x);
   cy.push(y);
   cz.push(z);
+  }
  
   if (cx.size() > 100) {
     cx.pop();
@@ -266,7 +267,6 @@ void draw()
   
 
   //println(cx.size() + " " + cx.get(0));
-  }
   
     stroke(255,200,0);
     strokeWeight(10);
@@ -339,13 +339,13 @@ void drawTerrain(int i_loc, int j_loc)
   fill(0,150,0);
    //stroke(50);
 
-  int DRAW_NUM = 20;
+  int DRAW_NUM = 800;
   pushMatrix();
   noStroke();
   for (int i = i_loc- DRAW_NUM; i < i_loc + DRAW_NUM; i++) {
     //pushMatrix();
     for (int j = j_loc - DRAW_NUM; j < j_loc + DRAW_NUM; j++) {
-      pushMatrix();
+      
       
       /*int j2 = j;
       int i2 = i;
@@ -359,13 +359,45 @@ void drawTerrain(int i_loc, int j_loc)
       translate(j*BWD, -elev[i2][j2], i*BWD);
       */
       
-      if (!((i >=0) && (i < NUM) && (j >= 0) && (j < NUM))) {
-        continue;
+      if ((i < 0) || (j < 0) || (i >= NUM) || (j >= NUM)) {
+        continue;  
       }
+      
+      float mdist = abs(i - i_loc) + abs(j - j_loc);
+      
+      
+      float sc = 1.0;
+      
+      if (mdist > 400) {
+        continue; 
+      } 
+      
+      if (mdist > 100) {
+        if (mdist % 64 != 0) {
+          continue; 
+        } 
+        
+        sc = 16;
+        
+      }
+      if (mdist > 25) {
+        if (mdist % 8 != 0) {
+        continue; 
+        } 
+        sc = 4;
+      }
+      if (mdist > 15) {
+        if (mdist % 2 != 0) {
+        continue; 
+        }
+        sc = 2;
+      }
+      
+      pushMatrix();
        translate(j*BWD, -elev[i][j], i*BWD);
 
        
-      if ( (abs(i - i_loc) < 3) && (abs(j - j_loc) < 3) ) {
+      if ( mdist < 3 ) {
         //stroke(0);
         fill(0,150,0);
         drawTriFan(BWD);
@@ -390,11 +422,18 @@ void drawTerrain(int i_loc, int j_loc)
       
         // draw grass
         drawGrass(50,  i,  j);
-      
+       
       } else {
         fill(0, 130, 0);
-        translate(0, BWD/2, 0);
-        box(BWD);
+        
+        if (mdist < 6) {
+          fill(0, 135, 0);
+          drawGrass(5, i, j); 
+        }
+        
+        translate(0,sc * BWD/2, 0);
+        box(sc*BWD);
+      
       }
 
       popMatrix();
