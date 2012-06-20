@@ -16,22 +16,55 @@ Stack<Float> cy = new Stack<Float>();
 Stack<Float> cz = new Stack<Float>();
 
 float BWD = 100.0;
-// much above 120 is too intensive for my i5 laptop
 int NUM = 1500;
 
 float dt = 0.1;
 
 float[][] elev;//[NUM][NUM];
 
-PImage img; 
+PImage img;  
 
- 
+
+float x = BWD*NUM/2;
+float y;
+float z = BWD*3*NUM/4;
+float rot;
+
+HashMap roads;
+
+
+void makeRoads()
+{
+  roads = new HashMap();
+  
+  int i_loc = (int)((z+BWD/2.0)/BWD );
+  int j_loc = (int)((x+BWD/2.0)/BWD );
+  
+  for (int i = 0; i < NUM*(NUM/50+1); i++) {
+    int loc = i_loc*NUM + j_loc;
+  
+    roads.put(loc, true);
+  
+    int choice = (int) ( noise(i_loc, j_loc)*4 );
+    if (choice == 3) {
+      i_loc += 1;
+    } else if (choice == 2) {
+      j_loc += 1;
+    } else if (choice == 1) {
+      i_loc -= 1;
+    } else  {
+      j_loc -= 1;
+    }
+  }
+}
 
 void setup()
 {
   //size(800, 800, OPENGL);
   size(600, 400, P3D);
   frameRate(1.0/dt);
+  
+  makeRoads();
   
   elev = new float[NUM][NUM];
   
@@ -58,10 +91,6 @@ void setup()
  
 }
 
-float x = BWD*NUM/2;
-float y;
-float z = BWD*3*NUM/4;
-float rot;
 
 float y_off;
 
@@ -190,6 +219,7 @@ void draw()
   // get current position on map
   int i_loc = (int)((z+BWD/2.0)/BWD );
   int j_loc = (int)((x+BWD/2.0)/BWD );
+
   
   y_off = 0;
   
@@ -253,6 +283,8 @@ void draw()
  drawTerrain(i_loc, j_loc);
 
 
+// trails
+if (false) {
   if ((cx.size() == 0 ) || (count %5 == 0)) {
   cx.push(x);
   cy.push(y);
@@ -279,6 +311,7 @@ void draw()
     }
     
     line(x,-y,z, cx.get(i), -cy.get(i), cz.get(i));
+}
     
 }
 
@@ -336,6 +369,8 @@ void drawGrass(int num, int i, int j)
 ////////////////////////////////////////////
 void drawTerrain(int i_loc, int j_loc)
 {
+  
+    
   fill(0,150,0);
    //stroke(50);
 
@@ -346,6 +381,9 @@ void drawTerrain(int i_loc, int j_loc)
     //pushMatrix();
     for (int j = j_loc - DRAW_NUM; j < j_loc + DRAW_NUM; j++) {
       
+      int loc = i*NUM + j;
+      
+      boolean is_road = roads.containsKey(loc);
       
       /*int j2 = j;
       int i2 = i;
@@ -381,7 +419,7 @@ void drawTerrain(int i_loc, int j_loc)
         
       }
       if (mdist > 25) {
-        if (mdist % 8 != 0) {
+        if ( (mdist) % 8 != 0) {
         continue; 
         } 
         sc = 4;
@@ -399,7 +437,13 @@ void drawTerrain(int i_loc, int j_loc)
        
       if ( mdist < 3 ) {
         //stroke(0);
-        fill(0,150,0);
+        if (is_road) {
+          fill(150);
+        } else {
+          fill(0,150,0);
+          // draw grass
+          drawGrass(50,  i,  j);
+        }
         drawTriFan(BWD);
         
         if (true) {
@@ -420,15 +464,24 @@ void drawTerrain(int i_loc, int j_loc)
         popMatrix();
        
       
-        // draw grass
-        drawGrass(50,  i,  j);
+       
        
       } else {
-        fill(0, 130, 0);
+        if (is_road) {
+          fill(130);
+        } else {
+          fill(0,130,0);
+        }
+        
         
         if (mdist < 6) {
-          fill(0, 135, 0);
-          drawGrass(5, i, j); 
+          if (is_road) {
+            fill(135);
+          } else {
+            fill(0,135,0);
+            drawGrass(5, i, j); 
+          }
+          
         }
         
         translate(0,sc * BWD/2, 0);
