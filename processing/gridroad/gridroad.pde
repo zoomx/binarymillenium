@@ -30,6 +30,8 @@ float y;
 float z = BWD*3*NUM/4;
 float rot;
 
+float tire_sz = 0.5;
+
 HashMap roads;
 
 
@@ -45,7 +47,7 @@ void makeRoads()
   
     roads.put(loc, true);
   
-    int choice = (int) ( noise(i_loc, j_loc)*4 );
+    int choice = (int) ( noise(i_loc/10.0, j_loc/10.0)*4 );
     if (choice == 3) {
       i_loc += 1;
     } else if (choice == 2) {
@@ -150,32 +152,36 @@ void keyPressed()
      
      if (rotx < -PI/2) { rotx = -PI/2; }
   }
+  
+  if (key == 'b') {
+    tire_sz *= 0.9;
+    if (tire_sz< 0.3) {
+      tire_sz = 0.3;
+    } 
+  }
+  if (key == 'n') {
+    tire_sz *= 1.1; 
+  }
 }
 
+
+////////////////////////////////////////////////////////////////////////////
+/////
+////////////////////////////////////////////////////////////////////////////
 void drawCar(float SZ)
 {
-  strokeWeight(10);
-  stroke(0);
   
-  pushMatrix();
-  //translate(0,BWD*0.5, 0 );
-  translate(0,-SZ/8, 0 );
-  
-  fill(200);
-  pushMatrix();
-  box(SZ/2.5, SZ/8, SZ/2);
-  translate(0,-SZ/8, 0 );
-  box(SZ/2.5, SZ/8, SZ/5);
-  popMatrix();
- 
- // draw four wheels
+  // draw four wheels
   fill(10);
-  translate(0,SZ/10, SZ*0.23 );
+  pushMatrix();
+  translate(0, -tire_sz * 0.94, 0);
+  pushMatrix();
+  translate(0, 0, SZ*0.23 );
   
   noStroke();
   
   // back wheels
-  float tire_sz = SZ/16;
+  //float tire_sz = SZ/16;
   translate(-SZ/5,0 , 0 );
   sphere(tire_sz);
   translate(SZ/2.5,0 , 0 );
@@ -189,6 +195,25 @@ void drawCar(float SZ)
   translate(-SZ/2.5,0 , 0 );
   sphere(tire_sz);
   popMatrix();
+  
+  ///////////////////
+  /// draw the body
+  strokeWeight(10);
+  stroke(0);
+  
+  pushMatrix();
+  //translate(0,BWD*0.5, 0 );
+  translate(0,-tire_sz*0.97 - SZ/8, 0 );
+  
+  fill(200);
+  
+  box(SZ/2.5, SZ/8, SZ/2);
+  translate(0,-SZ/8, 0 );
+  box(SZ/2.5, SZ/8, SZ/5);
+  popMatrix();
+ 
+ popMatrix();
+ 
 }
 
 int  count = 0;
@@ -383,7 +408,7 @@ void drawTerrain(int i_loc, int j_loc)
       
       int loc = i*NUM + j;
       
-      boolean is_road = roads.containsKey(loc);
+      
       
       /*int j2 = j;
       int i2 = i;
@@ -430,6 +455,8 @@ void drawTerrain(int i_loc, int j_loc)
         }
         sc = 2;
       }
+      
+      boolean is_road = roads.containsKey(loc);
       
       pushMatrix();
        translate(j*BWD, -elev[i][j], i*BWD);
