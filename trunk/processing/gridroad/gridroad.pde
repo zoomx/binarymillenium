@@ -100,47 +100,85 @@ float yvel;
 float xvel, zvel;
 float rot_vel;
 
+float xacc, yacc, zacc, rot_acc;
+
 float rotx = -PI/8;
 boolean ground_contact = false;
 boolean pause= false;
 
-void keyPressed()
+void keyReleased()
 {
-  float sc = BWD/170.0;
-  
-  if (ground_contact) {
   if (key == 'w') {
-    zvel -= sc*1;
+    zacc = 0;
+    xacc = 0;
   }
   if (key == 's') {
-    zvel += sc*0.5;
+    zacc = 0;
+        xacc = 0;
   }  
   if (key == 'a') {
-    xvel -= sc*0.25;
+    xacc = 0;
   }
   if (key == 'd') {
-    xvel += sc*0.25;
+    xacc = 0;
   }  
   if (key == 'q') {
-    yvel += sc*15;
+    yacc = 0;
   }
   if (key == 'z') {
-    yvel -= sc*15;
+    yacc = 0;
   }  
-  }
   
-  if (key== 'j') {
-     rot_vel += 0.04; 
+    if (key== 'j') {
+     rot_acc = 0.0; 
   }
   
   if (key == 'l') {
-     rot_vel -= 0.04; 
+     rot_acc = -0.0; 
+  }
+}
+
+void keyPressed()
+{
+  float sc = BWD/50.0;
+  
+ // if (ground_contact) {
+  if (key == 'w') {
+    /// TBD this needs to be recomputed every time step, need a car_z_acc
+    zacc = -sc * cos(rot);
+    xacc = -sc * sin(rot);
+  }
+  if (key == 's') {  
+    zacc =  sc * cos(rot);
+    xacc =  sc * sin(rot);
+  }  
+  if (key == 'a') {
+    xacc = -sc*0.25;
+  }
+  if (key == 'd') {
+    xacc = sc*0.25;
+  }  
+  if (key == 'q') {
+    yacc = sc*15;
+  }
+  if (key == 'z') {
+    yacc = -sc*15;
+  }  
+ // }
+  
+  if (key== 'j') {
+     rot_acc = 0.02; 
+  }
+  
+  if (key == 'l') {
+     rot_acc = -0.02; 
   }
   
   if (key == 'p') {
      pause = !pause; 
   }
   
+  ///////////////////////////
   if (key == 'i') {
      rotx += 0.1; 
      
@@ -239,13 +277,10 @@ void draw()
     
   drawCar(car_sz);
   
-
-
   // get current position on map
   int i_loc = (int)((z+BWD/2.0)/BWD );
   int j_loc = (int)((x+BWD/2.0)/BWD );
 
-  
   y_off = 0;
   
   /*
@@ -269,7 +304,14 @@ void draw()
   
   
   if (!pause) {
+    
+    xvel += xacc;
+    yvel += yacc;
+    zvel += zacc;
+    rot_vel += rot_acc;
+    
   yvel *= 0.95;
+  // gravity
   yvel -= 1.1;
   y += yvel;
   
@@ -288,7 +330,7 @@ void draw()
     if (is_road) {
       xvel *= 0.65;
       zvel *= 0.8; 
-      rot_vel *= 0.66;
+      rot_vel *= 0.56;
     } else {
     xvel *= 0.6;
     zvel *= 0.6; 
@@ -300,8 +342,8 @@ void draw()
     rot_vel *= 0.95;
   }
   
-  x +=  xvel * cos(rot) + zvel * sin(rot);
-  z += -xvel * sin(rot) + zvel * cos(rot);
+  x += xvel; // xvel * cos(rot) + zvel * sin(rot);
+  z += zvel;// -zvel * sin(rot) + zvel * cos(rot);
   rot += rot_vel;
   }
   
