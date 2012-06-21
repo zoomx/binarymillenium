@@ -114,8 +114,17 @@ class Car {
      if (wheel_vel > 0) {
        wheel_acc -= acc_rate*2;
      } else { 
-       wheel_acc -= acc_rate*0.6;
+       wheel_acc -= acc_rate*0.8;
      } 
+   }
+   
+   if (turn_left) {
+      wheel_rot -= 0.1; 
+      wheel_acc += acc_rate/4;
+   }
+   if (turn_right) {
+      wheel_rot += 0.1; 
+       wheel_acc += acc_rate/4;
    }
    
    // gravity
@@ -126,6 +135,8 @@ class Car {
    /// TBD this needs to be recomputed every time step, need a car_z_acc
    acc.z -= wheel_vel * cos(rot + wheel_rot);
    acc.x -= wheel_vel * sin(rot + wheel_rot);
+   
+   rot += wheel_rot * wheel_vel * 0.1;
   
    vel.add( acc );
    xyz.add( vel );
@@ -133,7 +144,17 @@ class Car {
    rot_vel += rot_acc;
    rot += rot_vel;
    
-   println(y_off + " " + getI() + " " + getJ() + " " + (xyz) + " " + (vel) + " " + (acc));
+    // simple ground collision, no other collisions yet
+    if (xyz.y < y_off) { 
+      ground_contact = true;
+      xyz.y = y_off; 
+      // bounce TBD this should used diff vel.y rather than this no longer valid vel.y
+      vel.y = -vel.y*0.6; 
+    } else {
+      ground_contact = false; 
+    } 
+   
+   //println(y_off + " wa" + wheel_acc + " " + wheel_vel + " wr" + wheel_rot + " r" + rot + ", " + getI() + " " + getJ() + " " + (xyz) + " v" + (vel) + " a" + (acc));
    
    // TBD or set to zero
    wheel_acc *= 0.1;
@@ -147,17 +168,6 @@ class Car {
    /// with the current direction of travel (use atan2(vel.y, vel.x) ) 
    vel.mult( 0.95 );
    rot_vel *= 0.95;
-    
-   
-   // simple ground collision, no other collisions yet
-    if (xyz.y < y_off) { 
-      ground_contact = true;
-      xyz.y = y_off; 
-      // bounce
-      vel.y = -vel.y*0.6; 
-    } else {
-      ground_contact = false; 
-    }  
     
     int loc = getI()*NUM + getJ();
     boolean is_road = roads.containsKey(loc);
@@ -350,11 +360,11 @@ void keyReleased()
   }  
   
   if (key== 'j') {
-     player.turn_left = false;
+     player.turn_right = false;
   }
   
   if (key == 'l') {
-     player.turn_right = false;
+     player.turn_left = false;
   }
 }
 
@@ -377,10 +387,11 @@ void keyPressed()
    
   }  
   if (key == 'q') {
+    player.acc.y += 10;
    
   }
   if (key == 'z') {
-    
+    player.acc.y -= 10;
   }  
  // }
   
@@ -462,8 +473,9 @@ void draw()
     player.update(y_off);
   }
   
+  //translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
   translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
-
+  
   //translate(-x*cos(rot) -z*sin(rot),
   //          BWD + y, 
   //           x*sin(rot) -z*cos(rot));
@@ -537,40 +549,24 @@ void drawTerrain(int i_loc, int j_loc)
   for (int i = i_loc- DRAW_NUM; i < i_loc + DRAW_NUM; i++) {
     //pushMatrix();
     for (int j = j_loc - DRAW_NUM; j < j_loc + DRAW_NUM; j++) {
-
-      /*int j2 = j;
-      int i2 = i;
-      
-      if (j2 < 0) j2+= NUM;
-      if (i2 < 0) i2+= NUM;
-      
-      j2 = j2 % NUM;
-      i2 = i2 % NUM;
-      //if ((j2 < 0) || (i2 < 0)) {println(j2 + " " + i2);}
-      translate(j*BWD, -elev[i2][j2], i*BWD);
-      */
       
       if ((i < 0) || (j < 0) || (i >= NUM) || (j >= NUM)) {
         continue;  
       }
       
-      float mdist = abs(i - i_loc) + abs(j - j_loc);
-      
+      float mdist = abs(i - i_loc) + abs(j - j_loc);   
       
       float sc = 1.0;
       
       if (mdist > 400) {
         continue; 
-      } 
-      
+      }   
       if (mdist > 100) {
         if (mdist % 64 != 0) {
           continue; 
-        } 
-        
-        sc = 16;
-        
-      }
+        }     
+        sc = 16;   
+      }   
       if (mdist > 25) {
         if ( (mdist) % 8 != 0) {
         continue; 
@@ -588,9 +584,8 @@ void drawTerrain(int i_loc, int j_loc)
       boolean is_road = roads.containsKey(loc);
       
       pushMatrix();
-       translate(j*BWD, -elev[i][j], i*BWD);
-
-       
+      translate(j*BWD, -elev[i][j], i*BWD);
+   
       if ( mdist < 3 ) {
         //stroke(0);
         if (is_road) {
