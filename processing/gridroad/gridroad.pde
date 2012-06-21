@@ -47,6 +47,7 @@ class Car {
  
  float rot;
  float rot_vel;
+ float rot_acc;
  
  /// this is the car coordinate frame
  /// TBD should only be 1 dimensional?
@@ -69,12 +70,15 @@ class Car {
  boolean turn_right;
 
  
- car(PVector init_xyz) 
+ Car(PVector init_xyz) 
  { 
    cv = new Stack<PVector>();
  
-   xyz = new PVector(init_xyz);
-   xyz_old = new PVector(init_xyz);
+   xyz = init_xyz;
+   xyz_old = init_xyz;
+   
+   acc = new PVector();
+   vel = new PVector();
    
    tire_sz = 0.8;
    
@@ -102,7 +106,7 @@ class Car {
  void update(float y_off) 
  {
    
-   float acc_rate = 0.1;
+   float acc_rate = 0.2;
    if (gas) {
      wheel_acc += acc_rate; 
    }
@@ -114,39 +118,48 @@ class Car {
      } 
    }
    
+   // gravity
+   acc.y -= 1.0;
+   
    wheel_vel += wheel_acc;
+   
    /// TBD this needs to be recomputed every time step, need a car_z_acc
    acc.z -= wheel_vel * cos(rot + wheel_rot);
    acc.x -= wheel_vel * sin(rot + wheel_rot);
   
-   vel += acc;
-   xyz += vel;
+   vel.add( acc );
+   xyz.add( vel );
  
    rot_vel += rot_acc;
    rot += rot_vel;
    
+   println(y_off + " " + getI() + " " + getJ() + " " + (xyz) + " " + (vel) + " " + (acc));
+   
    // TBD or set to zero
    wheel_acc *= 0.1;
-   acc *= 0.1;
-   rot_acc *= 0.1;
+   wheel_vel *= 0.85;
+   wheel_rot *= 0.85;
+   
+   acc.mult( 0.1 );
+   rot_acc *=  0.1;
+   
+   /// TBD friction could be a function of how aligned the wheels are 
+   /// with the current direction of travel (use atan2(vel.y, vel.x) ) 
+   vel.mult( 0.95 );
+   rot_vel *= 0.95;
     
-    vel *= 0.95;
-    rot_vel *= 0.95;
-    
-   // gravity
-    vel.y -= 1.1;
-  
-    // simple ground collision, no other collisions yet
-    if (y < y_off) { 
+   
+   // simple ground collision, no other collisions yet
+    if (xyz.y < y_off) { 
       ground_contact = true;
-      vel.y = y_off; 
+      xyz.y = y_off; 
       // bounce
       vel.y = -vel.y*0.6; 
     } else {
       ground_contact = false; 
     }  
     
-    int loc = i_loc*NUM + j_loc;
+    int loc = getI()*NUM + getJ();
     boolean is_road = roads.containsKey(loc);
   
     if (ground_contact) {
@@ -160,6 +173,8 @@ class Car {
         rot_vel *= 0.46;
       } 
     } 
+    
+    
   } // update
  
   void draw()
@@ -229,13 +244,13 @@ class Car {
     strokeWeight(10);
     
     int i =  0;
-    for (i = 0; i < cx.size()-1; i++) {
+    for (i = 0; i < cv.size()-1; i++) {
       //println( str(cx.get(i)) + ' ' +  str(cy.get(i)) + ' ' + str(cz.get(i)) );
-      line(cx.get(i) ,  -cy.get(i), cz.get(i), 
-           cx.get(i+1), -cy.get(i+1),cz.get(i+1));
+     // line(cv.get(i) ,  -cy.get(i), cz.get(i), 
+     //      cx.get(i+1), -cy.get(i+1),cz.get(i+1));
     }
     
-    line(xyz.x, -xyz.y, xyz.z, cx.get(i), -cy.get(i), cz.get(i));
+    //line(xyz.x, -xyz.y, xyz.z, cx.get(i), -cy.get(i), cz.get(i));
   }
  
 }
@@ -316,32 +331,30 @@ void setup()
 void keyReleased()
 {
   if (key == 'w') {
-    zacc = 0;
-    xacc = 0;
+    player.gas = false;
   }
   if (key == 's') {
-    zacc = 0;
-        xacc = 0;
+     player.brake_reverse = false;
   }  
   if (key == 'a') {
-    xacc = 0;
+    
   }
   if (key == 'd') {
-    xacc = 0;
+    
   }  
   if (key == 'q') {
-    yacc = 0;
+    
   }
   if (key == 'z') {
-    yacc = 0;
+   
   }  
   
-    if (key== 'j') {
-     rot_acc = 0.0; 
+  if (key== 'j') {
+     player.turn_left = false;
   }
   
   if (key == 'l') {
-     rot_acc = -0.0; 
+     player.turn_right = false;
   }
 }
 
@@ -355,29 +368,28 @@ void keyPressed()
 
   }
   if (key == 's') {  
-    zacc =  sc * cos(rot);
-    xacc =  sc * sin(rot);
+    player.brake_reverse = true;
   }  
   if (key == 'a') {
-    xacc = -sc*0.25;
+   
   }
   if (key == 'd') {
-    xacc = sc*0.25;
+   
   }  
   if (key == 'q') {
-    yacc = sc*15;
+   
   }
   if (key == 'z') {
-    yacc = -sc*15;
+    
   }  
  // }
   
   if (key== 'j') {
-     rot_acc = 0.02; 
+     player.turn_right = true; 
   }
   
   if (key == 'l') {
-     rot_acc = -0.02; 
+     player.turn_left = true;
   }
   
   if (key == 'p') {
@@ -432,7 +444,7 @@ void draw()
   
   rotateX(rotx);
     
-  drawCar(car_sz);
+  player.draw();
   
   // get current position on map
   int i_loc = player.getI();
@@ -444,13 +456,13 @@ void draw()
     y_off = elev[i_loc][j_loc];
   }
 
-  rotateY(-rot);
+  rotateY(-player.rot);
   
   if (!pause) {   
     player.update(y_off);
   }
   
-  translate(-x, y, -z);
+  translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
 
   //translate(-x*cos(rot) -z*sin(rot),
   //          BWD + y, 
