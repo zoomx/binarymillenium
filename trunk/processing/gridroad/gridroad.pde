@@ -106,7 +106,7 @@ class Car {
  void update(float y_off) 
  {
    
-   float acc_rate = 0.2;
+   float acc_rate = 0.15;
    if (gas) {
      wheel_acc += acc_rate; 
    }
@@ -441,9 +441,7 @@ void draw()
   count += 1;
   
   background(10,90,200);
-  
   ambientLight(50, 50, 200);
-
   directionalLight(255,255,220,0.2,1.0,-0.3);
   
   // TBD where does BWD*13 come from?
@@ -455,11 +453,14 @@ void draw()
   
   rotateX(rotx);
     
+  pushMatrix();
+  rotateY(player.wheel_rot);
   player.draw();
+  popMatrix();
   
   // get current position on map
-  int i_loc = player.getI();
-  int j_loc = player.getJ();
+  int j_loc = player.getI();
+  int i_loc = player.getJ();
 
   y_off = 0;
   
@@ -484,62 +485,13 @@ void draw()
     
 }
 
-void drawTriFan(float sz)
-{
-  textureMode(NORMALIZED);
-  beginShape(TRIANGLE_FAN);
-  //stroke(0);
- // texture(img);
-      vertex( 0,    0,  0);//,    0.50, 0.50);
-      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
-      vertex( sz/2, 0,  sz/2);//, 1.00, 1.00); 
-      vertex(0,     0,  sz/2);//, 0.50, 1.00); 
-      vertex(-sz/2, 0,  sz/2);//, 0,    1.00); 
-      vertex(-sz/2, 0,  0);//,    0,    0.50); 
-      vertex(-sz/2, 0, -sz/2);//, 0,    0); 
-      vertex( 0,    0, -sz/2);//, 0.50, 0); 
-      vertex( sz/2, 0, -sz/2);//, 1.00, 0);
-      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
-      endShape();
-}
 
 float t = 0;
 
-//////////////////////////////////////////////
-void drawGrass(int num, int i, int j)
-{
-   strokeWeight(3);
-   stroke(24,125,10);
-   
-   float dx = 3.5*(noise(0.2*t + i/100.0)-0.5);
-   float dz = 3.5*(noise(0.2*t + j/100.0)-0.5);
-      
-   for (int ind = 0; ind < num*2; ind++) {
-      float x = 1.6 * BWD * (noise(i + ind)-0.5);
-      float z = 1.6 * BWD * (noise(j + ind)-0.5);
-          
-      // TBD wind blowing effect here
-      line(x , 0, z, x + dx, -2, z + dz);
-   }
-   
-  fill(45,135,3);
-  noStroke();
-  for (float ind = 0; ind < 100.0; ind+= 1.0) {
-    float x = 1.6*(float)BWD*(noise(0.1*i + ind + t/2000.0)-0.5);
-    float z = 1.6*(float)BWD*(noise(0.1*j + ind + t/2000.0)-0.5);
-    
-    pushMatrix();
-    translate(x,ind/100.0,z);    
-    box(BWD/80);
-    popMatrix();
-  }
-  noStroke(); 
-}
+
 ////////////////////////////////////////////
 void drawTerrain(int i_loc, int j_loc)
 {
-  
-    
   fill(0,150,0);
    //stroke(50);
 
@@ -645,4 +597,55 @@ void drawTerrain(int i_loc, int j_loc)
     
   }
   popMatrix();
+}
+/////////////////////////////////////////////////////
+
+//////////////////////////////////////////////
+void drawGrass(int num, int i, int j)
+{
+   strokeWeight(3);
+   stroke(24,125,10);
+   
+   float dx = 3.5*(noise(0.2*t + i/100.0)-0.5);
+   float dz = 3.5*(noise(0.2*t + j/100.0)-0.5);
+      
+   for (int ind = 0; ind < num*2; ind++) {
+      float x = 1.6 * BWD * (noise(i + ind)-0.5);
+      float z = 1.6 * BWD * (noise(j + ind)-0.5);
+          
+      // TBD wind blowing effect here
+      line(x , 0, z, x + dx, -2, z + dz);
+   }
+   
+  fill(45,135,3);
+  noStroke();
+  for (float ind = 0; ind < 100.0; ind+= 1.0) {
+    float x = 1.6*(float)BWD*(noise(0.1*i + ind + t/2000.0)-0.5);
+    float z = 1.6*(float)BWD*(noise(0.1*j + ind + t/2000.0)-0.5);
+    
+    pushMatrix();
+    translate(x,ind/100.0,z);    
+    box(BWD/80);
+    popMatrix();
+  }
+  noStroke(); 
+}
+
+void drawTriFan(float sz)
+{
+  textureMode(NORMALIZED);
+  beginShape(TRIANGLE_FAN);
+  //stroke(0);
+ // texture(img);
+      vertex( 0,    0,  0);//,    0.50, 0.50);
+      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
+      vertex( sz/2, 0,  sz/2);//, 1.00, 1.00); 
+      vertex(0,     0,  sz/2);//, 0.50, 1.00); 
+      vertex(-sz/2, 0,  sz/2);//, 0,    1.00); 
+      vertex(-sz/2, 0,  0);//,    0,    0.50); 
+      vertex(-sz/2, 0, -sz/2);//, 0,    0); 
+      vertex( 0,    0, -sz/2);//, 0.50, 0); 
+      vertex( sz/2, 0, -sz/2);//, 1.00, 0);
+      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
+      endShape();
 }
