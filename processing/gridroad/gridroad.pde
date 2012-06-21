@@ -8,40 +8,249 @@
 */
 
 //import processing.opengl.*;
-
 import java.util.Stack;
 
-Stack<Float> cx = new Stack<Float>();
-Stack<Float> cy = new Stack<Float>();
-Stack<Float> cz = new Stack<Float>();
+// TBD class world
 
 float BWD = 100.0;
 int NUM = 1500;
-
 float dt = 0.1;
-
 float[][] elev;//[NUM][NUM];
 
 PImage img;  
 
+float y_off;
 
-float x = BWD*NUM/2;
-float y;
-float z = BWD*3*NUM/4;
-float rot;
+// camera rotation
+float rotx = -PI/8;
 
-float tire_sz = 0.5;
+boolean pause = false;
 
 HashMap roads;
 
 
-void makeRoads()
+///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+class Car {
+  
+  boolean ground_contact = false;
+  
+  // the past locations of the car
+  Stack<PVector> cv;
+ 
+ /// these are in world coordinate frame
+ PVector xyz;
+ PVector xyz_old;
+ 
+ PVector acc;
+ PVector vel;
+ 
+ float rot;
+ float rot_vel;
+ 
+ /// this is the car coordinate frame
+ /// TBD should only be 1 dimensional?
+ float wheel_acc;
+ float wheel_vel;
+ 
+ /// the angle the steering wheels are at
+ float wheel_rot;
+ 
+ float tire_sz;
+ 
+ /// the size of the car
+ float SZ;
+ 
+ color col;
+ 
+ boolean gas;
+ boolean brake_reverse;
+ boolean turn_left;
+ boolean turn_right;
+
+ 
+ car(PVector init_xyz) 
+ { 
+   cv = new Stack<PVector>();
+ 
+   xyz = new PVector(init_xyz);
+   xyz_old = new PVector(init_xyz);
+   
+   tire_sz = 0.8;
+   
+   SZ = 12;
+   
+   col = color(200,200,200);
+   
+   gas = false;
+   brake_reverse = false;
+   turn_left = false;
+   turn_right = false;
+   
+ }
+
+ int getJ() 
+ {
+   return (int)((xyz.z+BWD/2.0)/BWD );
+ }
+ 
+ int getI() 
+ {
+   return  (int)((xyz.x+BWD/2.0)/BWD );
+ }
+ 
+ void update(float y_off) 
+ {
+   
+   float acc_rate = 0.1;
+   if (gas) {
+     wheel_acc += acc_rate; 
+   }
+   if (brake_reverse) {
+     if (wheel_vel > 0) {
+       wheel_acc -= acc_rate*2;
+     } else { 
+       wheel_acc -= acc_rate*0.6;
+     } 
+   }
+   
+   wheel_vel += wheel_acc;
+   /// TBD this needs to be recomputed every time step, need a car_z_acc
+   acc.z -= wheel_vel * cos(rot + wheel_rot);
+   acc.x -= wheel_vel * sin(rot + wheel_rot);
+  
+   vel += acc;
+   xyz += vel;
+ 
+   rot_vel += rot_acc;
+   rot += rot_vel;
+   
+   // TBD or set to zero
+   wheel_acc *= 0.1;
+   acc *= 0.1;
+   rot_acc *= 0.1;
+    
+    vel *= 0.95;
+    rot_vel *= 0.95;
+    
+   // gravity
+    vel.y -= 1.1;
+  
+    // simple ground collision, no other collisions yet
+    if (y < y_off) { 
+      ground_contact = true;
+      vel.y = y_off; 
+      // bounce
+      vel.y = -vel.y*0.6; 
+    } else {
+      ground_contact = false; 
+    }  
+    
+    int loc = i_loc*NUM + j_loc;
+    boolean is_road = roads.containsKey(loc);
+  
+    if (ground_contact) {
+      if (is_road) {
+        vel.x *= 0.65;
+        vel.z *= 0.8; 
+        rot_vel *= 0.56;
+      } else {
+        vel.x *= 0.6;
+        vel.z *= 0.6; 
+        rot_vel *= 0.46;
+      } 
+    } 
+  } // update
+ 
+  void draw()
+  { 
+  // draw four wheels
+  fill(10);
+  pushMatrix();
+  
+  // the tires dangle if in mid-air
+  if (ground_contact) {
+    translate(0, -tire_sz * 0.94, 0);
+  } else {
+     translate(0, -tire_sz * 1.1, 0);
+  }
+  
+  pushMatrix();
+  translate(0, 0, SZ*0.23 );
+  
+  noStroke();
+  
+  // back wheels
+  //float tire_sz = SZ/16;
+  translate(-SZ/5,0 , 0 );
+  sphere(tire_sz);
+  translate(SZ/2.5,0 , 0 );
+  sphere(tire_sz);
+  
+  // forward wheel
+  fill(50);
+  translate(0,0 , -SZ*0.46);
+  sphere(tire_sz);
+  fill(50);
+  translate(-SZ/2.5,0 , 0 );
+  sphere(tire_sz);
+  popMatrix();
+  
+  ///////////////////
+  /// draw the body
+  strokeWeight(10);
+  stroke(0);
+  
+  pushMatrix();
+  //translate(0,BWD*0.5, 0 );
+  translate(0,-tire_sz*0.97 - SZ/8, 0 );
+  
+  fill(col);
+  
+  box(SZ/2.5, SZ/8, SZ/2);
+  translate(0,-SZ/8, 0 );
+  box(SZ/2.5, SZ/8, SZ/5);
+  popMatrix();
+ 
+ popMatrix();
+ 
+ 
+ // trails
+  if (false) {
+  if ((cv.size() == 0 ) || (count %5 == 0)) {
+    cv.push(xyz);
+  }
+  if (cv.size() > 100) {
+    cv.pop();
+  }
+  
+  //println(cx.size() + " " + cx.get(0));
+    stroke(255,200,0);
+    strokeWeight(10);
+    
+    int i =  0;
+    for (i = 0; i < cx.size()-1; i++) {
+      //println( str(cx.get(i)) + ' ' +  str(cy.get(i)) + ' ' + str(cz.get(i)) );
+      line(cx.get(i) ,  -cy.get(i), cz.get(i), 
+           cx.get(i+1), -cy.get(i+1),cz.get(i+1));
+    }
+    
+    line(xyz.x, -xyz.y, xyz.z, cx.get(i), -cy.get(i), cz.get(i));
+  }
+ 
+}
+
+}
+///////////////////////////////////////////////////////////////////////////////////
+
+Car player;
+Car[] npcs;
+
+void makeRoads(int i_loc, int j_loc)
 {
   roads = new HashMap();
   
-  int i_loc = (int)((z+BWD/2.0)/BWD );
-  int j_loc = (int)((x+BWD/2.0)/BWD );
-  
+  // TBD put in world object
   for (int i = 0; i < NUM*(NUM/50+1); i++) {
     int loc = i_loc*NUM + j_loc;
   
@@ -58,16 +267,11 @@ void makeRoads()
       j_loc -= 1;
     }
   }
+  
 }
 
-void setup()
+void makeTerrain()
 {
-  //size(800, 800, OPENGL);
-  size(600, 400, P3D);
-  frameRate(1.0/dt);
-  
-  makeRoads();
-  
   elev = new float[NUM][NUM];
   
   float nsc1 = 0.05;
@@ -79,32 +283,35 @@ void setup()
       hills *= 10*BWD;
       elev[i][j] = 1*BWD*(noise(i*nsc1,j*nsc1)-0.5) + hills - 5*BWD;
     }
+  } 
+  
+}
+
+void setup()
+{
+  //size(800, 800, OPENGL);
+  size(600, 400, P3D);
+  frameRate(1.0/dt);
+  
+  player = new Car(new PVector(BWD*NUM/2, 0, BWD*3*NUM/4));
+  
+  makeRoads( player.getI(), player.getJ() );
+  
+  makeTerrain();
+
+  if (false) {
+    img = createImage(10, 10, RGB);
+    img.loadPixels();
+    for (int i = 0; i < img.width; i++) {
+      for (int j = 0; j < img.height; j++) {
+        img.pixels[i * img.height + j] = color(12, 120 + 80 * noise(i/10.0,j/10.0), 11); 
+    }}
+  
+    img.updatePixels();
   }
-  
-  img = createImage(10, 10, RGB);
-  img.loadPixels();
-  for (int i = 0; i < img.width; i++) {
-    for (int j = 0; j < img.height; j++) {
-      img.pixels[i * img.height + j] = color(12, 120 + 80 * noise(i/10.0,j/10.0), 11); 
-  }}
-  
-  img.updatePixels();
 
  
 }
-
-
-float y_off;
-
-float yvel;
-float xvel, zvel;
-float rot_vel;
-
-float xacc, yacc, zacc, rot_acc;
-
-float rotx = -PI/8;
-boolean ground_contact = false;
-boolean pause= false;
 
 void keyReleased()
 {
@@ -144,9 +351,8 @@ void keyPressed()
   
  // if (ground_contact) {
   if (key == 'w') {
-    /// TBD this needs to be recomputed every time step, need a car_z_acc
-    zacc = -sc * cos(rot);
-    xacc = -sc * sin(rot);
+    player.gas = true;
+
   }
   if (key == 's') {  
     zacc =  sc * cos(rot);
@@ -192,67 +398,18 @@ void keyPressed()
   }
   
   if (key == 'b') {
-    tire_sz *= 0.9;
-    if (tire_sz< 0.3) {
-      tire_sz = 0.3;
+    player.tire_sz *= 0.9;
+    if (player.tire_sz< 0.3) {
+      player.tire_sz = 0.3;
     } 
   }
   if (key == 'n') {
-    tire_sz *= 1.1; 
+    player.tire_sz *= 1.1; 
   }
 }
 
-
 ////////////////////////////////////////////////////////////////////////////
-/////
 ////////////////////////////////////////////////////////////////////////////
-void drawCar(float SZ)
-{
-  
-  // draw four wheels
-  fill(10);
-  pushMatrix();
-  translate(0, -tire_sz * 0.94, 0);
-  pushMatrix();
-  translate(0, 0, SZ*0.23 );
-  
-  noStroke();
-  
-  // back wheels
-  //float tire_sz = SZ/16;
-  translate(-SZ/5,0 , 0 );
-  sphere(tire_sz);
-  translate(SZ/2.5,0 , 0 );
-  sphere(tire_sz);
-  
-  // forward wheel
-  fill(50);
-  translate(0,0 , -SZ*0.46);
-  sphere(tire_sz);
-  fill(50);
-  translate(-SZ/2.5,0 , 0 );
-  sphere(tire_sz);
-  popMatrix();
-  
-  ///////////////////
-  /// draw the body
-  strokeWeight(10);
-  stroke(0);
-  
-  pushMatrix();
-  //translate(0,BWD*0.5, 0 );
-  translate(0,-tire_sz*0.97 - SZ/8, 0 );
-  
-  fill(200);
-  
-  box(SZ/2.5, SZ/8, SZ/2);
-  translate(0,-SZ/8, 0 );
-  box(SZ/2.5, SZ/8, SZ/5);
-  popMatrix();
- 
- popMatrix();
- 
-}
 
 int  count = 0;
 void draw()
@@ -270,81 +427,27 @@ void draw()
   translate(width/2, height/2, height*.81 );
   
   // how far behind the car the camera should be
-  float car_sz = 15;
-  translate(0, car_sz/2, 0);//car_sz*2 );
+  
+  translate(0, player.SZ/2, 0);//car_sz*2 );
   
   rotateX(rotx);
     
   drawCar(car_sz);
   
   // get current position on map
-  int i_loc = (int)((z+BWD/2.0)/BWD );
-  int j_loc = (int)((x+BWD/2.0)/BWD );
+  int i_loc = player.getI();
+  int j_loc = player.getJ();
 
   y_off = 0;
   
-  /*
-  i_loc %= NUM;
-  j_loc %= NUM;
-  
-  if (j_loc < 0) j_loc+= NUM;
-  if (i_loc < 0) i_loc+= NUM;
-  */
-  
-  //println(i_loc + " " + j_loc);
-
-  
   if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
-   y_off = elev[i_loc][j_loc];
+    y_off = elev[i_loc][j_loc];
   }
-  
-  //println(x + ", x=" + j_loc + ", " + z + ", z=" + i_loc + ", y " + y + "," +  y_off);
 
   rotateY(-rot);
   
-  
-  if (!pause) {
-    
-    xvel += xacc;
-    yvel += yacc;
-    zvel += zacc;
-    rot_vel += rot_acc;
-    
-  yvel *= 0.95;
-  // gravity
-  yvel -= 1.1;
-  y += yvel;
-  
-  if (y < y_off) { 
-    ground_contact = true;
-    y = y_off; 
-    yvel = 0; 
-  } else {
-    ground_contact = false; 
-  }
-  
-  int loc = i_loc*NUM + j_loc;
-  boolean is_road = roads.containsKey(loc);
-  
-  if (ground_contact) {
-    if (is_road) {
-      xvel *= 0.65;
-      zvel *= 0.8; 
-      rot_vel *= 0.56;
-    } else {
-    xvel *= 0.6;
-    zvel *= 0.6; 
-    rot_vel *= 0.46;
-    } 
-  } else {
-    xvel *= 0.95;
-    zvel *= 0.95; 
-    rot_vel *= 0.95;
-  }
-  
-  x += xvel; // xvel * cos(rot) + zvel * sin(rot);
-  z += zvel;// -zvel * sin(rot) + zvel * cos(rot);
-  rot += rot_vel;
+  if (!pause) {   
+    player.update(y_off);
   }
   
   translate(-x, y, -z);
@@ -353,40 +456,7 @@ void draw()
   //          BWD + y, 
   //           x*sin(rot) -z*cos(rot));
   
-  
- 
  drawTerrain(i_loc, j_loc);
-
-
-// trails
-if (false) {
-  if ((cx.size() == 0 ) || (count %5 == 0)) {
-  cx.push(x);
-  cy.push(y);
-  cz.push(z);
-  }
- 
-  if (cx.size() > 100) {
-    cx.pop();
-    cy.pop();
-    cz.pop();
-  }
-  
-
-  //println(cx.size() + " " + cx.get(0));
-  
-    stroke(255,200,0);
-    strokeWeight(10);
-    
-    int i =  0;
-    for (i = 0; i < cx.size()-1; i++) {
-      //println( str(cx.get(i)) + ' ' +  str(cy.get(i)) + ' ' + str(cz.get(i)) );
-      line(cx.get(i) ,  -cy.get(i), cz.get(i), 
-           cx.get(i+1), -cy.get(i+1),cz.get(i+1));
-    }
-    
-    line(x,-y,z, cx.get(i), -cy.get(i), cz.get(i));
-}
     
 }
 
