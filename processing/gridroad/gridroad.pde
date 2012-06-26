@@ -10,12 +10,7 @@
 //import processing.opengl.*;
 import java.util.Stack;
 
-// TBD class world
 
-float BWD = 100.0;
-int NUM = 1500;
-float dt = 0.1;
-float[][] elev;//[NUM][NUM];
 
 PImage img;  
 
@@ -68,7 +63,6 @@ class Car {
  boolean brake_reverse;
  boolean turn_left;
  boolean turn_right;
-
  
  Car(PVector init_xyz) 
  { 
@@ -295,8 +289,25 @@ void makeRoads(int i_loc, int j_loc)
   
 }
 
-void makeTerrain()
-{
+//////////////////////////////////////////////////////////////////////////////////////////
+///
+////////////////////////////////////////////////////////////////////////////////////////
+
+class Terrain {
+  
+  // TBD class world
+
+float BWD = 128.0;
+int NUM = 2048;
+float dt = 0.1;
+float[][] elev;//[NUM][NUM];
+
+  Terrain() {
+    
+  }
+  
+  void makeTerrain()
+  {
   elev = new float[NUM][NUM];
   
   float nsc1 = 0.05;
@@ -311,11 +322,15 @@ void makeTerrain()
   } 
   
 }
+  
+}
+
+
 
 void setup()
 {
   //size(800, 800, OPENGL);
-  size(600, 400, P3D);
+  size(1280, 720, P3D);
   frameRate(1.0/dt);
   
   player = new Car(new PVector(BWD*NUM/2, 0, BWD*3*NUM/4));
@@ -483,6 +498,8 @@ void draw()
   
  drawTerrain(i_loc, j_loc);
     
+    
+  //saveFrame("line-####.png");
 }
 
 
