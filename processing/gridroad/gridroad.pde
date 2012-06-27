@@ -478,11 +478,11 @@ Terrain terrain;
 
 void setup()
 {
-  //size(800, 800, OPENGL);
-  size(1280, 720, P3D);
+  size(800, 800, OPENGL);
+  //size(1280, 720, P3D);
   frameRate(1.0/dt);
   
-  int NUM = 3^7;
+  int NUM = (int)pow(3,7);
   
   player = new Car(new PVector(BWD*NUM/2, 0, BWD*3*NUM/4));
   
@@ -657,11 +657,11 @@ void drawGrass(int num, int i, int j)
    stroke(24,125,10);
    
    float dx = 3.5*(noise(0.2*t + i/100.0)-0.5);
-   float dz = 3.5*(noise(0.2*t + j/100.0)-0.5);
+   float dz = 3.5*(noise(0.2*t + j/100.0 + 1000)-0.5);
       
    for (int ind = 0; ind < num*2; ind++) {
       float x = 1.6 * BWD * (noise(i + ind)-0.5);
-      float z = 1.6 * BWD * (noise(j + ind)-0.5);
+      float z = 1.6 * BWD * (noise(j + ind + 200)-0.5);
           
       // TBD wind blowing effect here
       line(x , 0, z, x + dx, -2, z + dz);
@@ -671,7 +671,7 @@ void drawGrass(int num, int i, int j)
   noStroke();
   for (float ind = 0; ind < 100.0; ind+= 1.0) {
     float x = 1.6*(float)BWD*(noise(0.1*i + ind + t/2000.0)-0.5);
-    float z = 1.6*(float)BWD*(noise(0.1*j + ind + t/2000.0)-0.5);
+    float z = 1.6*(float)BWD*(noise(0.1*j + ind + t/2000.0 + 500)-0.5);
     
     pushMatrix();
     translate(x,ind/100.0,z);    
