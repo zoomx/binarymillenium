@@ -294,33 +294,43 @@ class Terrain {
   // TBD class world
 
   int NUM; // = 2048;
+  float BWD;
 
   float[][] elev;//[NUM][NUM];
 
   Terrain parent;
+  Terrain child;
   
-  Terrain(int new_num) {
+  Terrain(int new_num, float new_BWD) {
+    println("new terrain " + new_num + " " + new_BWD);
     NUM = new_num;
+    BWD = new_BWD;
     
     parent = null;
     
     makeTerrain(); 
+    
+    if (NUM >= 9) {
+      child = new Terrain(this);
+    }
   }
   
   void makeTerrain()
   {
-  elev = new float[NUM][NUM];
+    elev = new float[NUM][NUM];
   
-  float nsc1 = 0.05;
-  for (int i = 0; i < NUM; i++) {
+    float nsc1 = 0.05;
+    for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
       //elev[i][j] = -0.2*(i*j);
       float hills = (noise(100+i*nsc1,10+j*nsc1)-0.5);
       if (hills < 0.0) hills = 0;
       hills *= 10*BWD;
       elev[i][j] = 1*BWD*(noise(i*nsc1,j*nsc1)-0.5) + hills - 5*BWD;
+      
+      elev[i][j]=0;
     }
-  }
+    }
   
   }  // makeTerrain
   
@@ -328,76 +338,68 @@ class Terrain {
     parent = new_parent;
     
     NUM = parent.NUM/3;
+    BWD = parent.BWD*3;
     
     elev = new float[NUM][NUM];
     
     for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
        float sum = 0; 
-       for (int is = 0; is < 3; is++) {
-       for (int js = 0; js < 3; js++) {
-         sum += parent.elev[i*3 + is][j*3 + js];
+       for (int is = -1; is <= 1; is++) {
+       for (int js = -1; js <= 1; js++) {
+         sum += parent.getElev(i*3 + is, j*3 + js);
        }}
        
        sum /= 9;
        
        elev[i][j] = sum;
     }}
-  }
-  
     
-  float getElev(int i_loc, int j_loc) {
-  if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
-    return elev[i_loc][j_loc];
+    if (NUM >= 9) {
+      child = new Terrain(this);
+    }
   }
-  return 0;
-  }
-
   
-float t = 0;
-
+  float getElev(int i_loc, int j_loc) {
+    
+    if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
+      return elev[i_loc][j_loc];
+    }
+    
+    return 0;
+    
+  }
 
 ////////////////////////////////////////////
-void draw(int i_loc, int j_loc)
+void draw(int i_loc, int j_loc, int max_dist, int min_dist)
 {
+  if (child != null) {
+    child.draw(i_loc/3, j_loc/3  , max_dist, max_dist/3 + 1);
+  }
+  
   fill(0,150,0);
    //stroke(50);
 
-  int DRAW_NUM = 800;
+  //int DRAW_NUM = 800;
   pushMatrix();
   noStroke();
-  for (int i = i_loc- DRAW_NUM; i < i_loc + DRAW_NUM; i++) {
+  for (int i = i_loc - max_dist; i < i_loc + max_dist; i++) {
     //pushMatrix();
-    for (int j = j_loc - DRAW_NUM; j < j_loc + DRAW_NUM; j++) {
+    for (int j = j_loc - max_dist; j < j_loc + max_dist; j++) {
       
       if ((i < 0) || (j < 0) || (i >= NUM) || (j >= NUM)) {
         continue;  
       }
       
-      float mdist = abs(i - i_loc) + abs(j - j_loc);   
+      float mdist = abs( i - i_loc) + abs( j - j_loc);   
       
       float sc = 1.0;
       
-      if (mdist > 400) {
+      if ((abs(i-i_loc) >= max_dist) && (abs(j-j_loc) >= max_dist)) {
         continue; 
       }   
-      if (mdist > 100) {
-        if (mdist % 64 != 0) {
-          continue; 
-        }     
-        sc = 16;   
-      }   
-      if (mdist > 25) {
-        if ( (mdist) % 8 != 0) {
-        continue; 
-        } 
-        sc = 4;
-      }
-      if (mdist > 15) {
-        if (mdist % 2 != 0) {
-        continue; 
-        }
-        sc = 2;
+      if ((abs(i-i_loc) < min_dist) && (abs(j-j_loc) < min_dist)) {
+         continue; 
       }
       
       int loc = i*NUM + j;
@@ -478,7 +480,7 @@ Terrain terrain;
 
 void setup()
 {
-  size(800, 800, OPENGL);
+  size(800, 800, P3D);
   //size(1280, 720, P3D);
   frameRate(1.0/dt);
   
@@ -488,7 +490,7 @@ void setup()
   
   //makeRoads( player.getI(), player.getJ() );
   
-  terrain = new Terrain(NUM);
+  terrain = new Terrain(NUM,BWD);
 
   if (false) {
     img = createImage(10, 10, RGB);
@@ -643,7 +645,7 @@ void draw()
   //          BWD + y, 
   //           x*sin(rot) -z*cos(rot));
   
- terrain.draw(i_loc, j_loc);
+ terrain.draw(i_loc, j_loc, 9,0);
     
     
   //saveFrame("line-####.png");
