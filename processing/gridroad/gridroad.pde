@@ -10,19 +10,12 @@
 //import processing.opengl.*;
 import java.util.Stack;
 
-
-
 PImage img;  
-
 float y_off;
-
 // camera rotation
 float rotx = -PI/8;
-
 boolean pause = false;
-
 HashMap roads;
-
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -163,8 +156,8 @@ class Car {
    vel.mult( 0.95 );
    rot_vel *= 0.95;
     
-    int loc = getI()*NUM + getJ();
-    boolean is_road = roads.containsKey(loc);
+    //int loc = getI()*NUM + getJ();
+    boolean is_road =false;// roads.containsKey(loc);
   
     if (ground_contact) {
       if (is_road) {
@@ -265,7 +258,7 @@ class Car {
 Car player;
 Car[] npcs;
 
-void makeRoads(int i_loc, int j_loc)
+void makeRoads(int i_loc, int j_loc, int NUM)
 {
   roads = new HashMap();
   
@@ -293,17 +286,25 @@ void makeRoads(int i_loc, int j_loc)
 ///
 ////////////////////////////////////////////////////////////////////////////////////////
 
+  float dt = 0.1;
+    float BWD = 128.0;
+  
 class Terrain {
   
   // TBD class world
 
-float BWD = 128.0;
-int NUM = 2048;
-float dt = 0.1;
-float[][] elev;//[NUM][NUM];
+  int NUM; // = 2048;
 
-  Terrain() {
+  float[][] elev;//[NUM][NUM];
+
+  Terrain parent;
+  
+  Terrain(int new_num) {
+    NUM = new_num;
     
+    parent = null;
+    
+    makeTerrain(); 
   }
   
   void makeTerrain()
@@ -319,13 +320,161 @@ float[][] elev;//[NUM][NUM];
       hills *= 10*BWD;
       elev[i][j] = 1*BWD*(noise(i*nsc1,j*nsc1)-0.5) + hills - 5*BWD;
     }
-  } 
+  }
   
-}
+  }  // makeTerrain
   
-}
+  Terrain(Terrain new_parent) {
+    parent = new_parent;
+    
+    NUM = parent.NUM/3;
+    
+    elev = new float[NUM][NUM];
+    
+    for (int i = 0; i < NUM; i++) {
+    for (int j = 0; j < NUM; j++) {
+       float sum = 0; 
+       for (int is = 0; is < 3; is++) {
+       for (int js = 0; js < 3; js++) {
+         sum += parent.elev[i*3 + is][j*3 + js];
+       }}
+       
+       sum /= 9;
+       
+       elev[i][j] = sum;
+    }}
+  }
+  
+    
+  float getElev(int i_loc, int j_loc) {
+  if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
+    return elev[i_loc][j_loc];
+  }
+  return 0;
+  }
+
+  
+float t = 0;
 
 
+////////////////////////////////////////////
+void draw(int i_loc, int j_loc)
+{
+  fill(0,150,0);
+   //stroke(50);
+
+  int DRAW_NUM = 800;
+  pushMatrix();
+  noStroke();
+  for (int i = i_loc- DRAW_NUM; i < i_loc + DRAW_NUM; i++) {
+    //pushMatrix();
+    for (int j = j_loc - DRAW_NUM; j < j_loc + DRAW_NUM; j++) {
+      
+      if ((i < 0) || (j < 0) || (i >= NUM) || (j >= NUM)) {
+        continue;  
+      }
+      
+      float mdist = abs(i - i_loc) + abs(j - j_loc);   
+      
+      float sc = 1.0;
+      
+      if (mdist > 400) {
+        continue; 
+      }   
+      if (mdist > 100) {
+        if (mdist % 64 != 0) {
+          continue; 
+        }     
+        sc = 16;   
+      }   
+      if (mdist > 25) {
+        if ( (mdist) % 8 != 0) {
+        continue; 
+        } 
+        sc = 4;
+      }
+      if (mdist > 15) {
+        if (mdist % 2 != 0) {
+        continue; 
+        }
+        sc = 2;
+      }
+      
+      int loc = i*NUM + j;
+      boolean is_road = false;//roads.containsKey(loc);
+      
+      pushMatrix();
+      translate(j*BWD, -elev[i][j], i*BWD);
+   
+      if ( mdist < 3 ) {
+        //stroke(0);
+        if (is_road) {
+          fill(150);
+        } else {
+          fill(0,150,0);
+          // draw grass
+          drawGrass(50,  i,  j);
+        }
+        drawTriFan(BWD);
+        
+        if (true) {
+        pushMatrix();
+        rotateX(PI/2);
+        translate(0, BWD/2,-BWD*0.499);
+        drawTriFan(BWD);
+        translate(0, -BWD,0);
+        drawTriFan(BWD);
+        popMatrix();
+      }
+        pushMatrix();
+        rotateZ(PI/2);
+        translate(BWD*0.499,-BWD*0.5,0);
+        drawTriFan(BWD);
+        translate(0, BWD,0);
+        drawTriFan(BWD);
+        popMatrix();   
+       
+      } else {
+        if (is_road) {
+          fill(130);
+        } else {
+          fill(0,130,0);
+        }
+         
+        if (mdist < 6) {
+          if (is_road) {
+            fill(135);
+          } else {
+            fill(0,135,0);
+            drawGrass(5, i, j); 
+          }
+          
+        }
+        
+        translate(0,sc * BWD/2, 0);
+        box(sc*BWD);
+      
+      }
+
+      popMatrix();
+      //translate(BWD,0,0);
+    }
+    //popMatrix();
+    //translate(0,0,BWD);
+    //translate(-10*20, 0, 10);
+    
+  }
+  popMatrix();
+}
+/////////////////////////////////////////////////////
+
+  
+} // Terrain
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+
+Terrain terrain;
 
 void setup()
 {
@@ -333,11 +482,13 @@ void setup()
   size(1280, 720, P3D);
   frameRate(1.0/dt);
   
+  int NUM = 3^7;
+  
   player = new Car(new PVector(BWD*NUM/2, 0, BWD*3*NUM/4));
   
-  makeRoads( player.getI(), player.getJ() );
+  //makeRoads( player.getI(), player.getJ() );
   
-  makeTerrain();
+  terrain = new Terrain(NUM);
 
   if (false) {
     img = createImage(10, 10, RGB);
@@ -349,8 +500,6 @@ void setup()
   
     img.updatePixels();
   }
-
- 
 }
 
 void keyReleased()
@@ -450,6 +599,8 @@ void keyPressed()
 ////////////////////////////////////////////////////////////////////////////
 
 int  count = 0;
+float t;
+
 void draw()
 {
   t += dt;
@@ -477,11 +628,7 @@ void draw()
   int j_loc = player.getI();
   int i_loc = player.getJ();
 
-  y_off = 0;
-  
-  if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
-    y_off = elev[i_loc][j_loc];
-  }
+  y_off = terrain.getElev(i_loc,j_loc);
 
   rotateY(-player.rot);
   
@@ -496,126 +643,12 @@ void draw()
   //          BWD + y, 
   //           x*sin(rot) -z*cos(rot));
   
- drawTerrain(i_loc, j_loc);
+ terrain.draw(i_loc, j_loc);
     
     
   //saveFrame("line-####.png");
 }
 
-
-float t = 0;
-
-
-////////////////////////////////////////////
-void drawTerrain(int i_loc, int j_loc)
-{
-  fill(0,150,0);
-   //stroke(50);
-
-  int DRAW_NUM = 800;
-  pushMatrix();
-  noStroke();
-  for (int i = i_loc- DRAW_NUM; i < i_loc + DRAW_NUM; i++) {
-    //pushMatrix();
-    for (int j = j_loc - DRAW_NUM; j < j_loc + DRAW_NUM; j++) {
-      
-      if ((i < 0) || (j < 0) || (i >= NUM) || (j >= NUM)) {
-        continue;  
-      }
-      
-      float mdist = abs(i - i_loc) + abs(j - j_loc);   
-      
-      float sc = 1.0;
-      
-      if (mdist > 400) {
-        continue; 
-      }   
-      if (mdist > 100) {
-        if (mdist % 64 != 0) {
-          continue; 
-        }     
-        sc = 16;   
-      }   
-      if (mdist > 25) {
-        if ( (mdist) % 8 != 0) {
-        continue; 
-        } 
-        sc = 4;
-      }
-      if (mdist > 15) {
-        if (mdist % 2 != 0) {
-        continue; 
-        }
-        sc = 2;
-      }
-      
-      int loc = i*NUM + j;
-      boolean is_road = roads.containsKey(loc);
-      
-      pushMatrix();
-      translate(j*BWD, -elev[i][j], i*BWD);
-   
-      if ( mdist < 3 ) {
-        //stroke(0);
-        if (is_road) {
-          fill(150);
-        } else {
-          fill(0,150,0);
-          // draw grass
-          drawGrass(50,  i,  j);
-        }
-        drawTriFan(BWD);
-        
-        if (true) {
-        pushMatrix();
-        rotateX(PI/2);
-        translate(0, BWD/2,-BWD*0.499);
-        drawTriFan(BWD);
-        translate(0, -BWD,0);
-        drawTriFan(BWD);
-        popMatrix();
-      }
-        pushMatrix();
-        rotateZ(PI/2);
-        translate(BWD*0.499,-BWD*0.5,0);
-        drawTriFan(BWD);
-        translate(0, BWD,0);
-        drawTriFan(BWD);
-        popMatrix();   
-       
-      } else {
-        if (is_road) {
-          fill(130);
-        } else {
-          fill(0,130,0);
-        }
-         
-        if (mdist < 6) {
-          if (is_road) {
-            fill(135);
-          } else {
-            fill(0,135,0);
-            drawGrass(5, i, j); 
-          }
-          
-        }
-        
-        translate(0,sc * BWD/2, 0);
-        box(sc*BWD);
-      
-      }
-
-      popMatrix();
-      //translate(BWD,0,0);
-    }
-    //popMatrix();
-    //translate(0,0,BWD);
-    //translate(-10*20, 0, 10);
-    
-  }
-  popMatrix();
-}
-/////////////////////////////////////////////////////
 
 //////////////////////////////////////////////
 void drawGrass(int num, int i, int j)
