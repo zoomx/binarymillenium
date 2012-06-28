@@ -301,6 +301,9 @@ class Terrain {
   Terrain parent;
   Terrain child;
   
+  PFont fontA;
+
+  
   Terrain(int new_num, float new_BWD) {
     println("new terrain " + new_num + " " + new_BWD);
     NUM = new_num;
@@ -373,8 +376,14 @@ class Terrain {
 ////////////////////////////////////////////
 void draw(int i_loc, int j_loc, int max_dist, int min_dist)
 {
+  i_loc /= 3;
+  i_loc*=3;
+  
+  j_loc /= 3;
+  j_loc *= 3;
+  
   if (child != null) {
-    child.draw(i_loc/3, j_loc/3  , max_dist, max_dist/3 + 1);
+    child.draw(i_loc/3, j_loc/3  , max_dist, (max_dist)/3+1);
   }
   
   fill(0,150,0);
@@ -383,32 +392,59 @@ void draw(int i_loc, int j_loc, int max_dist, int min_dist)
   //int DRAW_NUM = 800;
   pushMatrix();
   noStroke();
-  for (int i = i_loc - max_dist; i < i_loc + max_dist; i++) {
+  for (int i1 = i_loc - max_dist*2; i1 < i_loc + max_dist*2; i1 += 3) {
     //pushMatrix();
-    for (int j = j_loc - max_dist; j < j_loc + max_dist; j++) {
+    for (int j1 = j_loc - max_dist*2; j1 < j_loc + max_dist*2; j1 += 3) {
       
-      if ((i < 0) || (j < 0) || (i >= NUM) || (j >= NUM)) {
-        continue;  
-      }
       
-      float mdist = abs( i - i_loc) + abs( j - j_loc);   
-      
-      float sc = 1.0;
-      
-      if ((abs(i-i_loc) >= max_dist) && (abs(j-j_loc) >= max_dist)) {
+      if ((abs( i1 - i_loc) > max_dist) || (abs(j1-j_loc) > max_dist)) {
         continue; 
       }   
-      if ((abs(i-i_loc) < min_dist) && (abs(j-j_loc) < min_dist)) {
+      if ((abs(i1 - i_loc) < min_dist) && (abs(j1-j_loc) < min_dist)) {
          continue; 
       }
       
-      int loc = i*NUM + j;
-      boolean is_road = false;//roads.containsKey(loc);
+      for (int i2 = 0; i2 <= 2; i2++) {
+      for (int j2 = 0; j2 <= 2; j2++) {
+        
+        int i = i1 + i2;
+        int j = j1 + j2;
       
-      pushMatrix();
-      translate(j*BWD, -elev[i][j], i*BWD);
+        if ((i < 0) || (j < 0) || (i >= NUM) || (j >= NUM)) {
+          continue;  
+        }
+      
+        int mdist = abs( i - i_loc) + abs( j - j_loc);  
+
+        drawSection(i, j, mdist);
+      
+      }}   
+  
+    }
+
+  }
+  popMatrix();
+}
+
+  void drawSection(int i, int j, int mdist)
+  {
+         float sc = 1.0;
+    int loc = i*NUM + j;
+    boolean is_road = false;//roads.containsKey(loc);
+      
+    pushMatrix();
+    translate(j*BWD, -elev[i][j], i*BWD);
+      
+       //stroke(0);
+       /*
+        pushMatrix();
+        rotateX(-PI/2);
+        fill(0);
+         text(str(i) + "," + str(j), 0, 0, -BWD/2);
+         popMatrix();
+         */
    
-      if ( mdist < 3 ) {
+      if ( (parent == null) && (mdist < 3) ) {
         //stroke(0);
         if (is_road) {
           fill(150);
@@ -443,7 +479,7 @@ void draw(int i_loc, int j_loc, int max_dist, int min_dist)
           fill(0,130,0);
         }
          
-        if (mdist < 6) {
+        if ((parent == null) && (mdist < 6)) {
           if (is_road) {
             fill(135);
           } else {
@@ -453,21 +489,14 @@ void draw(int i_loc, int j_loc, int max_dist, int min_dist)
           
         }
         
+        stroke(0);
+        strokeWeight(1);
         translate(0,sc * BWD/2, 0);
-        box(sc*BWD);
+        box(sc*BWD*0.9);
       
-      }
-
+      } 
       popMatrix();
-      //translate(BWD,0,0);
-    }
-    //popMatrix();
-    //translate(0,0,BWD);
-    //translate(-10*20, 0, 10);
-    
-  }
-  popMatrix();
-}
+  } // drawSection
 /////////////////////////////////////////////////////
 
   
@@ -478,11 +507,17 @@ void draw(int i_loc, int j_loc, int max_dist, int min_dist)
 
 Terrain terrain;
 
+PFont fontA;
+
 void setup()
 {
   size(800, 800, P3D);
   //size(1280, 720, P3D);
+  
   frameRate(1.0/dt);
+  
+  fontA = loadFont("Courier10PitchBT-Roman-36.vlw");
+  textFont(fontA, 16);
   
   int NUM = (int)pow(3,7);
   
