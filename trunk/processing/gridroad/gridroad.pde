@@ -376,15 +376,20 @@ class Terrain {
 ////////////////////////////////////////////
 void draw(int i_loc, int j_loc, int max_dist, int min_dist)
 {
-  i_loc /= 3;
+
+  
+  if (child != null) {
+    pushMatrix();
+    translate(BWD, 0, BWD);
+    child.draw(i_loc/3, j_loc/3  , max_dist, (max_dist)/3);
+    popMatrix();
+  }
+  
+    i_loc /= 3;
   i_loc*=3;
   
   j_loc /= 3;
   j_loc *= 3;
-  
-  if (child != null) {
-    child.draw(i_loc/3, j_loc/3  , max_dist, (max_dist)/3+1);
-  }
   
   fill(0,150,0);
    //stroke(50);
@@ -396,11 +401,10 @@ void draw(int i_loc, int j_loc, int max_dist, int min_dist)
     //pushMatrix();
     for (int j1 = j_loc - max_dist*2; j1 < j_loc + max_dist*2; j1 += 3) {
       
-      
-      if ((abs( i1 - i_loc) > max_dist) || (abs(j1-j_loc) > max_dist)) {
+      if ((abs(i1 - i_loc)/3 > max_dist/3) || (abs(j1 - j_loc)/3 > max_dist/3)) {
         continue; 
       }   
-      if ((abs(i1 - i_loc) < min_dist) && (abs(j1-j_loc) < min_dist)) {
+      if ((abs(i1 - i_loc) < min_dist +1) && (abs(j1-j_loc) < min_dist +1)) {
          continue; 
       }
       
@@ -680,7 +684,7 @@ void draw()
   //          BWD + y, 
   //           x*sin(rot) -z*cos(rot));
   
- terrain.draw(i_loc, j_loc, 9,0);
+ terrain.draw(i_loc, j_loc, 9, -1);
     
     
   //saveFrame("line-####.png");
