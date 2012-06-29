@@ -13,7 +13,7 @@ import java.util.Stack;
 PImage img;  
 float y_off;
 // camera rotation
-float rotx = -PI/8;
+float rotx = -PI/2;
 boolean pause = false;
 HashMap roads;
 
@@ -93,7 +93,7 @@ class Car {
  void update(float y_off) 
  {
    
-   float acc_rate = 0.15;
+   float acc_rate = 1.5; //0.15;
    if (gas) {
      wheel_acc += acc_rate; 
    }
@@ -115,7 +115,7 @@ class Car {
    }
    
    // gravity
-   acc.y -= 1.0;
+   //acc.y -= 1.0;
    
    wheel_vel += wheel_acc;
    
@@ -374,55 +374,52 @@ class Terrain {
   }
 
 ////////////////////////////////////////////
-void draw(int i_loc, int j_loc, int max_dist, int min_dist)
+void draw(
+    int i_loc, int j_loc,
+    int i_min, int j_min,
+    int i_max, int j_max,
+    int i_in_min, int j_in_min,
+    int i_in_max, int j_in_max)
 {
 
   
   if (child != null) {
     pushMatrix();
     translate(BWD, 0, BWD);
-    child.draw(i_loc/3, j_loc/3  , max_dist, (max_dist)/3);
+    
+    int i_sc = (i_max-i_min)/3;
+    int j_sc = (j_max-j_min)/3;
+    
+    //child.draw(i_loc/3, j_loc/3, i_min);
     popMatrix();
   }
-  
-    i_loc /= 3;
-  i_loc*=3;
-  
-  j_loc /= 3;
-  j_loc *= 3;
   
   fill(0,150,0);
    //stroke(50);
 
-  //int DRAW_NUM = 800;
   pushMatrix();
   noStroke();
-  for (int i1 = i_loc - max_dist*2; i1 < i_loc + max_dist*2; i1 += 3) {
+  for (int i = i_min; i < i_max; i += 1) {
     //pushMatrix();
-    for (int j1 = j_loc - max_dist*2; j1 < j_loc + max_dist*2; j1 += 3) {
+    if (i >= NUM) break;
+    if (i < 0) continue;
+    
+    for (int j = j_min; j < j_max; j += 1) {
       
-      if ((abs(i1 - i_loc)/3 > max_dist/3) || (abs(j1 - j_loc)/3 > max_dist/3)) {
-        continue; 
-      }   
-      if ((abs(i1 - i_loc) < min_dist +1) && (abs(j1-j_loc) < min_dist +1)) {
-         continue; 
+      if (j >= NUM) break;
+      if (j < 0) continue;
+      
+      if ((i >= i_in_min) && (i < i_in_max) &&
+          (j >= j_in_min) && (j < j_in_max)) {
+      
+        continue;     
       }
       
-      for (int i2 = 0; i2 <= 2; i2++) {
-      for (int j2 = 0; j2 <= 2; j2++) {
-        
-        int i = i1 + i2;
-        int j = j1 + j2;
       
-        if ((i < 0) || (j < 0) || (i >= NUM) || (j >= NUM)) {
-          continue;  
-        }
       
         int mdist = abs( i - i_loc) + abs( j - j_loc);  
 
-        drawSection(i, j, mdist);
-      
-      }}   
+        drawSection(i, j, mdist);  
   
     }
 
@@ -432,7 +429,7 @@ void draw(int i_loc, int j_loc, int max_dist, int min_dist)
 
   void drawSection(int i, int j, int mdist)
   {
-         float sc = 1.0;
+    float sc = 1.0;
     int loc = i*NUM + j;
     boolean is_road = false;//roads.containsKey(loc);
       
@@ -515,7 +512,7 @@ PFont fontA;
 
 void setup()
 {
-  size(800, 800, P3D);
+  size(600, 600, P3D);
   //size(1280, 720, P3D);
   
   frameRate(1.0/dt);
@@ -523,9 +520,9 @@ void setup()
   fontA = loadFont("Courier10PitchBT-Roman-36.vlw");
   textFont(fontA, 16);
   
-  int NUM = (int)pow(3,7);
+  int NUM = (int)pow(3,4);
   
-  player = new Car(new PVector(BWD*NUM/2, 0, BWD*3*NUM/4));
+  player = new Car(new PVector(BWD*NUM/2, BWD*20, BWD*NUM/2));
   
   //makeRoads( player.getI(), player.getJ() );
   
@@ -542,6 +539,111 @@ void setup()
     img.updatePixels();
   }
 }
+/////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+int  count = 0;
+float t;
+
+void draw()
+{
+  t += dt;
+  count += 1;
+  
+  background(10,90,200);
+  ambientLight(50, 50, 200);
+  directionalLight(255,255,220,0.2,1.0,-0.3);
+  
+  // TBD where does BWD*13 come from?
+  translate(width/2, height/2, height*.81 );
+  
+  // how far behind the car the camera should be
+  
+  translate(0, player.SZ/2, 0);//car_sz*2 );
+  
+  rotateX(rotx);
+    
+  pushMatrix();
+  rotateY(player.wheel_rot);
+  player.draw();
+  popMatrix();
+  
+  // get current position on map
+  int j_loc = player.getI();
+  int i_loc = player.getJ();
+
+  y_off = terrain.getElev(i_loc,j_loc);
+
+  rotateY(-player.rot);
+  
+  if (!pause) {   
+    player.update(y_off);
+  }
+  
+  //translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
+  translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
+  
+  //translate(-x*cos(rot) -z*sin(rot),
+  //          BWD + y, 
+  //           x*sin(rot) -z*cos(rot));
+  
+ terrain.draw(i_loc, j_loc, i_loc - 10, j_loc - 10, i_loc+10, j_loc+10, i_loc, j_loc, i_loc, j_loc);
+    
+    
+  //saveFrame("line-####.png");
+}
+
+
+//////////////////////////////////////////////
+void drawGrass(int num, int i, int j)
+{
+   strokeWeight(3);
+   stroke(24,125,10);
+   
+   float dx = 3.5*(noise(0.2*t + i/100.0)-0.5);
+   float dz = 3.5*(noise(0.2*t + j/100.0 + 1000)-0.5);
+      
+   for (int ind = 0; ind < num*2; ind++) {
+      float x = 1.6 * BWD * (noise(i + ind)-0.5);
+      float z = 1.6 * BWD * (noise(j + ind + 200)-0.5);
+          
+      // TBD wind blowing effect here
+      line(x , 0, z, x + dx, -2, z + dz);
+   }
+   
+  fill(45,135,3);
+  noStroke();
+  for (float ind = 0; ind < 100.0; ind+= 1.0) {
+    float x = 1.6*(float)BWD*(noise(0.1*i + ind + t/2000.0)-0.5);
+    float z = 1.6*(float)BWD*(noise(0.1*j + ind + t/2000.0 + 500)-0.5);
+    
+    pushMatrix();
+    translate(x,ind/100.0,z);    
+    box(BWD/80);
+    popMatrix();
+  }
+  noStroke(); 
+}
+
+void drawTriFan(float sz)
+{
+  textureMode(NORMALIZED);
+  beginShape(TRIANGLE_FAN);
+  //stroke(0);
+ // texture(img);
+      vertex( 0,    0,  0);//,    0.50, 0.50);
+      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
+      vertex( sz/2, 0,  sz/2);//, 1.00, 1.00); 
+      vertex(0,     0,  sz/2);//, 0.50, 1.00); 
+      vertex(-sz/2, 0,  sz/2);//, 0,    1.00); 
+      vertex(-sz/2, 0,  0);//,    0,    0.50); 
+      vertex(-sz/2, 0, -sz/2);//, 0,    0); 
+      vertex( 0,    0, -sz/2);//, 0.50, 0); 
+      vertex( sz/2, 0, -sz/2);//, 1.00, 0);
+      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
+      endShape();
+}
+
 
 void keyReleased()
 {
@@ -636,107 +738,4 @@ void keyPressed()
   }
 }
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
-int  count = 0;
-float t;
-
-void draw()
-{
-  t += dt;
-  count += 1;
-  
-  background(10,90,200);
-  ambientLight(50, 50, 200);
-  directionalLight(255,255,220,0.2,1.0,-0.3);
-  
-  // TBD where does BWD*13 come from?
-  translate(width/2, height/2, height*.81 );
-  
-  // how far behind the car the camera should be
-  
-  translate(0, player.SZ/2, 0);//car_sz*2 );
-  
-  rotateX(rotx);
-    
-  pushMatrix();
-  rotateY(player.wheel_rot);
-  player.draw();
-  popMatrix();
-  
-  // get current position on map
-  int j_loc = player.getI();
-  int i_loc = player.getJ();
-
-  y_off = terrain.getElev(i_loc,j_loc);
-
-  rotateY(-player.rot);
-  
-  if (!pause) {   
-    player.update(y_off);
-  }
-  
-  //translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
-  translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
-  
-  //translate(-x*cos(rot) -z*sin(rot),
-  //          BWD + y, 
-  //           x*sin(rot) -z*cos(rot));
-  
- terrain.draw(i_loc, j_loc, 9, -1);
-    
-    
-  //saveFrame("line-####.png");
-}
-
-
-//////////////////////////////////////////////
-void drawGrass(int num, int i, int j)
-{
-   strokeWeight(3);
-   stroke(24,125,10);
-   
-   float dx = 3.5*(noise(0.2*t + i/100.0)-0.5);
-   float dz = 3.5*(noise(0.2*t + j/100.0 + 1000)-0.5);
-      
-   for (int ind = 0; ind < num*2; ind++) {
-      float x = 1.6 * BWD * (noise(i + ind)-0.5);
-      float z = 1.6 * BWD * (noise(j + ind + 200)-0.5);
-          
-      // TBD wind blowing effect here
-      line(x , 0, z, x + dx, -2, z + dz);
-   }
-   
-  fill(45,135,3);
-  noStroke();
-  for (float ind = 0; ind < 100.0; ind+= 1.0) {
-    float x = 1.6*(float)BWD*(noise(0.1*i + ind + t/2000.0)-0.5);
-    float z = 1.6*(float)BWD*(noise(0.1*j + ind + t/2000.0 + 500)-0.5);
-    
-    pushMatrix();
-    translate(x,ind/100.0,z);    
-    box(BWD/80);
-    popMatrix();
-  }
-  noStroke(); 
-}
-
-void drawTriFan(float sz)
-{
-  textureMode(NORMALIZED);
-  beginShape(TRIANGLE_FAN);
-  //stroke(0);
- // texture(img);
-      vertex( 0,    0,  0);//,    0.50, 0.50);
-      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
-      vertex( sz/2, 0,  sz/2);//, 1.00, 1.00); 
-      vertex(0,     0,  sz/2);//, 0.50, 1.00); 
-      vertex(-sz/2, 0,  sz/2);//, 0,    1.00); 
-      vertex(-sz/2, 0,  0);//,    0,    0.50); 
-      vertex(-sz/2, 0, -sz/2);//, 0,    0); 
-      vertex( 0,    0, -sz/2);//, 0.50, 0); 
-      vertex( sz/2, 0, -sz/2);//, 1.00, 0);
-      vertex( sz/2, 0,  0);//,    1.00, 0.50); 
-      endShape();
-}
+///////////////
