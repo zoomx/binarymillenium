@@ -376,8 +376,10 @@ class Terrain {
 ////////////////////////////////////////////
 void draw(
     int i_loc, int j_loc,
+    /// the outer boundary to draw
     int i_min, int j_min,
     int i_max, int j_max,
+    /// the inner boundary not to draw
     int i_in_min, int j_in_min,
     int i_in_max, int j_in_max)
 {
@@ -390,7 +392,13 @@ void draw(
     int i_sc = (i_max-i_min)/3;
     int j_sc = (j_max-j_min)/3;
     
-    //child.draw(i_loc/3, j_loc/3, i_min);
+    child.draw(i_loc/3, j_loc/3, 
+    i_min/3 - i_sc, j_min/3 - j_sc,
+    i_max/3 + i_sc, j_max/3 + j_sc,
+    i_min/3, j_min/3,
+    i_max/3, j_max/3
+    );
+    
     popMatrix();
   }
   
@@ -587,7 +595,13 @@ void draw()
   //          BWD + y, 
   //           x*sin(rot) -z*cos(rot));
   
- terrain.draw(i_loc, j_loc, i_loc - 10, j_loc - 10, i_loc+10, j_loc+10, i_loc, j_loc, i_loc, j_loc);
+ int r_i = 3*(i_loc/3);
+ int r_j = 3*(j_loc/3);
+ terrain.draw(i_loc, j_loc, 
+         r_i - 9, r_j - 9, 
+         r_i + 9, r_j + 9, 
+         i_loc, j_loc,
+         i_loc, j_loc);
     
     
   //saveFrame("line-####.png");
