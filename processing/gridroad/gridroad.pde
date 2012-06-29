@@ -389,15 +389,17 @@ void draw(
     pushMatrix();
     translate(BWD, 0, BWD);
     
-    int i_sc = (i_max-i_min)/3;
-    int j_sc = (j_max-j_min)/3;
+    int r_i = 3*((i_loc/3)/3);
+    int r_j = 3*((j_loc/3)/3);
     
-    child.draw(i_loc/3, j_loc/3, 
-    i_min/3 - i_sc, j_min/3 - j_sc,
-    i_max/3 + i_sc, j_max/3 + j_sc,
-    i_min/3, j_min/3,
-    i_max/3, j_max/3
-    );
+    child.draw(r_i, r_j, 
+         r_i - 9, r_j - 9, 
+         r_i + 9, r_j + 9, 
+         i_min/3, j_min/3,
+         i_max/3, j_max/3
+        );
+    
+
     
     popMatrix();
   }
@@ -421,10 +423,7 @@ void draw(
           (j >= j_in_min) && (j < j_in_max)) {
       
         continue;     
-      }
-      
-      
-      
+      }   
         int mdist = abs( i - i_loc) + abs( j - j_loc);  
 
         drawSection(i, j, mdist);  
@@ -528,7 +527,7 @@ void setup()
   fontA = loadFont("Courier10PitchBT-Roman-36.vlw");
   textFont(fontA, 16);
   
-  int NUM = (int)pow(3,4);
+  int NUM = (int)pow(3,5);
   
   player = new Car(new PVector(BWD*NUM/2, BWD*20, BWD*NUM/2));
   
