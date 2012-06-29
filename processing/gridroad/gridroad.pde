@@ -93,7 +93,7 @@ class Car {
  void update(float y_off) 
  {
    
-   float acc_rate = 1.5; //0.15;
+   float acc_rate = 0.15;
    if (gas) {
      wheel_acc += acc_rate; 
    }
@@ -115,7 +115,7 @@ class Car {
    }
    
    // gravity
-   //acc.y -= 1.0;
+   acc.y -= 1.0;
    
    wheel_vel += wheel_acc;
    
@@ -331,7 +331,7 @@ class Terrain {
       hills *= 10*BWD;
       elev[i][j] = 1*BWD*(noise(i*nsc1,j*nsc1)-0.5) + hills - 5*BWD;
       
-      elev[i][j]=0;
+      //elev[i][j]=0;
     }
     }
   
@@ -500,7 +500,7 @@ void draw(
         stroke(0);
         strokeWeight(1);
         translate(0,sc * BWD/2, 0);
-        box(sc*BWD*0.9);
+        box(sc*BWD);
       
       } 
       popMatrix();
@@ -527,9 +527,9 @@ void setup()
   fontA = loadFont("Courier10PitchBT-Roman-36.vlw");
   textFont(fontA, 16);
   
-  int NUM = (int)pow(3,5);
+  int NUM = (int)pow(3,6);
   
-  player = new Car(new PVector(BWD*NUM/2, BWD*20, BWD*NUM/2));
+  player = new Car(new PVector(BWD*NUM/2, BWD*2, BWD*NUM/2));
   
   //makeRoads( player.getI(), player.getJ() );
   
