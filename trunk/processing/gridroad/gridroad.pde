@@ -92,7 +92,6 @@ class Car {
  
  void update(float y_off) 
  {
-   
    float acc_rate = 0.15;
    if (gas) {
      wheel_acc += acc_rate; 
@@ -350,6 +349,11 @@ class Terrain {
        float sum = 0; 
        for (int is = -1; is <= 1; is++) {
        for (int js = -1; js <= 1; js++) {
+         /*
+         float cur_elev = parent.getElev(i*3 + is, j*3 + js);
+         if (cur_elev > sum) {
+           sum = cur_elev;
+         }*/
          sum += parent.getElev(i*3 + is, j*3 + js);
        }}
        
@@ -393,8 +397,8 @@ void draw(
     int r_j = 3*((j_loc/3)/3);
     
     child.draw(r_i, r_j, 
-         r_i - 9, r_j - 9, 
-         r_i + 9, r_j + 9, 
+         r_i - 18, r_j - 18, 
+         r_i + 18, r_j + 18, 
          i_min/3, j_min/3,
          i_max/3, j_max/3
         );
@@ -597,8 +601,8 @@ void draw()
  int r_i = 3*(i_loc/3);
  int r_j = 3*(j_loc/3);
  terrain.draw(i_loc, j_loc, 
-         r_i - 9, r_j - 9, 
-         r_i + 9, r_j + 9, 
+         r_i - 18, r_j - 18, 
+         r_i + 18, r_j + 18, 
          i_loc, j_loc,
          i_loc, j_loc);
     
