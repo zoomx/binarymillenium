@@ -91,7 +91,7 @@ class Car {
  
  void update(float y_off) 
  {
-   float acc_rate = 0.15;
+   float acc_rate = 0.35;
    if (gas) {
      wheel_acc += acc_rate; 
    }
@@ -315,7 +315,7 @@ class Terrain {
     for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
       color cl = elev_image.pixels[i*NUM+j];
-       elev[i][j] = (red(cl) + blue(cl)/256.0 + green(cl)/(256.0*256.0))*BWD/8;
+       elev[i][j] = (red(cl) + blue(cl)/256.0 + green(cl)/(256.0*256.0))*BWD/16;
        
        type[i][j] = (int)brightness(type_image.pixels[i*NUM+j]);
        if (i==0) println(type[i][j]);
@@ -496,8 +496,8 @@ void draw(
         
         stroke(0);
         strokeWeight(1);
-        translate(0,sc * BWD/2, 0);
-        box(sc*BWD);
+        translate(0,sc * BWD, 0);
+        box(sc*BWD, sc*2*BWD, sc*BWD);
       
       } 
       popMatrix();
@@ -555,7 +555,7 @@ void draw()
   count += 1;
   
   background(10,90,200);
-  ambientLight(50, 50, 200);
+  ambientLight(50, 50, 50);
   directionalLight(255,255,220,0.2,1.0,-0.3);
   
   // TBD where does BWD*13 come from?
