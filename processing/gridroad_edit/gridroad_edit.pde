@@ -168,7 +168,7 @@ void setupType()
   roads = createGraphics(NUM,NUM, P2D);
   roads.beginDraw();
   roads.background(0);
-  roads.fill(255);
+  roads.noFill();//(255);
   roads.stroke(255);
   roads.strokeWeight(2);
   // make roads between cities
@@ -180,7 +180,15 @@ void setupType()
       float y1 = cities[i].y;
       float x2 = cities[j].x;
       float y2 = cities[j].y;
-      roads.line(x1,y1,x2,y2);
+      //roads.line(x1,y1,x2,y2);
+      float ex = abs(x2-x1);
+      float ey = abs(y2-y1);
+      roads.curve(
+                x1 + random(-ex*2,ex*2), y1 + random(-ey*2,ey*2),
+                x1, y1,
+                x2, y2,
+                x2 + random(-ex*2,ex*2), y2 + random(-ey*2,ey*2)
+              );
       
     }
   }
