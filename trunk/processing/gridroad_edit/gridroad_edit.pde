@@ -1,9 +1,11 @@
 
-final int NUM = 300;
+final int NUM = 200;
 float elev[][];
 int type[][];
 float min_elev =  1e6;
 float max_elev = -1e6;
+
+PVector cities[];
 
 float blendEdges(int i, int j, float fr, float lap)
 {
@@ -122,6 +124,9 @@ void smoothBottom(float fr, float sc)
   min_elev = min_elev + (th_ext - compress_ext);
 }
 
+
+PGraphics roads;
+
 void setupType()
 {
   randomSeed(3);
@@ -149,11 +154,55 @@ void setupType()
   
   
   // make cities
+  cities = new PVector[5];
+  
   float building_ht = e_rng/2.0;
   
-  for (int ind = 0; ind < 4; ind++) {
-    int cx = (int)random(NUM);
-    int cy = (int)random(NUM);
+  for (int ind = 0; ind < cities.length; ind++) {
+    
+    cities[ind] = new PVector(random(NUM), random(NUM));
+    println(ind + ": " + cities[ind].x + " " + cities[ind].y);
+  }
+   
+  // draw roads between them
+  roads = createGraphics(NUM,NUM, P2D);
+  roads.beginDraw();
+  roads.background(0);
+  roads.fill(255);
+  roads.stroke(255);
+  roads.strokeWeight(2);
+  // make roads between cities
+  for (int i = 0; i < cities.length; i++) {
+    for (int j = 0; j < cities.length; j++) {
+      if (i == j) continue;
+      
+      float x1 = cities[i].x;
+      float y1 = cities[i].y;
+      float x2 = cities[j].x;
+      float y2 = cities[j].y;
+      roads.line(x1,y1,x2,y2);
+      
+    }
+  }
+  roads.endDraw();
+  
+  // draw roads
+  roads.loadPixels();
+  for (int i = 0; i < NUM; i++) {
+    for (int j = 0; j < NUM; j++) {
+       if (brightness(roads.pixels[i*NUM + j]) > 0) {
+         type[i][j] = 3;
+         elev[i][j] += 0.1;
+       } 
+    }    
+  }
+  
+  
+  
+  for (int ind = 0; ind < cities.length; ind++) {
+    int cx = (int)cities[ind].x;
+    int cy = (int)cities[ind].y;
+    
     int csz = (int)random(NUM/3.5) + NUM/10;
     
     println(cx + ", " + cy);
@@ -249,10 +298,10 @@ void draw()
   
   noLoop();
   
-  int x = 3*width/4;
-  int y = 3*height/4;
+  int x = 2*width/4;
+  int y = 2*height/4;
   image(vis_level, 0,   0,  x , y); 
-  image(vis_level, x,   0,  x , y); 
+  image(roads, x,   0,  x , y); 
   image(vis_level, x,   y,  x , y); 
   image(vis_level, 0,   y,  x , y); 
   
