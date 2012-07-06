@@ -209,6 +209,7 @@ void setupType()
   
   
   
+  /// add cities and gridded buildings
   for (int ind = 0; ind < cities.length; ind++) {
     int cx = (int)cities[ind].x;
     int cy = (int)cities[ind].y;
@@ -247,7 +248,18 @@ void setupType()
     }
     }
   }
-  max_elev += e_rng/5.0;
+  max_elev += building_ht/2;
+}
+
+void elevNormalize()
+{
+  for (int i = 0; i < NUM; i++) {
+    for (int j = 0; j < NUM; j++) {
+     elev[i][j] = (elev[i][j]-min_elev)/(max_elev-min_elev);
+    }}  
+  
+  min_elev = 0;
+  max_elev = 1.0;
 }
 
 void setupElev()
@@ -265,6 +277,8 @@ void setupElev()
   smoothBottom(0.5, 0.6);
   smoothBottom(0.14, 0.6);
   smoothBottom(0.05, 0.3); 
+  
+ 
 }
 
 void setup()
@@ -274,23 +288,31 @@ void setup()
   setupElev();
   setupType();
   
-  /// TBD rescale elevation based on desired min/max_elev
-  setupLevel();
+  elevNormalize();
+  
+  saveImageData();
   /// TBD blend edges to loop around
 }
 
 PImage vis_level;
 
 /// scale for display
-void setupLevel() 
+void saveImageData() 
 {
-  vis_level = new PImage(NUM,NUM); 
+  vis_level = createImage(NUM,NUM, RGB); 
+  
+  PImage type_image = createImage(NUM,NUM, RGB);
+  PImage elev_image = createImage(NUM,NUM, RGB);
   
   for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
-      float fr_elev = (elev[i][j] - min_elev)/(max_elev - min_elev);
+      float ev = elev[i][j];
+      float fr_elev = (ev - min_elev)/(max_elev - min_elev);
       
       int tp = type[i][j];
+      
+      type_image.pixels[i*NUM + j] = color(tp);
+      elev_image.pixels[i*NUM + j] = color(ev*255.0, (int)(ev*255.0*255.0)%255, (int)(ev*255.0*255.0*255.0)%255);
       
       color col = color(128,128,128);
       if (tp == 0) col = color(0, 20+235*fr_elev, 0);
@@ -301,6 +323,12 @@ void setupLevel()
       vis_level.pixels[i*NUM+j] = col;
     }
   }
+  vis_level.updatePixels();
+  
+  
+  vis_level.save("vis.png"); 
+  type_image.save("map_type.png");
+  elev_image.save("map_elev.png");
 }
 
 void draw()
