@@ -173,7 +173,7 @@ void setupType()
   roads.strokeWeight(2);
   // make roads between cities
   for (int i = 0; i < cities.length; i++) {
-    for (int j = 0; j < cities.length; j++) {
+    for (int j = i+1; j < cities.length; j++) {
       if (i == j) continue;
       
       float x1 = cities[i].x;
@@ -181,13 +181,15 @@ void setupType()
       float x2 = cities[j].x;
       float y2 = cities[j].y;
       //roads.line(x1,y1,x2,y2);
-      float ex = abs(x2-x1);
-      float ey = abs(y2-y1);
-      roads.curve(
-                x1 + random(-ex*2,ex*2), y1 + random(-ey*2,ey*2),
-                x1, y1,
-                x2, y2,
-                x2 + random(-ex*2,ex*2), y2 + random(-ey*2,ey*2)
+      float ex = (x2-x1);
+      float ey = (y2-y1);
+      roads.bezier(
+      x1, y1,
+                x1 + random(-ex/2,ex), y1 + random(-ey/2,ey),
+                
+                
+                x2 + random(-ex,ex/2), y2 + random(-ey,ey/2),
+                x2, y2
               );
       
     }
