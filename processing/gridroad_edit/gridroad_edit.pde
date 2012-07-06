@@ -338,7 +338,6 @@ void saveImageData()
   }
   vis_level.updatePixels();
   
-  
   vis_level.save("vis.png"); 
   type_image.save("map_type.png");
   elev_image.save("map_elev.png");
@@ -346,7 +345,6 @@ void saveImageData()
 
 void draw()
 {
-  
   noLoop();
   
   int x = 2*width/4;

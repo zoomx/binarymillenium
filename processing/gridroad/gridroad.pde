@@ -15,7 +15,6 @@ float y_off;
 // camera rotation
 float rotx = -PI/2;
 boolean pause = false;
-HashMap roads;
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
@@ -257,29 +256,7 @@ class Car {
 Car player;
 Car[] npcs;
 
-void makeRoads(int i_loc, int j_loc, int NUM)
-{
-  roads = new HashMap();
-  
-  // TBD put in world object
-  for (int i = 0; i < NUM*(NUM/50+1); i++) {
-    int loc = i_loc*NUM + j_loc;
-  
-    roads.put(loc, true);
-  
-    int choice = (int) ( noise(i_loc/10.0, j_loc/10.0)*4 );
-    if (choice == 3) {
-      i_loc += 1;
-    } else if (choice == 2) {
-      j_loc += 1;
-    } else if (choice == 1) {
-      i_loc -= 1;
-    } else  {
-      j_loc -= 1;
-    }
-  }
-  
-}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 ///
@@ -295,7 +272,8 @@ class Terrain {
   int NUM; // = 2048;
   float BWD;
 
-  float[][] elev;//[NUM][NUM];
+  float[][] elev;
+  int[][] type;
 
   Terrain parent;
   Terrain child;
@@ -319,18 +297,18 @@ class Terrain {
   
   void makeTerrain()
   {
+    PImage elev_image;
+    elev_image = loadImage("map_elev.png");
+    NUM = elev_image.width;
+    
+    
     elev = new float[NUM][NUM];
   
     float nsc1 = 0.05;
     for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
-      //elev[i][j] = -0.2*(i*j);
-      float hills = (noise(100+i*nsc1,10+j*nsc1)-0.5);
-      if (hills < 0.0) hills = 0;
-      hills *= 10*BWD;
-      elev[i][j] = 1*BWD*(noise(i*nsc1,j*nsc1)-0.5) + hills - 5*BWD;
-      
-      //elev[i][j]=0;
+      color cl = elev_image.pixels[i*NUM+j];
+       elev[i][j] = (red(cl) + blue(cl)/256.0 + green(cl)/(256.0*256.0))*BWD/8;
     }
     }
   
