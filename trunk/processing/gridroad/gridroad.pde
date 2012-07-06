@@ -278,11 +278,13 @@ class Terrain {
   Terrain parent;
   Terrain child;
   
+  PImage type_image;
+  PImage elev_image;
+  
   PFont fontA;
-
   
   Terrain(int new_num, float new_BWD) {
-    println("new terrain " + new_num + " " + new_BWD);
+
     NUM = new_num;
     BWD = new_BWD;
     
@@ -297,18 +299,26 @@ class Terrain {
   
   void makeTerrain()
   {
-    PImage elev_image;
     elev_image = loadImage("map_elev.png");
+    
     NUM = elev_image.width;
     
+    type_image = loadImage("map_type.png");
+    
+    println("new terrain " + NUM + " " + BWD);
+    // TBD error check
     
     elev = new float[NUM][NUM];
+    type = new int[NUM][NUM];
   
     float nsc1 = 0.05;
     for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
       color cl = elev_image.pixels[i*NUM+j];
        elev[i][j] = (red(cl) + blue(cl)/256.0 + green(cl)/(256.0*256.0))*BWD/8;
+       
+       type[i][j] = (int)brightness(type_image.pixels[i*NUM+j]);
+       if (i==0) println(type[i][j]);
     }
     }
   
@@ -434,12 +444,25 @@ void draw(
          popMatrix();
          */
    
+      if (parent == null) {
+        if (type[i][j] == 1) {
+          // dirt
+          fill(255,190,0);
+        } else if (type[i][j] == 2) {
+          // snow
+          fill(220);
+        } else if (type[i][j] == 3) {
+          // road
+          fill(120,120,120);
+        } else if (type[i][j] == 0) {
+          fill(0,150,0);
+        } 
+        
+      }
+      
       if ( (parent == null) && (mdist < 3) ) {
         //stroke(0);
-        if (is_road) {
-          fill(150);
-        } else {
-          fill(0,150,0);
+        if (type[i][j] == 0) {
           // draw grass
           drawGrass(50,  i,  j);
         }
@@ -463,17 +486,9 @@ void draw(
         popMatrix();   
        
       } else {
-        if (is_road) {
-          fill(130);
-        } else {
-          fill(0,130,0);
-        }
          
         if ((parent == null) && (mdist < 6)) {
-          if (is_road) {
-            fill(135);
-          } else {
-            fill(0,135,0);
+          if (type[i][j] == 0) {
             drawGrass(5, i, j); 
           }
           
