@@ -1,5 +1,5 @@
 
-final int NUM = 200;
+final int NUM = 500;
 float elev[][];
 int type[][];
 float min_elev =  1e6;
@@ -154,7 +154,7 @@ void setupType()
   
   
   // make cities
-  cities = new PVector[5];
+  cities = new PVector[10];
   
   float building_ht = e_rng/2.0;
   
@@ -175,6 +175,7 @@ void setupType()
   for (int i = 0; i < cities.length; i++) {
     for (int j = i+1; j < cities.length; j++) {
       if (i == j) continue;
+      if (random(1) < 0.3) continue;
       
       float x1 = cities[i].x;
       float y1 = cities[i].y;
@@ -183,14 +184,25 @@ void setupType()
       //roads.line(x1,y1,x2,y2);
       float ex = (x2-x1);
       float ey = (y2-y1);
+      
+      //float cx1 = 
+      if (false) {
       roads.bezier(
       x1, y1,
                 x1 + random(-ex/2,ex), y1 + random(-ey/2,ey),
-                
-                
                 x2 + random(-ex,ex/2), y2 + random(-ey,ey/2),
                 x2, y2
               );
+      } else  {
+        float sc = 1.5;
+        roads.curve(
+                x1 + random(-ex*sc,ex*sc), y1 + random(-ey*sc,ey*sc),
+                x1, y1,
+                x2, y2,
+                x2 + random(-ex*sc,ex*sc), y2 + random(-ey*sc,ey*sc) 
+              );
+      }
+      
       
     }
   }
@@ -210,7 +222,8 @@ void setupType()
   
   
   /// add cities and gridded buildings
-  for (int ind = 0; ind < cities.length; ind++) {
+  for (int ind = 0; ind < 5 /*cities.length*/; ind++) {
+    if (ind >= cities.length) break;
     int cx = (int)cities[ind].x;
     int cy = (int)cities[ind].y;
     
