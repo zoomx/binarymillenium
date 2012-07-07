@@ -256,14 +256,12 @@ class Car {
 Car player;
 Car[] npcs;
 
-
-
 //////////////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////////////
 
   float dt = 0.1;
-    float BWD = 128.0;
+    float BWD = 64.0;
   
 class Terrain {
   
@@ -315,7 +313,7 @@ class Terrain {
     for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
       color cl = elev_image.pixels[i*NUM+j];
-       elev[i][j] = (red(cl) + blue(cl)/256.0 + green(cl)/(256.0*256.0))*BWD/16;
+       elev[i][j] = (red(cl) + blue(cl)/256.0 + green(cl)/(256.0*256.0))*BWD/4;
        
        type[i][j] = (int)brightness(type_image.pixels[i*NUM+j]);
        if (i==0) println(type[i][j]);
@@ -331,21 +329,28 @@ class Terrain {
     BWD = parent.BWD*3;
     
     elev = new float[NUM][NUM];
+    type = new int[NUM][NUM];
     
     for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
        float sum = 0; 
        for (int is = -1; is <= 1; is++) {
        for (int js = -1; js <= 1; js++) {
-         /*
+         
+         // use maximum
          float cur_elev = parent.getElev(i*3 + is, j*3 + js);
+         int cur_type = parent.getType(i*3 + is, j*3 + js);
          if (cur_elev > sum) {
            sum = cur_elev;
-         }*/
-         sum += parent.getElev(i*3 + is, j*3 + js);
+           // take the type of the highest location
+           // TBD could also do some kind of voting
+           type[i][j] = cur_type;
+         }
+         //sum += parent.getElev(i*3 + is, j*3 + js);
        }}
        
-       sum /= 9;
+       // simple average
+       //sum /= 9;
        
        elev[i][j] = sum;
     }}
@@ -353,6 +358,16 @@ class Terrain {
     if (NUM >= 9) {
       child = new Terrain(this);
     }
+  }
+  
+  int getType(int i_loc, int j_loc) {
+    
+    if ((i_loc >= 0) && (i_loc < NUM) && (j_loc >= 0) && (j_loc < NUM)) {
+      return type[i_loc][j_loc];
+    }
+    
+    return 0;
+    
   }
   
   float getElev(int i_loc, int j_loc) {
@@ -444,7 +459,7 @@ void draw(
          popMatrix();
          */
    
-      if (parent == null) {
+      //if (parent == null) {
         if (type[i][j] == 1) {
           // dirt
           fill(255,190,0);
@@ -458,7 +473,7 @@ void draw(
           fill(0,150,0);
         } 
         
-      }
+      //}
       
       if ( (parent == null) && (mdist < 3) ) {
         //stroke(0);

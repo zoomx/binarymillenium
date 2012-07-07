@@ -1,5 +1,5 @@
 
-final int NUM = 500;
+final int NUM = 512;
 float elev[][];
 int type[][];
 float min_elev =  1e6;
@@ -156,7 +156,7 @@ void setupType()
   // make cities
   cities = new PVector[10];
   
-  float building_ht = e_rng/2.0;
+  float building_ht = 0.2;
   
   for (int ind = 0; ind < cities.length; ind++) {
     
@@ -214,7 +214,7 @@ void setupType()
     for (int j = 0; j < NUM; j++) {
        if (brightness(roads.pixels[i*NUM + j]) > 0) {
          type[i][j] = 3;
-         elev[i][j] += 0.1;
+         elev[i][j] += 0.01;
        } 
     }    
   }
@@ -281,15 +281,25 @@ void setupElev()
   
   noiseSeed(10);
   
-  addNoise(1000.0, 30.0);
-  addNoise(100.0, 10.0);
-  addNoise(10.0, 1.0);
-  addNoise(1.0, 0.1);
+  addNoise(1000.0, 50.0);
+  addNoise(300.0, 12.0);
+  addNoise(100.0, 6.5);
+  addNoise(30.0, 0.2);
+  addNoise(10.0, 0.05);
   
   // make valleys more rounded
-  smoothBottom(0.5, 0.6);
-  smoothBottom(0.14, 0.6);
-  smoothBottom(0.05, 0.3); 
+  
+  // start smoothing the very bottom before the top, first
+  // arg is more intuitive this way
+  smoothBottom(0.01, 0.0001);
+  smoothBottom(0.1, 0.001);
+  smoothBottom(0.2, 0.01);
+  smoothBottom(0.5, 0.1);
+  
+  
+   
+  
+  //addNoise(1.0, 0.000001);
   
  
 }
@@ -325,7 +335,7 @@ void saveImageData()
       int tp = type[i][j];
       
       type_image.pixels[i*NUM + j] = color(tp);
-      elev_image.pixels[i*NUM + j] = color(ev*255.0, (int)(ev*255.0*255.0)%255, (int)(ev*255.0*255.0*255.0)%255);
+      elev_image.pixels[i*NUM + j] = color(ev*255.0, (int)(ev*256.0*256.0)%256, (int)(ev*256.0*256.0*256.0)%256);
       
       color col = color(128,128,128);
       if (tp == 0) col = color(0, 20+235*fr_elev, 0);
