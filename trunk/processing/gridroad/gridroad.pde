@@ -81,18 +81,20 @@ class Car {
    
  }
 
- int getJ() 
+ int getI() 
  {
    return (int)((xyz.z+BWD/2.0)/BWD );
  }
  
- int getI() 
+ int getJ() 
  {
    return  (int)((xyz.x+BWD/2.0)/BWD );
  }
  
- void update(float y_off) 
+ void update( ) 
  {
+   float y_off = terrain.getElev(getI() ,getJ());
+   
    float acc_rate = 0.35;
    if (gas) {
      wheel_acc += acc_rate; 
@@ -322,6 +324,7 @@ class Terrain {
     }
     
     p_dist = (float)bot_count/(float)(top_count + bot_count);
+    p_dist = 1.0 - (1.0 - p_dist)*(1.0- p_dist);
     println(NUM + " p_dist " + p_dist);
     
   }
@@ -609,6 +612,11 @@ void setup()
   
   player = new Car(new PVector(BWD*NUM/2, BWD*2, BWD*NUM/2));
   
+  npcs = new Car[20];
+  for (int i = 0; i < npcs.length; i++) {
+    npcs[i] = new Car(new PVector(BWD*(NUM/2+i), BWD*2, BWD*NUM/2));
+  }
+  
   //makeRoads( player.getI(), player.getJ() );
   
   terrain = new Terrain(NUM,BWD);
@@ -653,21 +661,45 @@ void draw()
   player.draw();
   popMatrix();
   
-  // get current position on map
-  int j_loc = player.getI();
-  int i_loc = player.getJ();
 
-  y_off = terrain.getElev(i_loc,j_loc);
+  
+  // get current position on map
+  int i_loc = player.getI();
+  int j_loc = player.getJ();
 
   rotateY(-player.rot);
   
   if (!pause) {   
-    player.update(y_off);
+    player.update();
+    
+    for (int i = 0; i < npcs.length; i++) {
+      if ((noise(t/100.0, i*10) > 0.3)) {
+        npcs[i].gas = true;
+        
+        float turn_f = noise(t/100.0 + 1000, i*10+ npcs.length);
+        if (turn_f < 0.3) {
+           npcs[i].turn_right = true;
+           npcs[i].turn_left = false;
+        }
+        else if (turn_f > 0.7) {
+          npcs[i].turn_left =true;
+           npcs[i].turn_right =false;
+        }
+      }
+      npcs[i].update();
+    }
   }
   
   //translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
   translate(-player.xyz.x, player.xyz.y, -player.xyz.z);
   
+  
+  for (int i = 0; i < npcs.length; i++) {
+    pushMatrix();
+    translate(npcs[i].xyz.x, -npcs[i].xyz.y, npcs[i].xyz.z);
+      npcs[i].draw();
+      popMatrix();
+  }
   //translate(-x*cos(rot) -z*sin(rot),
   //          BWD + y, 
   //           x*sin(rot) -z*cos(rot));
