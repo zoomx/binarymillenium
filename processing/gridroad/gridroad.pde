@@ -16,6 +16,8 @@ float y_off;
 float rotx = -PI/2;
 boolean pause = false;
 
+color sky_col;
+
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 class Car {
@@ -261,7 +263,7 @@ Car[] npcs;
 ////////////////////////////////////////////////////////////////////////////////////////
 
   float dt = 0.1;
-    float BWD = 64.0;
+    float BWD = 32.0;
   
 class Terrain {
   
@@ -275,6 +277,10 @@ class Terrain {
 
   Terrain parent;
   Terrain child;
+  
+  // fraction of 1 where 1 is the top parent
+  // and 0 is the bottom child
+  float p_dist;
   
   PImage type_image;
   PImage elev_image;
@@ -292,7 +298,32 @@ class Terrain {
     
     if (NUM >= 9) {
       child = new Terrain(this);
+    } else {
+      child = null;
     }
+   
+    findPDist(); 
+  }
+    
+  void findPDist() 
+  {
+    int top_count =0;
+    Terrain tmp = parent;
+    while (tmp != null) {
+      top_count++;
+      tmp = tmp.parent;
+    }
+    
+    int bot_count = 0;
+    tmp = child;
+    while (tmp != null) {
+      bot_count++;
+      tmp = tmp.child;
+    }
+    
+    p_dist = (float)bot_count/(float)(top_count + bot_count);
+    println(NUM + " p_dist " + p_dist);
+    
   }
   
   void makeTerrain()
@@ -313,10 +344,10 @@ class Terrain {
     for (int i = 0; i < NUM; i++) {
     for (int j = 0; j < NUM; j++) {
       color cl = elev_image.pixels[i*NUM+j];
-       elev[i][j] = (red(cl) + blue(cl)/256.0 + green(cl)/(256.0*256.0))*BWD/4;
+       elev[i][j] = (red(cl) + blue(cl)/256.0 + green(cl)/(256.0*256.0))*BWD/8;
        
        type[i][j] = (int)brightness(type_image.pixels[i*NUM+j]);
-       if (i==0) println(type[i][j]);
+       //if (i==0) println(type[i][j]);
     }
     }
   
@@ -358,6 +389,8 @@ class Terrain {
     if (NUM >= 9) {
       child = new Terrain(this);
     }
+    
+    findPDist();
   }
   
   int getType(int i_loc, int j_loc) {
@@ -458,19 +491,49 @@ void draw(
          text(str(i) + "," + str(j), 0, 0, -BWD/2);
          popMatrix();
          */
-   
+
       //if (parent == null) {
         if (type[i][j] == 1) {
           // dirt
-          fill(255,190,0);
+          color dirt = color(255,200,0);
+          color col = color(
+            red(dirt) * p_dist   + red(sky_col) * (1.0 - p_dist),
+            green(dirt) * p_dist + green(sky_col) * (1.0 - p_dist),
+            blue(dirt) * p_dist  + blue(sky_col) * (1.0 - p_dist)
+            );
+         // println(red(dirt) * p_dist + "   " + p_dist);
+          fill(col);
         } else if (type[i][j] == 2) {
           // snow
-          fill(220);
+          color dirt = color(225,225,225);
+          color col = color(
+            red(dirt) * p_dist   + red(sky_col) * (1.0 - p_dist),
+            green(dirt) * p_dist + green(sky_col) * (1.0 - p_dist),
+            blue(dirt) * p_dist  + blue(sky_col) * (1.0 - p_dist)
+            );
+         // println(red(dirt) * p_dist + "   " + p_dist);
+          fill(col);
         } else if (type[i][j] == 3) {
           // road
-          fill(120,120,120);
+          color dirt = color(120,120,120);
+          color col = color(
+            red(dirt) * p_dist   + red(sky_col) * (1.0 - p_dist),
+            green(dirt) * p_dist + green(sky_col) * (1.0 - p_dist),
+            blue(dirt) * p_dist  + blue(sky_col) * (1.0 - p_dist)
+            );
+         // println(red(dirt) * p_dist + "   " + p_dist);
+          fill(col);
         } else if (type[i][j] == 0) {
-          fill(0,150,0);
+         
+               // grass
+          color dirt = color(10,150,0);;
+          color col = color(
+            red(dirt) * p_dist   + red(sky_col) * (1.0 - p_dist),
+            green(dirt) * p_dist + green(sky_col) * (1.0 - p_dist),
+            blue(dirt) * p_dist  + blue(sky_col) * (1.0 - p_dist)
+            );
+         // println(red(dirt) * p_dist + "   " + p_dist);
+          fill(col);
         } 
         
       //}
@@ -509,10 +572,12 @@ void draw(
           
         }
         
-        stroke(0);
-        strokeWeight(1);
-        translate(0,sc * BWD, 0);
-        box(sc*BWD, sc*2*BWD, sc*BWD);
+        //stroke(0);
+        //strokeWeight(1);
+        noStroke();
+        float y_sc = 3;
+        translate(0, y_sc*sc * BWD, 0);
+        box(sc*BWD, sc*2*y_sc*BWD, sc*BWD);
       
       } 
       popMatrix();
@@ -534,6 +599,7 @@ void setup()
   size(600, 600, P3D);
   //size(1280, 720, P3D);
   
+  sky_col = color(10,100,200);
   frameRate(1.0/dt);
   
   fontA = loadFont("Courier10PitchBT-Roman-36.vlw");
@@ -569,7 +635,7 @@ void draw()
   t += dt;
   count += 1;
   
-  background(10,90,200);
+  background(sky_col);//;
   ambientLight(50, 50, 50);
   directionalLight(255,255,220,0.2,1.0,-0.3);
   
@@ -608,9 +674,10 @@ void draw()
   
  int r_i = 3*(i_loc/3);
  int r_j = 3*(j_loc/3);
+ int draw_dist = 21;
  terrain.draw(i_loc, j_loc, 
-         r_i - 18, r_j - 18, 
-         r_i + 18, r_j + 18, 
+         r_i - draw_dist, r_j - draw_dist, 
+         r_i + draw_dist, r_j + draw_dist, 
          i_loc, j_loc,
          i_loc, j_loc);
     

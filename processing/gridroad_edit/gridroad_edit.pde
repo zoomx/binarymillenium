@@ -249,7 +249,7 @@ void setupType()
          if (sum1 && sum2) { 
          type[iw][jw] = 3; // city
          
-         if ((iw % 2 == 0) && (jw % 2 == 0)) {
+         if (((iw/4) % 2 == 0) && ((jw/4) % 2 == 0)) {
              if (dist_f < 0) dist_f = 0;
              
             elev[iw][jw] += 2*(dist_f-0.5)*building_ht * (blendEdges(iw, jw, 10.0, NUM/5.0) + random(building_ht/8))
@@ -281,8 +281,9 @@ void setupElev()
   
   noiseSeed(10);
   
-  addNoise(1000.0, 50.0);
-  addNoise(300.0, 12.0);
+  addNoise(2000.0, 10.0);
+  addNoise(500.0, 10.0);
+  addNoise(300.0, 10.0);
   addNoise(100.0, 6.5);
   addNoise(30.0, 0.2);
   addNoise(10.0, 0.05);
@@ -291,11 +292,11 @@ void setupElev()
   
   // start smoothing the very bottom before the top, first
   // arg is more intuitive this way
-  smoothBottom(0.01, 0.0001);
-  smoothBottom(0.1, 0.001);
-  smoothBottom(0.2, 0.01);
-  smoothBottom(0.5, 0.1);
-  
+  smoothBottom(0.01, 0.00002);
+  smoothBottom(0.1, 0.0003);
+  smoothBottom(0.25, 0.001);
+  smoothBottom(0.5, 0.05);
+  smoothBottom(0.75, 0.25);
   
    
   
