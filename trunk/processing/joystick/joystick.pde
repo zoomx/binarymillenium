@@ -1,5 +1,6 @@
 import processing.opengl.*;
 
+
 import procontroll.*;
 import net.java.games.input.*;
 
@@ -7,6 +8,7 @@ ControllIO controllIO;
 ControllDevice joypad;
 ControllStick stick1;
 ControllStick stick2;
+
 
 float transX;
 float transY;
@@ -35,12 +37,12 @@ void setup(){
   //joypad.plug(this, "handleButton1Release", ControllIO.ON_RELEASE, 1);
   //joypad.plug(this, "handleMovement", ControllIO.ON_PRESS, 0);//ControllIO.WHILE_PRESS, 1);
 
-  stick1 = joypad.getStick(0);
+  stick1 = joypad.getStick(1);
   stick1.setTolerance(0.0f);
   stick1.setMultiplier(1.0f);
   //stick1.setMultiplier(PI);
 
-  stick2 = joypad.getStick(1);
+  stick2 = joypad.getStick(0);
   stick2.setTolerance(0.0f);
   stick2.setMultiplier(1.0f);
   
@@ -85,13 +87,13 @@ void draw(){
   strokeWeight(wd);
   
   {
-  float x1 = width/2  + fr*stick1.getY()*width/2-wd/2;
-  float y1 = height/2 + fr*stick1.getX()*height/2-wd/2;
+  float x1 = width/2  + fr*stick1.getY()*(width/2-wd/2);
+  float y1 = height/2 + fr*stick1.getX()*(height/2-wd/2);
   
   strokeWeight(wd+2);
   stroke(0);
-   line(old_x1, old_y1,x1,y1);
-   strokeWeight(wd);
+  line(old_x1, old_y1,x1,y1);
+  strokeWeight(wd);
   stroke(col1);
   line(old_x1, old_y1,x1,y1);
   
@@ -111,19 +113,19 @@ void draw(){
     
     col1 = color(r1, g1, blue(col1));
   }
-  if (false) {
+  if (true) {
 
-  float x1 = width/2  + fr*stick2.getY()*width/2 -wd/2;
-  float y1 = height/2 + fr*stick2.getX()*height/2-wd/2;
+  float x2 = width/2  + fr*stick2.getY()*(width/2-wd/2);
+  float y2 = height/2 + fr*stick2.getX()*(height/2-wd/2);
   
   strokeWeight(wd+2);
   stroke(0);
-  line(old_x2, old_y2,x1,y1);
+  line(old_x2, old_y2,x2,y2);
   strokeWeight(wd);
   stroke(col2);
-  line(old_x2, old_y2,x1,y1);
+  line(old_x2, old_y2,x2,y2);
   
-  old_x2 = x1;
-  old_y2 = y1;
+  old_x2 = x2;
+  old_y2 = y2;
   }
 }
