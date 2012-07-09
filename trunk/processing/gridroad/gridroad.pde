@@ -31,7 +31,7 @@ color sky_col;
 
 boolean use_joy = false;
 
-boolean setupJoy() {
+boolean setupJoystick() {
  
   controllIO = ControllIO.getInstance(this);
 
@@ -45,16 +45,16 @@ boolean setupJoy() {
   //joypad.plug(this, "handleButton1Release", ControllIO.ON_RELEASE, 1);
   //joypad.plug(this, "handleMovement", ControllIO.ON_PRESS, 0);//ControllIO.WHILE_PRESS, 1);
 
+// TBD use getNumberOfSticks();
+  joypad.printSticks();
+  
   stick1 = joypad.getStick(0);
   stick1.setTolerance(0.0f);
   stick1.setMultiplier(1.0f);
-  //stick1.setMultiplier(PI);
 
   stick2 = joypad.getStick(1);
   stick2.setTolerance(0.0f);
   stick2.setMultiplier(1.0f);
-  
-  joypad.printSticks();
   
   /*
   old_x1 = width/2;
@@ -73,42 +73,46 @@ class Car {
   boolean ground_contact = false;
   
   // the past locations of the car
+  
   Stack<PVector> cv;
  
- /// these are in world coordinate frame
- PVector xyz;
- PVector xyz_old;
+  /// these are in world coordinate frame
+  PVector xyz;
+  PVector xyz_old;
  
- PVector acc;
- PVector vel;
+  PVector acc;
+  PVector vel;
  
- float rot;
- float rot_vel;
- float rot_acc;
+  float rot;
+  float rot_vel;
+  float rot_acc;
  
- /// this is the car coordinate frame
- /// TBD should only be 1 dimensional?
- float wheel_acc;
- float wheel_vel;
+  /// this is the car coordinate frame
+  /// TBD should only be 1 dimensional?
+  float wheel_acc;
+  float wheel_vel;
  
- /// the angle the steering wheels are at
- float wheel_rot;
+  /// the angle the steering wheels are at
+  float wheel_rot;
  
- float tire_sz;
+  float tire_sz;
  
- /// the size of the car
- float SZ;
+  /// the size of the car
+  float SZ;
  
- color col;
+  color col;
+  
+  float max_acc_rate = 0.35;
+  float acc_rate = max_acc_rate;
  
- boolean gas;
- boolean brake_reverse;
- boolean turn_left;
- boolean turn_right;
+  boolean gas;
+  boolean brake_reverse;
+  boolean turn_left;
+  boolean turn_right;
  
- Car(PVector init_xyz) 
- { 
-   cv = new Stack<PVector>();
+  Car(PVector init_xyz) 
+  { 
+    cv = new Stack<PVector>();
  
    xyz = init_xyz;
    xyz_old = init_xyz;
@@ -139,11 +143,14 @@ class Car {
    return  (int)((xyz.x+BWD/2.0)/BWD );
  }
  
+ float max_wheel_rot_rate = 0.2;
+ float wheel_rot_rate = max_wheel_rot_rate/2.0;
+ 
  void update( ) 
  {
    float y_off = terrain.getElev(getI() ,getJ());
    
-   float acc_rate = 0.35;
+   
    if (gas) {
      wheel_acc += acc_rate; 
    }
@@ -156,12 +163,13 @@ class Car {
    }
    
    if (turn_left) {
-      wheel_rot -= 0.1; 
-      wheel_acc += acc_rate/4;
-   }
-   if (turn_right) {
-      wheel_rot += 0.1; 
-       wheel_acc += acc_rate/4;
+     wheel_rot -= wheel_rot_rate; 
+     wheel_acc += acc_rate/4;
+   } else if (turn_right) {
+     wheel_rot += wheel_rot_rate; 
+     wheel_acc += acc_rate/4;
+   } else if (use_joy) {
+     wheel_rot += wheel_rot_rate; 
    }
    
    // gravity
@@ -649,6 +657,8 @@ void setup()
 {
   size(600, 600, P3D);
   //size(1280, 720, P3D);
+
+  setupJoystick();
   
   sky_col = color(10,100,200);
   frameRate(1.0/dt);
@@ -688,6 +698,8 @@ float t;
 
 void draw()
 {
+  if (use_joy) updateJoystick();
+  
   t += dt;
   count += 1;
   
@@ -724,7 +736,7 @@ void draw()
       if ((noise(t/100.0, i*10) > 0.3)) {
         npcs[i].gas = true;
         
-        float turn_f = noise(t/1000.0 + 1000, i*10+ npcs.length);
+        float turn_f = noise(t/200.0 + 1000 + i * 5000, i*10+ npcs.length);
         if (turn_f < 0.3) {
            npcs[i].turn_right = true;
            npcs[i].turn_left = false;
@@ -816,6 +828,29 @@ void drawTriFan(float sz)
       endShape();
 }
 
+void updateJoystick()
+{
+  // -1.0 to 1.0
+  float x1 = stick1.getY();
+  float y1 = stick1.getX();
+  
+  player.wheel_rot_rate = -x1*player.max_wheel_rot_rate;
+  
+  if (abs(y1) > 0.1) {
+    player.gas = true;
+    player.acc_rate = -y1*player.max_acc_rate;
+   
+    // slow steering at higher velocities
+    player.wheel_rot_rate *= (1.1 - abs(y1));
+     println("acc_rate " + player.acc_rate + " " + y1 + " " + player.wheel_rot_rate );
+    
+  } else {
+    player.gas = false;
+  }
+  
+  float x2 = stick2.getY();
+  float y2 = stick2.getX();
+}
 
 void keyReleased()
 {
