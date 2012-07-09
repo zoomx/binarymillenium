@@ -15,6 +15,8 @@ color col1, col2;
 
 float old_x1, old_y1, old_x2, old_y2;
 
+boolean use_joy = false;
+
 void setup(){
   size(1000,600);
 
@@ -23,6 +25,11 @@ void setup(){
 
   controllIO = ControllIO.getInstance(this);
 
+  if (controllIO.getNumberOfDevices() <= 0) {
+    return; 
+  }
+ 
+  use_joy = true;
   joypad = controllIO.getDevice(0);
   //joypad.plug(this, "handleButton1Press", ControllIO.ON_PRESS, 0);
   //joypad.plug(this, "handleButton1Release", ControllIO.ON_RELEASE, 1);
@@ -66,8 +73,11 @@ void handleMovement() //final float i_x,final float i_y)
 }
 
 void draw(){
+  
   fill(0,2);
   rect(0,0,width,height);
+  
+  if (!use_joy) return;
   //background(0,240);
   
   int wd = 8;
