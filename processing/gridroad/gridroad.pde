@@ -676,7 +676,7 @@ void draw()
       if ((noise(t/100.0, i*10) > 0.3)) {
         npcs[i].gas = true;
         
-        float turn_f = noise(t/100.0 + 1000, i*10+ npcs.length);
+        float turn_f = noise(t/1000.0 + 1000, i*10+ npcs.length);
         if (turn_f < 0.3) {
            npcs[i].turn_right = true;
            npcs[i].turn_left = false;
