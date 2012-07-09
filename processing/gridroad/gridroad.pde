@@ -7,6 +7,17 @@
  GPL 3.0
 */
 
+//
+// TBD how to make this optional?
+import procontroll.*;
+import net.java.games.input.*;
+
+ControllIO controllIO;
+ControllDevice joypad;
+ControllStick stick1;
+ControllStick stick2;
+//
+
 //import processing.opengl.*;
 import java.util.Stack;
 
@@ -17,6 +28,43 @@ float rotx = -PI/2;
 boolean pause = false;
 
 color sky_col;
+
+boolean use_joy = false;
+
+boolean setupJoy() {
+ 
+  controllIO = ControllIO.getInstance(this);
+
+  if (controllIO.getNumberOfDevices() <= 0) {
+    return false; 
+  }
+ 
+  use_joy = true;
+  joypad = controllIO.getDevice(0);
+  //joypad.plug(this, "handleButton1Press", ControllIO.ON_PRESS, 0);
+  //joypad.plug(this, "handleButton1Release", ControllIO.ON_RELEASE, 1);
+  //joypad.plug(this, "handleMovement", ControllIO.ON_PRESS, 0);//ControllIO.WHILE_PRESS, 1);
+
+  stick1 = joypad.getStick(0);
+  stick1.setTolerance(0.0f);
+  stick1.setMultiplier(1.0f);
+  //stick1.setMultiplier(PI);
+
+  stick2 = joypad.getStick(1);
+  stick2.setTolerance(0.0f);
+  stick2.setMultiplier(1.0f);
+  
+  joypad.printSticks();
+  
+  /*
+  old_x1 = width/2;
+  old_x2 = width/2;
+  old_y1 = height/2;
+  old_y2 = height/2;
+  */
+  
+  return true;
+}
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
