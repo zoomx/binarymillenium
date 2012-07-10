@@ -541,6 +541,9 @@ void draw(
       
     pushMatrix();
     translate(j*BWD, -elev[i][j], i*BWD);
+    
+    color dirt = color(0,0,0);
+    color type_col;
       
        //stroke(0);
        /*
@@ -554,46 +557,24 @@ void draw(
       //if (parent == null) {
         if (type[i][j] == 1) {
           // dirt
-          color dirt = color(255,200,0);
-          color col = color(
-            red(dirt) * p_dist   + red(sky_col) * (1.0 - p_dist),
-            green(dirt) * p_dist + green(sky_col) * (1.0 - p_dist),
-            blue(dirt) * p_dist  + blue(sky_col) * (1.0 - p_dist)
-            );
-         // println(red(dirt) * p_dist + "   " + p_dist);
-          fill(col);
+          dirt = color(255,200,0);
         } else if (type[i][j] == 2) {
           // snow
-          color dirt = color(225,225,225);
-          color col = color(
-            red(dirt) * p_dist   + red(sky_col) * (1.0 - p_dist),
-            green(dirt) * p_dist + green(sky_col) * (1.0 - p_dist),
-            blue(dirt) * p_dist  + blue(sky_col) * (1.0 - p_dist)
-            );
-         // println(red(dirt) * p_dist + "   " + p_dist);
-          fill(col);
+          dirt = color(225,225,225);
         } else if (type[i][j] == 3) {
           // road
-          color dirt = color(120,120,120);
-          color col = color(
-            red(dirt) * p_dist   + red(sky_col) * (1.0 - p_dist),
-            green(dirt) * p_dist + green(sky_col) * (1.0 - p_dist),
-            blue(dirt) * p_dist  + blue(sky_col) * (1.0 - p_dist)
-            );
-         // println(red(dirt) * p_dist + "   " + p_dist);
-          fill(col);
+          dirt = color(120,120,120);
         } else if (type[i][j] == 0) {
-         
-               // grass
-          color dirt = color(10,150,0);;
-          color col = color(
+          // grass
+          dirt = color(10,150,0);;
+        } 
+        
+        type_col = color(
             red(dirt) * p_dist   + red(sky_col) * (1.0 - p_dist),
             green(dirt) * p_dist + green(sky_col) * (1.0 - p_dist),
             blue(dirt) * p_dist  + blue(sky_col) * (1.0 - p_dist)
             );
-         // println(red(dirt) * p_dist + "   " + p_dist);
-          fill(col);
-        } 
+         fill(type_col);
         
       //}
       
@@ -602,7 +583,9 @@ void draw(
         if (type[i][j] == 0) {
           // draw grass
           drawGrass(50,  i,  j);
+          
         }
+        drawBoxDirt(50,  i,  j, type_col);
         drawTriFan(BWD);
         
         if (true) {
@@ -628,7 +611,7 @@ void draw(
           if (type[i][j] == 0) {
             drawGrass(5, i, j); 
           }
-          
+          drawBoxDirt(5,  i,  j, type_col);
         }
         
         //stroke(0);
@@ -794,8 +777,13 @@ void drawGrass(int num, int i, int j)
       // TBD wind blowing effect here
       line(x , 0, z, x + dx, -2, z + dz);
    }
-   
-  fill(45,135,3);
+}
+
+void drawBoxDirt(int num, int i, int j, color col)
+{
+  //
+  fill(col);
+  
   noStroke();
   for (float ind = 0; ind < 100.0; ind+= 1.0) {
     float x = 1.6*(float)BWD*(noise(0.1*i + ind + t/2000.0)-0.5);
