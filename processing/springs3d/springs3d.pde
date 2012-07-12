@@ -293,32 +293,34 @@ class Structure
    
   PVector axle;
   
-  Particle cen;
+  ArrayList cen;
   
-  Structure(int NM_x, int NM_y, PVector offset)
+  float Cf;
+  float Kf;
+  float SP;
+  
+  Structure(int NM_x, int NM_y, float new_SP, PVector offset, boolean make_ellipse)
   {
     springs = new ArrayList();
     masses = new ArrayList();
-    int Z_NM = 1;
-  
-    cen;
-    
-    float Cf = 0.02;
-  //if (use_2d) Z_NM = 1;
-  
-  final float SP = 10.0;
-  final float Kf = 0.08 * SP/10.0;
+    cen = new ArrayList();
+    int Z_NM = 3;
+
+    Cf = 0.02;
+    //if (use_2d) Z_NM = 1;
+    SP = new_SP;// 10.0;
+    Kf = 0.08;// * SP/10.0;
 
   //final int TNM = NM*NM;
   for (int k = 0; k < Z_NM; k++) {
   for (int i = -NM_x/2; i < NM_x/2; i++) {
      for (int j =  -NM_y/2; j < NM_y/2; j++) {
        
-       //if (sqrt(pow((float)i - NM_y/2.0,2.0) + pow((float)j - NM_x/2.0,2.0)) >= NM/2 ) continue;
+       if (make_ellipse && (sqrt(pow((float)i, 2.0) + pow((float)j, 2.0)) >= NM_x/2 -NM_x/10)) continue;
        
     Particle p = new Particle(new PVector(SP*i, SP*j, k*SP));
     
-    if ((i ==0) && (j==0)) cen = p;
+    if ((i ==0) && (j==0)) cen.add(p);
     
     p.p.add(offset);
     masses.add(p);
@@ -366,27 +368,27 @@ class Structure
     Spring sp = (Spring) springs.get(i);
    // println(i);
     sp.update(); 
-  }
+    }
   
-  cen.p.mult(0);
+  //cen.p.mult(0);
   
-  for (int i = 0; i < masses.size(); i++) {
+    for (int i = 0; i < masses.size(); i++) {
     Particle pr = (Particle) masses.get(i);
     pr.addForce(gravity); 
     pr.update();
     
-    cen.p.add(pr.p);
+    //cen.p.add(pr.p);
     
-  }
-  cen.p.div(masses.size());
+    }
+  //cen.p.div(masses.size());
   
-  cam.update();
+ 
   //println(cam.p + "  " + cen.p);
   
   translate(-cam.p.x + width/2, -cam.p.y + height/2);
  
   ////////////////////////////////////////
-  for (int i = 0; i < springs.size(); i+=4) {
+  for (int i = 0; i < springs.size(); i+=1) {
     Spring sp = (Spring) springs.get(i);
     sp.draw();
   }
@@ -396,32 +398,66 @@ class Structure
    pr.draw();
   }
   
-    fill(255);
-  ellipse(cen.p.x, cen.p.y, 4,4);
+  
+   for (int i = 0; i < cen.size(); i++) {
+     fill(255);
+    Particle pr = (Particle) cen.get(i);
+    ellipse(pr.p.x, pr.p.y, 4,4);
+  }
+
+  
    popMatrix();
   }
   
   void addTorque(boolean rotate_clockwise)
   {
+    float tq = 0.5;
     //println (count + " torque " + key); 
+     Particle cn = (Particle) cen.get(0);
      
      for (int i = 0; i < masses.size(); i++) {
        Particle pr = (Particle) masses.get(i);
-       PVector rad = PVector.sub(pr.p, cen.p);
+       PVector rad = PVector.sub(pr.p, cn.p);
        rad.normalize();
        PVector torque = rad.cross(axle);
        
        if (rotate_clockwise)
-        torque.mult(0.25);
+        torque.mult(tq);
        else
-        torque.mult(-0.25);
+        torque.mult(-tq);
        
        pr.addForce(torque);
        
      }
  
      
-  } // draw
+  } // addTorque
+  
+  void connectCen(Structure s2, float max_dist)
+  {
+   
+    for (int i = 0; i < s2.masses.size(); i++) {
+      for (int j = 0; j < cen.size(); j++) {
+      Particle pr = (Particle) s2.masses.get(i);
+      Particle cn = (Particle) cen.get(j);
+      
+      float dis = cn.distManhattan(pr);
+      
+      float new_Kf = Kf*4;
+      float new_Cf = Cf;
+      
+      if (dis < max_dist) {
+        if (dis > s2.SP) {
+        //new_Kf = pow(new_Kf, dis/10.0);
+        new_Kf /= dis/(0.7*s2.SP);
+        new_Cf /= dis/(0.7*s2.SP);
+        }
+      
+        Spring s = new Spring(cn, pr, new_Kf, new_Cf, true, true);
+        s2.springs.add(s); 
+      }
+    }}
+  }
 } // Structure
 
 Structure wheel1, wheel2, body;
@@ -447,11 +483,14 @@ void setup()
   cam = new Particle(new PVector(0,0,0));
   
   if (true) {
-    wheel1 = new Structure(8,8, new PVector(0,0,0) );
-    wheel2 = new Structure(8,8, new PVector(100,0,0) );
-    body = new Structure(16,6, new PVector(50,-60,0) );
+    wheel1 = new Structure(6,6, 25.0, new PVector(-150,200,0) , true);
+    wheel2 = new Structure(6,6, 25.0, new PVector(0,200,0) , true);
+    body   = new Structure(15,4, 15.0, new PVector(-75,170,0) , false );
+    
+    wheel1.connectCen(body,60.0);
+    wheel2.connectCen(body,60.0);
 
-    Spring s = new Spring(wheel1.cen, cam, 0.001, 0.49, false, true);
+    Spring s = new Spring((Particle)wheel1.cen.get(0), cam, 0.001, 0.49, false, true);
     s.rest = 0;
     wheel1.springs.add(s); 
   } else {
@@ -486,6 +525,7 @@ void draw()
 wheel1.draw();
 wheel2.draw();
 body.draw();
+ cam.update();
   
   if (keyPressed)
   {
