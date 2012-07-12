@@ -205,9 +205,13 @@ class Spring
     float acc = -K * x;
     
     // diff_o points from v1 TO v2
-    PVector diff_o = PVector.sub(v2.p, v1.p);
+     PVector diff_o = PVector.sub(v2.p, v1.p);
     diff_o.normalize();
-    
+
+    // dead zone
+    if (!((x < rest/10.0) && (x > -rest/10.0)))
+    {
+
     PVector diff = new PVector(0.0,0.0,0.0);
     diff.set(diff_o);
     diff.mult(acc);
@@ -216,6 +220,7 @@ class Spring
     diff.mult(-1.0);
     if (alter_2)
       v2.addForce(diff);
+    }
     
     PVector diffC = new PVector(0.0,0.0,0.0);
     diffC.set(diff_o);
