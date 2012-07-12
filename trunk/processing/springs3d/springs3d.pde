@@ -63,8 +63,7 @@ class Particle
     v = new PVector();
     a = new PVector();
     
-    println("Pr " + p);
-    
+    //println("Pr " + p); 
   }
   
   void addForce(PVector new_f)
@@ -93,12 +92,14 @@ class Particle
       p.y = ht;
       //v.mult(-0.5);
       //if (v.y > 0)
-        v.y = -v.y*0.2; //.99;
+        v.y = -v.y*0.3; //.99;
        
        float depth = abs(p.y -ht);
-       if (depth <2.0) depth = 2.0;
-       v.x /= depth;
-       v.z /= depth;
+       if (depth <4.0) depth = 4.0;
+       v.x /= depth*depth;
+       v.z /= depth*depth;
+       
+       //println(v.x + "   " + v.z);
     }
     }
      
@@ -114,10 +115,8 @@ class Particle
     float vel = v.mag();
     noStroke();
     fill(255 - vel*50,255,255);
-    ellipse(p.x, p.y, 2,2);
-    
-    //ellipse(p.z, p.y, 2,2);
-    
+    ellipse(p.x, p.y, 2,2); 
+    //ellipse(p.z, p.y, 2,2); 
   }
   
   float dist(Particle p2)
@@ -309,18 +308,17 @@ class Structure
     Cf = 0.02;
     //if (use_2d) Z_NM = 1;
     SP = new_SP;// 10.0;
-    Kf = 0.08;// * SP/10.0;
+    Kf = 0.09;// * SP/10.0;
 
   for (int k = 0; k < Z_NM; k++) {
   if (make_circle) {
     for (int r = 0; r < NM_x/2; r++) {
-     for (int a =  0; a < NM_y; a++) {
+     for (int a =  0; a < NM_y; a+= (NM_x/2-r)) {
        float rad = r *SP;
        float angle = (float)a*2.0*PI/(float)NM_y;
        Particle p = new Particle(new PVector(rad * cos(angle), rad*sin(angle), k*SP));
        p.p.add(offset);
-       
-      
+
        masses.add(p);
        
         if (r ==0) {
@@ -365,11 +363,11 @@ class Structure
       
       if (dis > SP) {
         //new_Kf = pow(new_Kf, dis/10.0);
-        new_Kf /= dis/(0.7*SP);
-        new_Cf /= dis/(0.7*SP);
+        new_Kf /= dis/(0.6*SP);
+        new_Cf /= dis/(0.6*SP);
       }
       
-      Spring s = new Spring(p1, p2, new_Kf, new_Cf, true,true);
+      Spring s = new Spring(p1, p2, new_Kf, new_Cf, true, true);
       springs.add(s); 
         
     }}
@@ -430,15 +428,18 @@ class Structure
    popMatrix();
   }
   
-  void addTorque(boolean rotate_clockwise)
+  void addTorque(boolean rotate_clockwise, Particle cn, float range)
   {
-    float tq = 0.5;
+    float tq = 0.6;
     //println (count + " torque " + key); 
-     Particle cn = (Particle) cen.get(0);
+     //Particle cn = (Particle) cen.get(0);
      
      for (int i = 0; i < masses.size(); i++) {
        Particle pr = (Particle) masses.get(i);
        PVector rad = PVector.sub(pr.p, cn.p);
+       
+       if (rad.mag() > range) continue;
+       
        rad.normalize();
        PVector torque = rad.cross(axle);
        
@@ -504,8 +505,8 @@ void setup()
   cam = new Particle(new PVector(0,0,0));
   
   if (true) {
-    wheel1 = new Structure(6,9, 25.0, new PVector(-150,200,0) , true);
-    wheel2 = new Structure(6,9, 25.0, new PVector(0,200,0) , true);
+    wheel1 = new Structure(6,11, 25.0, new PVector(-150,200,0) , true);
+    wheel2 = new Structure(6,11, 25.0, new PVector(0,200,0) , true);
     body   = new Structure(15,4, 15.0, new PVector(-75,170,0) , false );
     
     wheel1.connectCen(body,100.0);
@@ -551,8 +552,13 @@ body.draw();
   if (keyPressed)
   {
     if ((key == 'j') || (key == 'k')) {
-     wheel1.addTorque( (key=='j' ? true : false));
-    
+     boolean dir = (key=='j' ? true : false);
+     Particle cn = (Particle)wheel1.cen.get(0);
+     wheel1.addTorque( dir, cn, 80.0);
+     body.addTorque( !dir, cn, 30.0);
+     
+     Particle cn2 = (Particle)wheel2.cen.get(0);
+     wheel2.addTorque( dir, cn2, 60.0);
     }
   }
   } else {
