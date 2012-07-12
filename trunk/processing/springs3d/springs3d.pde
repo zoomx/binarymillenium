@@ -19,7 +19,7 @@ class Terrain
     
     for (int i = 0; i < ht.length; i++)
     {
-      ht[i] = /*-i/2 +*/ 2.5*height/6 + height/30.0*noise(i/5.0) + height/6*noise(i/50.0) + height/6*noise(i/250.0); 
+      ht[i] = /*-i/2 +*/ 2.5*height/6 + height/30.0*noise(i/5.0) + height/12*noise(i/50.0) + height/6*noise(i/250.0); 
     
     }
   }
@@ -36,7 +36,7 @@ class Terrain
   
   void draw(PVector cam_pos)
   {
-    int wd = width/2;
+    int wd = width;
     int ht = height/2;
     for (int i = 1; i < wd; i++)
     {
@@ -303,10 +303,10 @@ class Structure
   
     cen = new Particle(new PVector(0,0,0));
     
-    float Cf = 0.01;
+    float Cf = 0.02;
   //if (use_2d) Z_NM = 1;
   
-  final float SP = 20.0;
+  final float SP = 10.0;
   final float Kf = 0.08 * SP/10.0;
   final int NM = nm;
   //final int TNM = NM*NM;
@@ -314,7 +314,7 @@ class Structure
   for (int i = 0; i < NM; i++) {
      for (int j = 0; j < NM; j++) {
        
-       if (sqrt(pow(i - NM/2,2) + pow(j - NM/2,2)) >= NM/2 + NM/8) continue;
+       if (sqrt(pow((float)i - NM/2.0,2.0) + pow((float)j - NM/2.0,2.0)) >= NM/2 ) continue;
        
     Particle p = new Particle(new PVector(SP*i, 2*SP + SP*j, k*SP));
     masses.add(p);
@@ -379,10 +379,10 @@ class Structure
   cam.update();
   //println(cam.p + "  " + cen.p);
   
-  translate(-cam.p.x + width/4, -cam.p.y + height/2);
+  translate(-cam.p.x + width/2, -cam.p.y + height/2);
  
   ////////////////////////////////////////
-  for (int i = 0; i < springs.size(); i++) {
+  for (int i = 0; i < springs.size(); i+=4) {
     Spring sp = (Spring) springs.get(i);
     sp.draw();
   }
@@ -399,7 +399,7 @@ class Structure
   
   void addTorque(boolean rotate_clockwise)
   {
-    println (count + " torque " + key); 
+    //println (count + " torque " + key); 
      
      for (int i = 0; i < masses.size(); i++) {
        Particle pr = (Particle) masses.get(i);
@@ -408,9 +408,9 @@ class Structure
        PVector torque = rad.cross(axle);
        
        if (rotate_clockwise)
-        torque.mult(0.2);
+        torque.mult(0.25);
        else
-        torque.mult(-0.2);
+        torque.mult(-0.25);
        
        pr.addForce(torque);
        
@@ -443,7 +443,7 @@ void setup()
   cam = new Particle(new PVector(0,0,0));
   
   if (true) {
-    structure = new Structure();
+    structure = new Structure(7);
 
     Spring s = new Spring(structure.cen, cam, 0.003, 0.49, false, true);
     s.rest = 0;
@@ -468,7 +468,9 @@ int count = 0;
 /////////////////////////////////////////////////
 void draw()
 {
-  background(0);
+  background(0,0,0);
+  //fill(0,180);
+  //rect(0,0,width,height);
   
   terrain.draw(cam.p);
   
@@ -485,7 +487,7 @@ structure.draw();
     }
   }
   } else {
-    translate(-cam.p.x + width/4,0);//-cam.p.y);
+    translate(-cam.p.x + width/2,0);//-cam.p.y);
     sp1.update();
      sp2.update();
       sp3.update();
