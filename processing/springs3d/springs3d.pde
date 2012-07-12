@@ -295,28 +295,32 @@ class Structure
   
   Particle cen;
   
-  Structure(int nm)
+  Structure(int NM_x, int NM_y, PVector offset)
   {
     springs = new ArrayList();
     masses = new ArrayList();
     int Z_NM = 1;
   
-    cen = new Particle(new PVector(0,0,0));
+    cen;
     
     float Cf = 0.02;
   //if (use_2d) Z_NM = 1;
   
   final float SP = 10.0;
   final float Kf = 0.08 * SP/10.0;
-  final int NM = nm;
+
   //final int TNM = NM*NM;
   for (int k = 0; k < Z_NM; k++) {
-  for (int i = 0; i < NM; i++) {
-     for (int j = 0; j < NM; j++) {
+  for (int i = -NM_x/2; i < NM_x/2; i++) {
+     for (int j =  -NM_y/2; j < NM_y/2; j++) {
        
-       if (sqrt(pow((float)i - NM/2.0,2.0) + pow((float)j - NM/2.0,2.0)) >= NM/2 ) continue;
+       //if (sqrt(pow((float)i - NM_y/2.0,2.0) + pow((float)j - NM_x/2.0,2.0)) >= NM/2 ) continue;
        
-    Particle p = new Particle(new PVector(SP*i, 2*SP + SP*j, k*SP));
+    Particle p = new Particle(new PVector(SP*i, SP*j, k*SP));
+    
+    if ((i ==0) && (j==0)) cen = p;
+    
+    p.p.add(offset);
     masses.add(p);
     
   }}}
@@ -420,7 +424,7 @@ class Structure
   } // draw
 } // Structure
 
-Structure structure;
+Structure wheel1, wheel2, body;
 
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
@@ -443,11 +447,13 @@ void setup()
   cam = new Particle(new PVector(0,0,0));
   
   if (true) {
-    structure = new Structure(7);
+    wheel1 = new Structure(8,8, new PVector(0,0,0) );
+    wheel2 = new Structure(8,8, new PVector(100,0,0) );
+    body = new Structure(16,6, new PVector(50,-60,0) );
 
-    Spring s = new Spring(structure.cen, cam, 0.003, 0.49, false, true);
+    Spring s = new Spring(wheel1.cen, cam, 0.001, 0.49, false, true);
     s.rest = 0;
-    structure.springs.add(s); 
+    wheel1.springs.add(s); 
   } else {
     float Cf = 0.4;
     float Kf = 0.5;
@@ -477,12 +483,14 @@ void draw()
   
   if (true) {
   
-structure.draw();
+wheel1.draw();
+wheel2.draw();
+body.draw();
   
   if (keyPressed)
   {
     if ((key == 'j') || (key == 'k')) {
-     structure.addTorque( (key=='j' ? true : false));
+     wheel1.addTorque( (key=='j' ? true : false));
     
     }
   }
