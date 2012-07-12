@@ -19,7 +19,8 @@ class Terrain
     
     for (int i = 0; i < ht.length; i++)
     {
-      ht[i] = /*-i/2 +*/ 2.5*height/6 + height/9*noise(i/5.0) + height/6*noise(i/50.0) + height/6*noise(i/250.0); 
+      ht[i] = /*-i/2 +*/ 2.5*height/6 + height/30.0*noise(i/5.0) + height/6*noise(i/50.0) + height/6*noise(i/250.0); 
+    
     }
   }
   
@@ -36,11 +37,13 @@ class Terrain
   void draw(PVector cam_pos)
   {
     int wd = width/2;
+    int ht = height/2;
     for (int i = 1; i < wd; i++)
     {
       stroke(128);
       // center the terrain on the cam_pos
-      line(i-1,getHeight(i + cam_pos.x - wd/2), i, getHeight(i + cam_pos.x - wd/2));
+      line(i-1, -cam_pos.y +ht + getHeight(i + cam_pos.x - wd/2-1), 
+           i, -cam_pos.y +ht + getHeight(i + cam_pos.x - wd/2));
     } 
   }
   
@@ -59,6 +62,8 @@ class Particle
     p = new PVector(new_p.x, new_p.y, new_p.z);
     v = new PVector();
     a = new PVector();
+    
+    println("Pr " + p);
     
   }
   
@@ -81,20 +86,26 @@ class Particle
     if (terrain != null) {
     float ht = terrain.getHeight(p.x);
     if (p.y > ht) {
+      
       //if (v.y > 10.0) // destroy ground under impact
         //terrain.ht[(int)p.x] = p.y;
         // not working great yet.
-     p.y = ht;
+      p.y = ht;
+      //v.mult(-0.5);
+      //if (v.y > 0)
+        v.y = -v.y*0.2; //.99;
+       
+       float depth = abs(p.y -ht);
+       if (depth <2.0) depth = 2.0;
+       v.x /= depth;
+       v.z /= depth;
+    }
     }
      
-     //if (v.y > 0)
-       v.y = -v.y*0.5; //.99;
-     
-     v.x *= 0.15;
-     v.z *= 0.15;
-    }
-     
+    // make things viscous
     v.mult(0.99);
+    
+    // need new forces in next time step
     a.mult(0);
   }
   
@@ -103,9 +114,9 @@ class Particle
     float vel = v.mag();
     noStroke();
     fill(255 - vel*50,255,255);
-    ellipse(p.x,p.y,2,2);
+    ellipse(p.x, p.y, 2,2);
     
-    ellipse(p.z,p.y,2,2);
+    //ellipse(p.z, p.y, 2,2);
     
   }
   
@@ -135,6 +146,7 @@ class Spring
   float rest;
   float K; // spring constant
   float C; // damping constant
+  float Tf; // torsional damping
   
   float dis;
   float x;
@@ -143,8 +155,8 @@ class Spring
   boolean alter_1, alter_2;
  
  // Spring(Particle new_v1, Particle new_v2, float new_K)
-   Spring(Particle new_v1, Particle new_v2, float new_K,
-  float new_C, 
+   Spring(Particle new_v1, Particle new_v2, 
+      float new_K, float new_C, 
       boolean new_alter_1, boolean new_alter_2)
   {
     v1 = new_v1;
@@ -152,6 +164,7 @@ class Spring
     K = new_K;
     
     C = new_C; // 0.010;
+    Tf = 0.01;
      
     rest = v1.dist(v2);
     
@@ -196,16 +209,21 @@ class Spring
     PVector diffC = new PVector(0.0,0.0,0.0);
     diffC.set(diff_o);
     
-    diffC.mult((x_old - x)*C);
+    float dx = x_old - x;
+    if (dx > rest) dx = rest;
+    if (dx < -rest) dx = -rest;
+    
+    diffC.mult(dx*C);
+    
     x_old = x;
     if (alter_1)
-    v1.addForce(diffC);
+      v1.addForce(diffC);
     diffC.mult(-1.0);
     if (alter_2)
       v2.addForce(diffC);
     
     // Find tangential velocities
-    if (true){
+    if (Tf != 0) {
     PVector diff1  = new PVector(0.0,0.0,0.0);
     diff1.set(diff_o);
     
@@ -232,8 +250,8 @@ class Spring
     vel_tan_2.sub(avg_tan_vel);
     
     // point in opposite directions to opposing the movement
-    vel_tan_1.mult(-0.01);
-    vel_tan_2.mult(-0.01);
+    vel_tan_1.mult(-Tf);
+    vel_tan_2.mult(-Tf);
     
     v1.addForce(vel_tan_1);
     v2.addForce(vel_tan_2);
@@ -272,34 +290,33 @@ class Structure
 {
   ArrayList springs;
   ArrayList masses;
-  
-  
+   
   PVector axle;
   
   Particle cen;
   
-  Structure()
+  Structure(int nm)
   {
     springs = new ArrayList();
     masses = new ArrayList();
-    int Z_NM = 4;
+    int Z_NM = 1;
   
     cen = new Particle(new PVector(0,0,0));
     
     float Cf = 0.01;
   //if (use_2d) Z_NM = 1;
   
-  final float SP = 5.0;
+  final float SP = 20.0;
   final float Kf = 0.08 * SP/10.0;
-  final int NM = 5;
+  final int NM = nm;
   //final int TNM = NM*NM;
   for (int k = 0; k < Z_NM; k++) {
   for (int i = 0; i < NM; i++) {
      for (int j = 0; j < NM; j++) {
        
-       if (sqrt(pow(i - NM/2,2) + pow(j - NM/2,2)) >= NM/2) continue;
+       if (sqrt(pow(i - NM/2,2) + pow(j - NM/2,2)) >= NM/2 + NM/8) continue;
        
-    Particle p = new Particle(new PVector(SP*i, -2*SP - SP*j, 3*width/4 + k*SP));
+    Particle p = new Particle(new PVector(SP*i, 2*SP + SP*j, k*SP));
     masses.add(p);
     
   }}}
@@ -314,15 +331,18 @@ class Structure
       
       float dis = p1.distManhattan(p2);
       
-      if (dis > SP*4) continue;
+      if (dis > SP*3) continue;
       
       float new_Kf = Kf;
+      float new_Cf = Cf;
+      
       if (dis > SP) {
         //new_Kf = pow(new_Kf, dis/10.0);
         new_Kf /= dis/(0.7*SP);
+        new_Cf /= dis/(0.7*SP);
       }
       
-      Spring s = new Spring(p1, p2, new_Kf, Cf, true,true);
+      Spring s = new Spring(p1, p2, new_Kf, new_Cf, true,true);
       springs.add(s); 
         
     }}
@@ -333,6 +353,8 @@ class Structure
   axle = new PVector(0.0,0.0,1.0); 
   }
   
+  
+  ///////////////////////////////////////
   void draw()
   {
     pushMatrix();
@@ -355,12 +377,12 @@ class Structure
   cen.p.div(masses.size());
   
   cam.update();
-  println(cam.p + "  " + cen.p);
+  //println(cam.p + "  " + cen.p);
   
-  translate(-cam.p.x + width/4,0);//-cam.p.y);
+  translate(-cam.p.x + width/4, -cam.p.y + height/2);
  
   ////////////////////////////////////////
-  for (int i = 0; i < springs.size()/4; i+=3) {
+  for (int i = 0; i < springs.size(); i++) {
     Spring sp = (Spring) springs.get(i);
     sp.draw();
   }
@@ -372,7 +394,7 @@ class Structure
   
     fill(255);
   ellipse(cen.p.x, cen.p.y, 4,4);
-   
+   popMatrix();
   }
   
   void addTorque(boolean rotate_clockwise)
@@ -393,7 +415,7 @@ class Structure
        pr.addForce(torque);
        
      }
-     popMatrix();
+ 
      
   } // draw
 } // Structure
@@ -408,38 +430,36 @@ Structure structure;
 //
 //
 ///////////////////////////////////////////////////////////////////////////////////
-Particle p1, p2, p3;;
+Particle p1, p2, p3;//p4;
 Spring sp1,sp2,sp3;
 
 void setup() 
 {
-  size(100, 50);  
+  size(800, 600);  
+  frameRate(20);
   
   gravity = new PVector(0.0, 0.11, 0.0);
-  
-  if (false) {
-  structure = new Structure();
   terrain = new Terrain();
-  
-  
-
   cam = new Particle(new PVector(0,0,0));
   
-  Spring s = new Spring(structure.cen, cam, 0.05,0.01, false, true);
-  s.rest = 0;
-  structure.springs.add(s); 
+  if (true) {
+    structure = new Structure();
+
+    Spring s = new Spring(structure.cen, cam, 0.003, 0.49, false, true);
+    s.rest = 0;
+    structure.springs.add(s); 
   } else {
     float Cf = 0.4;
     float Kf = 0.5;
      p1 = new Particle(new PVector(width/2,10,0)); 
      p2 = new Particle(new PVector(width/2,40,0)); 
      p3 = new Particle(new PVector(width/2 + 20,10,0)); 
-     sp1 = new Spring(p1, p2, Kf, Cf, false, true);
-     sp1.rest = 15;
+     sp1 = new Spring(p1, p2, Kf, Cf, true, true);
+     //sp1.rest = 15;
      
      sp2 = new Spring(p2, p3, Kf, Cf, true, true);
      
-     sp3 = new Spring(p1, p3, Kf, Cf, false, true);
+     sp3 = new Spring(p1, p3, Kf, Cf, true, true);
    }
 }
 
@@ -450,11 +470,12 @@ void draw()
 {
   background(0);
   
-  if (false) {
-  
   terrain.draw(cam.p);
   
-  structure.draw();
+  
+  if (true) {
+  
+structure.draw();
   
   if (keyPressed)
   {
@@ -464,11 +485,12 @@ void draw()
     }
   }
   } else {
+    translate(-cam.p.x + width/4,0);//-cam.p.y);
     sp1.update();
      sp2.update();
       sp3.update();
-    //p1.addForce(gravity);
-    //p1.update();
+    p1.addForce(gravity);
+    p1.update();
     p2.addForce(gravity);
     p2.update();  
     p3.addForce(gravity);
