@@ -19,7 +19,9 @@ class Terrain
     
     for (int i = 0; i < ht.length; i++)
     {
-      ht[i] = /*-i/2 +*/ 2.5*height/6 + height/30.0*noise(i/5.0) + height/12*noise(i/50.0) + height/6*noise(i/250.0); 
+      float f = (float) i;
+      ht[i] = /*-i/2 +*/ 2.5*height/6 + height/60.0*noise(f/5.0) + 
+      height/10.0*noise(f/50.0) + height/8.0*noise(f/250.0) + height*noise(f/2000.0);
     
     }
   }
@@ -57,11 +59,15 @@ class Particle
   PVector v;
   PVector a;
   
-  Particle(PVector new_p)
+  color c;
+ 
+  Particle(PVector new_p, color col)
   {
     p = new PVector(new_p.x, new_p.y, new_p.z);
     v = new PVector();
     a = new PVector();
+    
+    c = col;
     
     //println("Pr " + p); 
   }
@@ -114,7 +120,7 @@ class Particle
   {
     float vel = v.mag();
     noStroke();
-    fill(255 - vel*50,255,255);
+    fill(c);
     ellipse(p.x, p.y, 2,2); 
     //ellipse(p.z, p.y, 2,2); 
   }
@@ -137,6 +143,8 @@ class Particle
   */  
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////
 class Spring 
 {
    
@@ -152,12 +160,16 @@ class Spring
   float x_old; // old length
   
   boolean alter_1, alter_2;
+  
+  color c;
  
  // Spring(Particle new_v1, Particle new_v2, float new_K)
    Spring(Particle new_v1, Particle new_v2, 
       float new_K, float new_C, 
-      boolean new_alter_1, boolean new_alter_2)
+      boolean new_alter_1, boolean new_alter_2,
+      color col)
   {
+    c = col;
     v1 = new_v1;
     v2 = new_v2;
     K = new_K;
@@ -264,6 +276,8 @@ class Spring
   {
     // transparency is very slow
     
+    stroke(c);
+    /*
     int  f;
     if (dis > rest) {
       f =  (int)(dis/rest*20.0);
@@ -272,6 +286,7 @@ class Spring
       f =  (int) (rest/dis*20.0);
       stroke(128+f, 128-f,128-f);//,10);
     }
+    */
     
     //if (dis > 2.0*rest)
     //if (count == 0)
@@ -298,12 +313,12 @@ class Structure
   float Kf;
   float SP;
   
-  Structure(int NM_x, int NM_y, float new_SP, PVector offset, boolean make_circle)
+  Structure(int NM_x, int NM_y, float new_SP, PVector offset, boolean make_circle, color col)
   {
     springs = new ArrayList();
     masses = new ArrayList();
     cen = new ArrayList();
-    int Z_NM = 3;
+    int Z_NM = 2;
 
     Cf = 0.02;
     //if (use_2d) Z_NM = 1;
@@ -316,7 +331,7 @@ class Structure
      for (int a =  0; a < NM_y; a+= (NM_x/2-r)) {
        float rad = r *SP;
        float angle = (float)a*2.0*PI/(float)NM_y;
-       Particle p = new Particle(new PVector(rad * cos(angle), rad*sin(angle), k*SP));
+       Particle p = new Particle(new PVector(rad * cos(angle), rad*sin(angle), k*SP),col);
        p.p.add(offset);
 
        masses.add(p);
@@ -332,7 +347,7 @@ class Structure
   for (int i = -NM_x/2; i < NM_x/2; i++) {
      for (int j =  -NM_y/2; j < NM_y/2; j++) {
        
-    Particle p = new Particle(new PVector(SP*i, SP*j, k*SP));
+    Particle p = new Particle(new PVector(SP*i, SP*j, k*SP), col);
     
     p.p.add(offset);
     
@@ -367,7 +382,7 @@ class Structure
         new_Cf /= dis/(0.6*SP);
       }
       
-      Spring s = new Spring(p1, p2, new_Kf, new_Cf, true, true);
+      Spring s = new Spring(p1, p2, new_Kf, new_Cf, true, true,col);
       springs.add(s); 
         
     }}
@@ -475,7 +490,7 @@ class Structure
         new_Cf /= dis/(0.7*s2.SP);
         }
       
-        Spring s = new Spring(cn, pr, new_Kf, new_Cf, true, true);
+        Spring s = new Spring(cn, pr, new_Kf, new_Cf, true, true, color(64,64,128));
         s2.springs.add(s); 
       }
     }}
@@ -494,39 +509,46 @@ Structure wheel1, wheel2, body;
 ///////////////////////////////////////////////////////////////////////////////////
 Particle p1, p2, p3;//p4;
 Spring sp1,sp2,sp3;
+Spring cam_spring;
 
 void setup() 
 {
-  size(800, 600);  
+  size(1280, 720);  
   frameRate(20);
   
   gravity = new PVector(0.0, 0.11, 0.0);
   terrain = new Terrain();
-  cam = new Particle(new PVector(0,0,0));
+  cam = new Particle(new PVector(0,0,0), color(255));
+  
+  strokeWeight(4.0);
   
   if (true) {
-    wheel1 = new Structure(6,11, 25.0, new PVector(-150,200,0) , true);
-    wheel2 = new Structure(6,11, 25.0, new PVector(0,200,0) , true);
-    body   = new Structure(15,4, 15.0, new PVector(-75,170,0) , false );
+    color c1 = color(64,64,64);
+    wheel1 = new Structure(6,11, 25.0, new PVector(-150,200,0) , true , c1);
+    wheel2 = new Structure(6,11, 25.0, new PVector(0,200,0) , true , c1);
+    
+    color c2 = color(128,64,64);
+    body   = new Structure(15,4, 15.0, new PVector(-75,170,0) , false, c2);
     
     wheel1.connectCen(body,100.0);
     wheel2.connectCen(body,100.0);
 
-    Spring s = new Spring((Particle)wheel1.cen.get(0), cam, 0.001, 0.49, false, true);
-    s.rest = 0;
-    wheel1.springs.add(s); 
+    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 0.001, 0.49, false, true, color(255));
+    cam_spring.rest = 0;
+    //wheel1.springs.add(s); 
   } else {
     float Cf = 0.4;
     float Kf = 0.5;
-     p1 = new Particle(new PVector(width/2,10,0)); 
-     p2 = new Particle(new PVector(width/2,40,0)); 
-     p3 = new Particle(new PVector(width/2 + 20,10,0)); 
-     sp1 = new Spring(p1, p2, Kf, Cf, true, true);
+    color c = color(255);
+     p1 = new Particle(new PVector(width/2,10,0),c); 
+     p2 = new Particle(new PVector(width/2,40,0),c); 
+     p3 = new Particle(new PVector(width/2 + 20,10,0),c); 
+     sp1 = new Spring(p1, p2, Kf, Cf, true, true,c);
      //sp1.rest = 15;
      
-     sp2 = new Spring(p2, p3, Kf, Cf, true, true);
+     sp2 = new Spring(p2, p3, Kf, Cf, true, true,c);
      
-     sp3 = new Spring(p1, p3, Kf, Cf, true, true);
+     sp3 = new Spring(p1, p3, Kf, Cf, true, true,c );
    }
 }
 
@@ -544,23 +566,34 @@ void draw()
   
   if (true) {
   
+    body.draw();
 wheel1.draw();
 wheel2.draw();
-body.draw();
+
+cam_spring.update();
  cam.update();
+  
+  boolean dir = false;
+  boolean drive = true;
   
   if (keyPressed)
   {
     if ((key == 'j') || (key == 'k')) {
-     boolean dir = (key=='j' ? true : false);
-     Particle cn = (Particle)wheel1.cen.get(0);
+      dir = (key=='j' ? true : false);
+     drive = true;
+    }
+  }
+  
+  if (drive){ 
+   Particle cn = (Particle)wheel1.cen.get(0);
      wheel1.addTorque( dir, cn, 80.0);
      body.addTorque( !dir, cn, 30.0);
      
      Particle cn2 = (Particle)wheel2.cen.get(0);
      wheel2.addTorque( dir, cn2, 60.0);
-    }
+     body.addTorque( !dir, cn2, 30.0);  
   }
+  
   } else {
     translate(-cam.p.x + width/2,0);//-cam.p.y);
     sp1.update();
@@ -581,4 +614,6 @@ body.draw();
   }
   
   count++;
+  
+  //saveFrame("springs-#####.png");
 }
