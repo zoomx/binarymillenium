@@ -17,11 +17,12 @@ class Terrain
   {
     ht = new float[4096];
     
+    float sc = 500;
     for (int i = 0; i < ht.length; i++)
     {
       float f = (float) i;
-      ht[i] = /*-i/2 +*/ 2.5*height/6 + height/60.0*noise(f/5.0) + 
-      height/10.0*noise(f/50.0) + height/8.0*noise(f/250.0) + height*noise(f/2000.0);
+      ht[i] = /*-i/2 +*/ 2.5*sc/6 + sc/60.0*noise(f/5.0) + 
+      sc/10.0*noise(f/50.0) + sc/8.0*noise(f/250.0) + sc*noise(f/2000.0);
     
     }
   }
@@ -162,7 +163,7 @@ class Particle
     }
      
     // make things viscous
-    v.mult(0.99);
+    v.mult(0.999);
     
     // need new forces in next time step
     a.mult(0);
@@ -633,7 +634,9 @@ void setup()
     wheel1.connectCen(body,wheel_rad*2);
     wheel2.connectCen(body,wheel_rad*2);
 
-    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 0.14, 0.29, false, true, color(255));
+    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 
+          0.14, 0.29, 
+          false, true, color(255));
     cam_spring.rest = 0;
     //wheel1.springs.add(s); 
   } else {
@@ -693,6 +696,24 @@ cam_spring.update();
     if (key == 'p') {
       pause= !pause;
       println("paused " + pause);
+    }
+    
+    if (key == 'q') {
+     // jump
+     PVector jump = new PVector(0,-5,0);
+      for (int i = 0; i < body.masses.size(); i++) {
+        Particle pr = (Particle) body.masses.get(i);
+        pr.addForce(jump);
+      } 
+      jump.mult(0.5);
+      for (int i = 0; i < wheel1.masses.size(); i++) {
+        Particle pr = (Particle) wheel1.masses.get(i);
+        pr.addForce(jump);
+      } 
+       for (int i = 0; i < wheel2.masses.size(); i++) {
+        Particle pr = (Particle) wheel2.masses.get(i);
+        pr.addForce(jump);
+      } 
     }
   }
   
