@@ -13,11 +13,16 @@ Particle cam;
 class Terrain
 {
   float ht[];
+  
+  float bwd;
+  
   Terrain()
   {
     ht = new float[4096];
+      
+    bwd = 25.0;
     
-    float sc = 500;
+    float sc = 2500;
     for (int i = 0; i < ht.length; i++)
     {
       float f = (float) i;
@@ -25,11 +30,17 @@ class Terrain
       sc/10.0*noise(f/50.0) + sc/8.0*noise(f/250.0) + sc*noise(f/2000.0);
     
     }
+    
+    float first = ht[0];
+     for (int i = 0; i < ht.length; i++)
+    {
+      ht[i] -= first; 
+    }
   }
   
   float getHeight(float y)
   {
-    int yi  = (int)y;
+    int yi  = (int)(y/bwd);
     
     if (yi < 0) yi = 0;
     if (yi > ht.length-1) yi = ht.length-1;
@@ -41,12 +52,21 @@ class Terrain
   {
     int wd = width;
     int ht = height/2;
-    for (int i = 1; i < wd; i++)
+    for (int i = 0; i < wd/bwd + 2; i++)
     {
       stroke(128);
+      
+      float dx = cam_pos.x - (int)(cam_pos.x/bwd)*bwd;
+      
+      float x1 = (i-1)*bwd - dx;
+      float x2 = i*bwd - dx;
+      float y1 = -cam_pos.y + ht + getHeight(x1 + cam_pos.x - wd/2);
+      float y2 = -cam_pos.y + ht + getHeight(x2 + cam_pos.x - wd/2);
       // center the terrain on the cam_pos
-      line(i-1, -cam_pos.y +ht + getHeight(i + cam_pos.x - wd/2-1), 
-           i, -cam_pos.y +ht + getHeight(i + cam_pos.x - wd/2));
+      line(x1 , y1, x2, y2);
+      fill(255);
+      ellipse(x2,y2,5,5);     
+           //-cam_pos.y +ht + getHeight(i + cam_pos.x - wd/2));
     } 
   }
   
@@ -129,9 +149,9 @@ class Particle
     }
     
     /// clip vel at certain speed
-    if (false) {
+    if (true) {
     float vmag= v.mag();
-    float max_vel = 25.0;
+    float max_vel = 20.0;
     if (vmag > max_vel) {
        v.normalize();
        v.mult(max_vel); 
@@ -151,7 +171,7 @@ class Particle
       p.y = ht;
       //v.mult(-0.5);
       //if (v.y > 0)
-        v.y = -v.y*0.9; //.99;
+        v.y = -v.y*0.8; //.99;
        
        float depth = abs(p.y -ht);
        if (depth <4.0) depth = 4.0;
@@ -588,7 +608,7 @@ float wheel_rad;
 
 void setup() 
 {
-  size(600, 600);  
+  size(1200, 600);  
   frameRate(20);
   
   gravity = new PVector(0.0, 0.11, 0.0);
@@ -610,13 +630,13 @@ void setup()
     
     color c1 = color(64,64,64);
     wheel1 = new Structure(wheel_diameter,wheel_circ, SP, 
-                        new PVector(-200,200,0) , 
+                        new PVector(-200,-50,0) , 
                         true , c1,
                          Kf, Cf, 
                          spring_dist);
                          
     wheel2 = new Structure(wheel_diameter,wheel_circ, SP, 
-                        new PVector(0,200,0) , 
+                        new PVector(0,-50,0) , 
                         true, c1,
                          Kf, Cf, 
                          spring_dist);
@@ -626,7 +646,7 @@ void setup()
     
     color c2 = color(128,64,64);
     body   = new Structure(8,5, SP, 
-                        new PVector(-100,150,0) , 
+                        new PVector(-100,-100,0) , 
                         false, c2,
                         Kf, Cf, 
                         spring_dist);
