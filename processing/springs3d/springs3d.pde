@@ -583,6 +583,8 @@ Particle p1, p2, p3;//p4;
 Spring sp1,sp2,sp3;
 Spring cam_spring;
 
+float wheel_rad;
+
 void setup() 
 {
   size(600, 600);  
@@ -600,31 +602,38 @@ void setup()
     float spring_dist = SP*3.0;
     float Kf = 1.95;
     float Cf = 0.005;
+    int wheel_diameter = 9;
+    int wheel_circ = 19;
+    
+    wheel_rad = SP*wheel_diameter/2.0;
     
     color c1 = color(64,64,64);
-    wheel1 = new Structure(6,11, SP, 
-                        new PVector(-150,200,0) , 
+    wheel1 = new Structure(wheel_diameter,wheel_circ, SP, 
+                        new PVector(-200,200,0) , 
                         true , c1,
                          Kf, Cf, 
                          spring_dist);
                          
-    wheel2 = new Structure(6,11, SP, 
+    wheel2 = new Structure(wheel_diameter,wheel_circ, SP, 
                         new PVector(0,200,0) , 
                         true, c1,
                          Kf, Cf, 
                          spring_dist);
     
+    SP *= 1.7;
+    spring_dist = SP*2.1;
+    
     color c2 = color(128,64,64);
-    body   = new Structure(15,4, SP, 
-                        new PVector(-75,170,0) , 
+    body   = new Structure(8,5, SP, 
+                        new PVector(-100,150,0) , 
                         false, c2,
                         Kf, Cf, 
                         spring_dist);
     
-    wheel1.connectCen(body,100.0);
-    wheel2.connectCen(body,100.0);
+    wheel1.connectCen(body,wheel_rad*2);
+    wheel2.connectCen(body,wheel_rad*2);
 
-    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 0.04, 0.49, false, true, color(255));
+    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 0.14, 0.29, false, true, color(255));
     cam_spring.rest = 0;
     //wheel1.springs.add(s); 
   } else {
@@ -689,12 +698,12 @@ cam_spring.update();
   
   if (drive){ 
    Particle cn = (Particle)wheel1.cen.get(0);
-     wheel1.addTorque( dir, cn, 80.0);
-     body.addTorque( !dir, cn, 30.0);
+     wheel1.addTorque( dir, cn, wheel_rad*1.2);
+     body.addTorque( !dir, cn, wheel_rad/2.0);
      
      Particle cn2 = (Particle)wheel2.cen.get(0);
-     wheel2.addTorque( dir, cn2, 60.0);
-     body.addTorque( !dir, cn2, 30.0);  
+     wheel2.addTorque( dir, cn2, wheel_rad*1.2);
+     body.addTorque( !dir, cn2, wheel_rad/2.0);  
   }
   
   } else {
