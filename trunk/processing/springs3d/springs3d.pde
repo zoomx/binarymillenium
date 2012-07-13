@@ -59,6 +59,11 @@ class Particle
   PVector v;
   PVector a;
   
+  ArrayList vels;
+
+  // permanent springs attached to this particle
+  int spring_count;
+  
   color c;
  
   Particle(PVector new_p, color col)
@@ -68,6 +73,11 @@ class Particle
     a = new PVector();
     
     c = col;
+    
+    spring_count = 0;
+    
+    // store old vels for filtering
+    vels = new ArrayList();
     
     //println("Pr " + p); 
   }
@@ -86,6 +96,48 @@ class Particle
     if (use_2d)
       v.z = 0;
     
+    if (false) {
+    
+    vels.add(v);
+    
+    // compare the sum of vector magnitudes to the magnitude of vector sums
+    // if it is high then reduce velocity
+    float vel_mag_sum = 0;
+    PVector vel_sum = new PVector(0.0,0.0,0.0);
+    for (int i = 0; i < vels.size(); i++) {
+      PVector vo = (PVector)vels.get(i);
+      vel_sum.add(vo);
+      vel_mag_sum += vo.mag();
+    }
+    
+    float vel_sum_mag = vel_sum.mag();
+    
+    if (vel_mag_sum > 0) {
+      float vel_mag_ratio = vel_sum_mag/vel_mag_sum; 
+      
+      float th = 0.9;
+      
+      if (vel_mag_ratio < th) {
+        v.mult(vel_mag_ratio/th); 
+        println(vel_mag_ratio + "   " + vel_sum_mag + "  " + vel_mag_sum+ "   " + v);
+      }
+      //;
+    }
+    
+    if (vels.size() > 40) vels.remove(0);
+    }
+    
+    /// clip vel at certain speed
+    if (false) {
+    float vmag= v.mag();
+    float max_vel = 25.0;
+    if (vmag > max_vel) {
+       v.normalize();
+       v.mult(max_vel); 
+    }
+    }
+    
+    
     p.add(v);   
     
     if (terrain != null) {
@@ -98,7 +150,7 @@ class Particle
       p.y = ht;
       //v.mult(-0.5);
       //if (v.y > 0)
-        v.y = -v.y*0.3; //.99;
+        v.y = -v.y*0.9; //.99;
        
        float depth = abs(p.y -ht);
        if (depth <4.0) depth = 4.0;
@@ -172,6 +224,10 @@ class Spring
     c = col;
     v1 = new_v1;
     v2 = new_v2;
+    
+    v1.spring_count++;
+    v2.spring_count++;
+    
     K = new_K;
     
     C = new_C; // 0.010;
@@ -200,7 +256,7 @@ class Spring
     x = rest - dis; 
     
     // hard max
-    if (x > 2.0 * dis) x = 2.0*dis;
+    //if (x > 2.0 * dis) x = 2.0*dis;
     
     float acc = -K * x;
     
@@ -212,9 +268,11 @@ class Spring
     if (!((x < rest/10.0) && (x > -rest/10.0)))
     {
 
+    float avg_count = (float)(v1.spring_count + v2.spring_count)/2.0;
+    
     PVector diff = new PVector(0.0,0.0,0.0);
     diff.set(diff_o);
-    diff.mult(acc);
+    diff.mult(acc/avg_count);
     if (alter_1)
       v1.addForce(diff);
     diff.mult(-1.0);
@@ -238,6 +296,8 @@ class Spring
     if (alter_2)
       v2.addForce(diffC);
     
+    
+    //////////////////////////////////////////////
     // Find tangential velocities
     if (Tf != 0) {
     PVector diff1  = new PVector(0.0,0.0,0.0);
@@ -317,18 +377,24 @@ class Structure
   float Cf;
   float Kf;
   float SP;
+  float spring_dist;
   
-  Structure(int NM_x, int NM_y, float new_SP, PVector offset, boolean make_circle, color col)
+  Structure(int NM_x, int NM_y, 
+  float new_SP, PVector offset, 
+  boolean make_circle, color col,
+  float new_Kf, float new_Cf, float new_spring_dist)
   {
     springs = new ArrayList();
     masses = new ArrayList();
     cen = new ArrayList();
     int Z_NM = 2;
 
-    Cf = 0.02;
+    
     //if (use_2d) Z_NM = 1;
     SP = new_SP;// 10.0;
-    Kf = 0.09;// * SP/10.0;
+    Kf = new_Kf; //0.01;// * SP/10.0;
+    Cf = new_Cf; //0.09;s
+    spring_dist = new_spring_dist;
 
   for (int k = 0; k < Z_NM; k++) {
   if (make_circle) {
@@ -376,15 +442,15 @@ class Structure
       
       float dis = p1.distManhattan(p2);
       
-      if (dis > SP*3) continue;
+      if (dis > spring_dist /*SP*3*/) continue;
       
-      float new_Kf = Kf;
-      float new_Cf = Cf;
+      float new_Kf2 = Kf;
+      float new_Cf2 = Cf;
       
       if (dis > SP) {
         //new_Kf = pow(new_Kf, dis/10.0);
-        new_Kf /= dis/(0.6*SP);
-        new_Cf /= dis/(0.6*SP);
+        new_Kf2 /= dis/(0.6*SP);
+        new_Cf2 /= dis/(0.6*SP);
       }
       
       Spring s = new Spring(p1, p2, new_Kf, new_Cf, true, true,col);
@@ -400,9 +466,9 @@ class Structure
   
   
   ///////////////////////////////////////
-  void draw()
+  void update()
   {
-    pushMatrix();
+    
      for (int i = 0; i < springs.size(); i++) {
     Spring sp = (Spring) springs.get(i);
    // println(i);
@@ -419,11 +485,12 @@ class Structure
     //cen.p.add(pr.p);
     
     }
+  }
   //cen.p.div(masses.size());
   
- 
+   void draw() {
   //println(cam.p + "  " + cen.p);
-  
+  pushMatrix();
   translate(-cam.p.x + width/2, -cam.p.y + height/2);
  
   ////////////////////////////////////////
@@ -439,7 +506,7 @@ class Structure
   
   
    for (int i = 0; i < cen.size(); i++) {
-     fill(255);
+     fill(255,10);
     Particle pr = (Particle) cen.get(i);
     ellipse(pr.p.x, pr.p.y, 4,4);
   }
@@ -518,27 +585,46 @@ Spring cam_spring;
 
 void setup() 
 {
-  size(1280, 720);  
+  size(600, 600);  
   frameRate(20);
   
   gravity = new PVector(0.0, 0.11, 0.0);
   terrain = new Terrain();
   cam = new Particle(new PVector(0,0,0), color(255));
   
-  strokeWeight(4.0);
+  strokeWeight(1.5);
   
   if (true) {
+    // distance between springs
+    float SP = 25.0;
+    float spring_dist = SP*3.0;
+    float Kf = 1.95;
+    float Cf = 0.005;
+    
     color c1 = color(64,64,64);
-    wheel1 = new Structure(6,11, 25.0, new PVector(-150,200,0) , true , c1);
-    wheel2 = new Structure(6,11, 25.0, new PVector(0,200,0) , true , c1);
+    wheel1 = new Structure(6,11, SP, 
+                        new PVector(-150,200,0) , 
+                        true , c1,
+                         Kf, Cf, 
+                         spring_dist);
+                         
+    wheel2 = new Structure(6,11, SP, 
+                        new PVector(0,200,0) , 
+                        true, c1,
+                         Kf, Cf, 
+                         spring_dist);
     
     color c2 = color(128,64,64);
-    body   = new Structure(15,4, 15.0, new PVector(-75,170,0) , false, c2);
+    body   = new Structure(15,4, SP, 
+                        new PVector(-75,170,0) , 
+                        false, c2,
+                        Kf, Cf, 
+                        spring_dist);
     
     wheel1.connectCen(body,100.0);
     wheel2.connectCen(body,100.0);
 
-    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 0.001, 0.49, false, true, color(255));
+    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 0.04, 0.49, false, true, color(255));
     cam_spring.rest = 0;
     //wheel1.springs.add(s); 
   } else {
@@ -558,6 +644,7 @@ void setup()
 }
 
 int count = 0;
+boolean pause = false;
 
 /////////////////////////////////////////////////
 void draw()
@@ -571,6 +658,12 @@ void draw()
   
   if (true) {
   
+    if (!pause) {
+         body.update();
+wheel1.update();
+wheel2.update();
+
+    }
     body.draw();
 wheel1.draw();
 wheel2.draw();
@@ -579,13 +672,18 @@ cam_spring.update();
  cam.update();
   
   boolean dir = false;
-  boolean drive = true;
+  boolean drive = false;
   
   if (keyPressed)
   {
     if ((key == 'j') || (key == 'k')) {
       dir = (key=='j' ? true : false);
      drive = true;
+    }
+    
+    if (key == 'p') {
+      pause= !pause;
+      println("paused " + pause);
     }
   }
   
