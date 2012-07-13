@@ -29,7 +29,7 @@ class Terrain
       ht[i] = /*-i/2 +*/ 2.5*sc/6 + sc/60.0*noise(f/5.0) + 
       sc/10.0*noise(f/50.0) + sc/8.0*noise(f/250.0) + sc*noise(f/2000.0);
     
-      if (noise(f/350.0) > 0.5) ht[i]+= bwd*8;
+      if (noise(f/3.0) > 0.2) ht[i]+= bwd*2;
     }
     
     float first = ht[0];
@@ -53,7 +53,11 @@ class Terrain
   {
     int wd = width;
     int ht = height/2;
-    for (int i = 0; i < wd/bwd + 2; i++)
+    
+    fill(180);
+    beginShape();
+    vertex(0,height);
+    for (int i = 0; i < wd/bwd + 3; i++)
     {
       stroke(128);
       
@@ -64,11 +68,14 @@ class Terrain
       float y1 = -cam_pos.y + ht + getHeight(x1 + cam_pos.x - wd/2);
       float y2 = -cam_pos.y + ht + getHeight(x2 + cam_pos.x - wd/2);
       // center the terrain on the cam_pos
-      line(x1 , y1, x2, y2);
-      fill(255);
-      ellipse(x2,y2,5,5);     
+      //line(x1 , y1, x2, y2);
+      //fill(255);
+      //ellipse(x2,y2,5,5);
+       vertex(x1,y1);     
            //-cam_pos.y +ht + getHeight(i + cam_pos.x - wd/2));
-    } 
+    }
+    vertex(width,height);
+    endShape(CLOSE); 
   }
   
 }
@@ -656,7 +663,7 @@ void setup()
     wheel2.connectCen(body,wheel_rad*2);
 
     cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 
-          0.14, 0.29, 
+          0.08, 0.89, 
           false, true, color(255));
     cam_spring.rest = 0;
     //wheel1.springs.add(s); 
