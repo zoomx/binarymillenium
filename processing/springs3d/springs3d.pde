@@ -22,13 +22,14 @@ class Terrain
       
     bwd = 25.0;
     
-    float sc = 2500;
+    float sc = bwd*100.0;
     for (int i = 0; i < ht.length; i++)
     {
       float f = (float) i;
       ht[i] = /*-i/2 +*/ 2.5*sc/6 + sc/60.0*noise(f/5.0) + 
       sc/10.0*noise(f/50.0) + sc/8.0*noise(f/250.0) + sc*noise(f/2000.0);
     
+      if (noise(f/350.0) > 0.5) ht[i]+= bwd*8;
     }
     
     float first = ht[0];
