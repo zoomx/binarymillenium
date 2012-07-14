@@ -30,6 +30,8 @@ class Cam
   }
 }
 
+float t = 0;
+
 ///////////////////////////////////////
 class Terrain
 {
@@ -41,17 +43,19 @@ class Terrain
   {
     final int len = 8192;
     ht = new float[8192];
+    
+    println("new terrain");
       
     bwd = 25.0;
     
-    float sc = bwd*100.0;
+    float sc = bwd*130.0;
     for (int i = 0; i < ht.length; i++)
     {
       float f = (float) i;
-      ht[i] = /*-i/2 +*/ 2.5*sc/6 + sc/60.0*noise(f/5.0) + 
-      sc/10.0*noise(f/50.0) + sc/8.0*noise(f/250.0) + sc*noise(f/2000.0);
+      ht[i] = /*-i/2 +*/ 2.5*sc/6 + sc/60.0*noise(f/5.0,t) + 
+      sc/10.0*noise(f/50.0,t) + sc/8.0*noise(f/250.0,t) + sc*noise(f/2000.0,t);
     
-      if (noise(f/3.0) > 0.2) ht[i]+= bwd*2;
+      if (noise(f/6.0,t) > 0.2) ht[i]+= bwd*2.3;
     }
     
     float first = ht[0];
@@ -59,6 +63,8 @@ class Terrain
     {
       ht[i] -= first; 
     }
+    
+    t+=1.0;
   }
   
   float getHeight(float y)
@@ -77,12 +83,13 @@ class Terrain
     int ht = height/2;
     
     fill(190,150,80);
-    noStroke();
+    //noStroke();
+    strokeWeight(5.0);
     beginShape();
     vertex(0,height);
     for (int i = 0; i < wd/bwd + 3; i++)
     {
-      //stroke(128);
+      stroke(10,230,10);
       
       float dx = cam_pos.x - (int)(cam_pos.x/bwd)*bwd;
       
@@ -220,8 +227,9 @@ class Particle
          v.x /= depth*depth/2.0;
        else if (v.x < 8.0)
          v.x/= depth;
-       else  
+       else { 
          v.x *= 0.98; // now sliding instead of friction
+       }
        if (v.z < 2.0)
        v.z /= depth*depth;
        
@@ -468,7 +476,7 @@ class Structure
     Cf = new_Cf; //0.09;s
     spring_dist = new_spring_dist;
     
-    max_torque = 8.0;
+    max_torque = 5.0;
     cur_torque = 0.0;
 
   for (int k = 0; k < Z_NM; k++) {
@@ -709,7 +717,7 @@ class Car
     
     color c1 = color(64,64,64);
     wheel1 = new Structure(wheel_diameter1,wheel_circ1, SP, 
-                        new PVector(-200 + random(-20,20),-100 + random(-20,40),0) , 
+                        new PVector(-220 + random(-20,20),-100 + random(-20,40),0) , 
                         true , c1,
                          Kf, Cf, 
                          spring_dist);
@@ -720,7 +728,7 @@ class Car
                          Kf, Cf, 
                          spring_dist);
     
-    SP *= 1.7*random(0.8,1.2);
+    SP *= random(1.1,1.9);
     spring_dist = SP*2.1;
     
     color c2 = color(128,64,64);
@@ -749,6 +757,7 @@ class Car
   
   void draw()
   {
+     strokeWeight(2.5);
     body.draw();
     wheel1.draw();
     wheel2.draw(); 
@@ -805,11 +814,11 @@ class Car
        
    Particle cn = (Particle)wheel1.cen.get(0);
      wheel1.addTorque( dir, cn, wheel_rad*1.2);
-     body.addTorque( !dir, cn, wheel_rad/2.0);
+     body.addTorque( !dir, cn, wheel_rad/2.5);
      
      Particle cn2 = (Particle)wheel2.cen.get(0);
      wheel2.addTorque( dir, cn2, wheel_rad*1.2);
-     body.addTorque( !dir, cn2, wheel_rad/2.0);  
+     body.addTorque( !dir, cn2, wheel_rad/2.5);  
   }
 }
 
@@ -842,7 +851,7 @@ void setup()
   gravity = new PVector(0.0, 0.11, 0.0);
   terrain = new Terrain();
   
-  strokeWeight(2.5);
+ 
   
   if (true) {
     car = new Car();
@@ -918,7 +927,10 @@ void keyReleased()
         cam.follow =  (Particle)car.wheel1.cen.get(0); //Particle(new PVector(0,0,0), color(255));
 
   }
-  
+  if (key == 't')
+  {
+    terrain = new Terrain();
+  }
 }
 
 /////////////////////////////////////////////////
