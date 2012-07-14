@@ -108,6 +108,9 @@ Terrain terrain;
 ///////////////////////////////////////////////////
 class Particle
 {
+  
+  boolean contact;
+  
   PVector p;
   PVector v;
   PVector a;
@@ -124,6 +127,8 @@ class Particle
     p = new PVector(new_p.x, new_p.y, new_p.z);
     v = new PVector();
     a = new PVector();
+    
+    contact = false;
     
     c = col;
     
@@ -149,6 +154,7 @@ class Particle
     if (use_2d)
       v.z = 0;
     
+    ////////////////////////////////////
     if (false) {
     
     vels.add(v);
@@ -183,7 +189,7 @@ class Particle
     /// clip vel at certain speed
     if (true) {
     float vmag= v.mag();
-    float max_vel = 20.0;
+    float max_vel = 40.0;
     if (vmag > max_vel) {
        v.normalize();
        v.mult(max_vel); 
@@ -196,7 +202,8 @@ class Particle
     if (terrain != null) {
     float ht = terrain.getHeight(p.x);
     if (p.y > ht) {
-      
+       contact = true;
+       car.contact_count++;
       //if (v.y > 10.0) // destroy ground under impact
         //terrain.ht[(int)p.x] = p.y;
         // not working great yet.
@@ -211,6 +218,8 @@ class Particle
        v.z /= depth*depth;
        
        //println(v.x + "   " + v.z);
+    } else {
+      contact = false;
     }
     }
      
@@ -568,6 +577,16 @@ class Structure
    popMatrix();
   }
   
+  void addForce(PVector new_force)
+  {
+    for (int i = 0; i < masses.size(); i++) {
+        Particle pr = (Particle) masses.get(i);
+        
+        
+        pr.addForce(new_force);
+    }  
+  }
+  
   void addTorque(boolean rotate_clockwise, Particle cn, float range)
   {
     float tq = 0.6;
@@ -725,13 +744,18 @@ class Car
     wheel1.connectCen(body,wheel_rad*2);
     wheel2.connectCen(body,wheel_rad*2);
     
+    contact_count = 0;
+    
   }
   
   void update()
   {
+    contact_count = 0;
     body.update();
     wheel1.update();
     wheel2.update();
+    
+      
   }
   
   void draw()
@@ -739,24 +763,52 @@ class Car
     body.draw();
     wheel1.draw();
     wheel2.draw(); 
+     
+  }
+  
+  int contact_count;
+  
+  void crouchDown()
+  {
+    PVector jump2 = new PVector(0,0.1,0);
+ 
+    wheel1.addForce(jump2);
+    wheel2.addForce(jump2);
+    body.addForce(jump2);
   }
   
   void jumpUp()
   {
-   PVector jump = new PVector(0,-5,0);
+    int total_pr = wheel1.masses.size() + wheel2.masses.size() + body.masses.size();
+    
+    float contact_ratio = (float) contact_count / (float) total_pr;
+    
+   PVector jump = new PVector(0,-140,0);
+   jump.mult(contact_ratio);
+   println("JUMP " + contact_ratio);
+   PVector jump2 = new PVector(0,-5,0);
+   
       for (int i = 0; i < body.masses.size(); i++) {
         Particle pr = (Particle) body.masses.get(i);
+        if (pr.contact)
+           pr.addForce(jump2);
+        
         pr.addForce(jump);
       } 
-      jump.mult(0.5);
+      
       for (int i = 0; i < wheel1.masses.size(); i++) {
         Particle pr = (Particle) wheel1.masses.get(i);
+        if (pr.contact)
+           pr.addForce(jump2);
         pr.addForce(jump);
       } 
       for (int i = 0; i < wheel2.masses.size(); i++) {
         Particle pr = (Particle) wheel2.masses.get(i);
+        if (pr.contact)
+           pr.addForce(jump2);
         pr.addForce(jump);
-      }  
+      }
+   
   }
   
   void drive(boolean dir)
@@ -784,6 +836,9 @@ void keyPressed()
     if (keyCode == UP) {
       car.jumpUp();
     }
+    if (keyCode == DOWN) {
+      car.crouchDown();
+    }
     if (keyCode == RIGHT) {
       drive_left = true; 
     }
@@ -807,6 +862,7 @@ void keyReleased()
     if (keyCode == LEFT) {
       drive_right = false; 
     }
+    
   }
   
 }
@@ -835,11 +891,9 @@ void draw()
        car.update();
     }
 
- car.draw();
-//cam_spring.update();
+   car.draw();
+   //cam_spring.update();
  
- 
-  
   if (drive_left || drive_right){ 
     car.drive(drive_right);
  
