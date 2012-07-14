@@ -441,6 +441,9 @@ class Structure
   float SP;
   float spring_dist;
   
+  float max_torque;
+  float cur_torque;
+  
   Structure(int NM_x, int NM_y, 
   float new_SP, PVector offset, 
   boolean make_circle, color col,
@@ -450,13 +453,15 @@ class Structure
     masses = new ArrayList();
     cen = new ArrayList();
     int Z_NM = 2;
-
     
     //if (use_2d) Z_NM = 1;
     SP = new_SP;// 10.0;
     Kf = new_Kf; //0.01;// * SP/10.0;
     Cf = new_Cf; //0.09;s
     spring_dist = new_spring_dist;
+    
+    max_torque = 8.0;
+    cur_torque = 0.0;
 
   for (int k = 0; k < Z_NM; k++) {
   if (make_circle) {
@@ -547,6 +552,9 @@ class Structure
     //cen.p.add(pr.p);
     
     }
+    
+    cur_torque *= 0.991;
+    //println(cur_torque);
   }
   //cen.p.div(masses.size());
   
@@ -589,23 +597,48 @@ class Structure
   
   void addTorque(boolean rotate_clockwise, Particle cn, float range)
   {
-    float tq = 0.6;
+    float off = 0.005;
+    if (!rotate_clockwise) off = -off;
+    if ((rotate_clockwise && cur_torque > -0.5)  ||
+       (!rotate_clockwise && cur_torque < 0.5)) {
+      cur_torque += off;
+      cur_torque *= 1.005;
+    } else {
+      cur_torque -= off*4;
+      cur_torque *= 0.9;
+    }
+   
+    
+    if (cur_torque > max_torque) cur_torque = max_torque;
     //println (count + " torque " + key); 
      //Particle cn = (Particle) cen.get(0);
      
+     float count = 0;
      for (int i = 0; i < masses.size(); i++) {
        Particle pr = (Particle) masses.get(i);
        PVector rad = PVector.sub(pr.p, cn.p);
        
        if (rad.mag() > range) continue;
        
-       rad.normalize();
-       PVector torque = rad.cross(axle);
+       count += 1.0;
+     }
+     
+     float norm_torque = cur_torque;///count;
+     println(cur_torque +" torque " +norm_torque);
+     
+     for (int i = 0; i < masses.size(); i++) {
+       Particle pr = (Particle) masses.get(i);
+       PVector rad = PVector.sub(pr.p, cn.p);
        
-       if (rotate_clockwise)
-        torque.mult(tq);
-       else
-        torque.mult(-tq);
+       if (rad.mag() > range) continue;
+       rad.normalize();
+       
+       PVector torque = rad.cross(axle);
+
+       //if (rotate_clockwise)
+        torque.mult(norm_torque);
+       //else
+        //torque.mult(-norm_torque);
        
        pr.addForce(torque);
        
@@ -643,60 +676,6 @@ class Structure
 
 
 
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-//
-//
-//
-//
-///////////////////////////////////////////////////////////////////////////////////
-Particle p1, p2, p3;//p4;
-Spring sp1,sp2,sp3;
-//Spring cam_spring;
-
-float wheel_rad;
-
-void setup() 
-{
-  size(1200, 600, P2D);  
-  frameRate(20);
-  
-  gravity = new PVector(0.0, 0.11, 0.0);
-  terrain = new Terrain();
-  
-  strokeWeight(1.5);
-  
-  if (true) {
-    car = new Car();
-    
-    cam = new Cam( (Particle)car.wheel1.cen.get(0) ); //Particle(new PVector(0,0,0), color(255));
-
-  /*
-    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 
-          0.08, 0.89, 
-          false, true, color(255));
-    cam_spring.rest = 0;
-    */
-    //wheel1.springs.add(s); 
-  } else {
-    float Cf = 0.4;
-    float Kf = 0.5;
-    color c = color(255);
-     p1 = new Particle(new PVector(width/2,10,0),c); 
-     p2 = new Particle(new PVector(width/2,40,0),c); 
-     p3 = new Particle(new PVector(width/2 + 20,10,0),c); 
-     sp1 = new Spring(p1, p2, Kf, Cf, true, true,c);
-     //sp1.rest = 15;
-     
-     sp2 = new Spring(p2, p3, Kf, Cf, true, true,c);
-     
-     sp3 = new Spring(p1, p3, Kf, Cf, true, true,c );
-   }
-}
-
-int count = 0;
-boolean pause = false;
 
 //////////////////////////////////////////////////
 
@@ -824,7 +803,64 @@ class Car
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+//
+//
+//
+//
+///////////////////////////////////////////////////////////////////////////////////
+Particle p1, p2, p3;//p4;
+Spring sp1,sp2,sp3;
+//Spring cam_spring;
+
+float wheel_rad;
+
+
+int count = 0;
+boolean pause = false;
 Car car;
+
+
+
+void setup() 
+{
+  size(1200, 600, P2D);  
+  frameRate(20);
+  
+  gravity = new PVector(0.0, 0.11, 0.0);
+  terrain = new Terrain();
+  
+  strokeWeight(2.5);
+  
+  if (true) {
+    car = new Car();
+    
+    cam = new Cam( (Particle)car.wheel1.cen.get(0) ); //Particle(new PVector(0,0,0), color(255));
+
+  /*
+    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 
+          0.08, 0.89, 
+          false, true, color(255));
+    cam_spring.rest = 0;
+    */
+    //wheel1.springs.add(s); 
+  } else {
+    float Cf = 0.4;
+    float Kf = 0.5;
+    color c = color(255);
+     p1 = new Particle(new PVector(width/2,10,0),c); 
+     p2 = new Particle(new PVector(width/2,40,0),c); 
+     p3 = new Particle(new PVector(width/2 + 20,10,0),c); 
+     sp1 = new Spring(p1, p2, Kf, Cf, true, true,c);
+     //sp1.rest = 15;
+     
+     sp2 = new Spring(p2, p3, Kf, Cf, true, true,c);
+     
+     sp3 = new Spring(p1, p3, Kf, Cf, true, true,c );
+   }
+}
 
   //boolean dir = false;
   boolean drive_left = false;
