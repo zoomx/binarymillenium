@@ -8,7 +8,27 @@ GPL 3.0
 
 boolean use_2d = true;
 
-Particle cam;
+Cam cam;
+
+class Cam
+{
+  Particle p;
+  
+  Particle follow;
+
+  Cam(Particle new_follow)
+  {
+    p = new Particle(new PVector(0.0,0.0,0.0), color(0));
+    follow = new_follow; 
+  }
+  
+  void update() 
+  {
+    float f = 0.1;
+    p.p.x =  (1.0 - f) * p.p.x + f * (follow.p.x + width/4);
+    p.p.y =  (1.0 - f) * p.p.y + f * (follow.p.y - height/8);
+  }
+}
 
 class Terrain
 {
@@ -54,7 +74,7 @@ class Terrain
     int wd = width;
     int ht = height/2;
     
-    fill(180);
+    fill(190,200,80);
     beginShape();
     vertex(0,height);
     for (int i = 0; i < wd/bwd + 3; i++)
@@ -82,6 +102,7 @@ class Terrain
 
 Terrain terrain;
 
+///////////////////////////////////////////////////
 class Particle
 {
   PVector p;
@@ -520,7 +541,7 @@ class Structure
    void draw() {
   //println(cam.p + "  " + cen.p);
   pushMatrix();
-  translate(-cam.p.x + width/2, -cam.p.y + height/2);
+  translate(-cam.p.p.x + width/2, -cam.p.p.y + height/2);
  
   ////////////////////////////////////////
   for (int i = 0; i < springs.size(); i+=4) {
@@ -610,7 +631,7 @@ Structure wheel1, wheel2, body;
 ///////////////////////////////////////////////////////////////////////////////////
 Particle p1, p2, p3;//p4;
 Spring sp1,sp2,sp3;
-Spring cam_spring;
+//Spring cam_spring;
 
 float wheel_rad;
 
@@ -621,7 +642,6 @@ void setup()
   
   gravity = new PVector(0.0, 0.11, 0.0);
   terrain = new Terrain();
-  cam = new Particle(new PVector(0,0,0), color(255));
   
   strokeWeight(1.5);
   
@@ -661,11 +681,15 @@ void setup()
     
     wheel1.connectCen(body,wheel_rad*2);
     wheel2.connectCen(body,wheel_rad*2);
+  
+    cam = new Cam( (Particle)wheel1.cen.get(0) ); //Particle(new PVector(0,0,0), color(255));
 
+  /*
     cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 
           0.08, 0.89, 
           false, true, color(255));
     cam_spring.rest = 0;
+    */
     //wheel1.springs.add(s); 
   } else {
     float Cf = 0.4;
@@ -693,11 +717,11 @@ void draw()
   //fill(0,180);
   //rect(0,0,width,height);
   
-  terrain.draw(cam.p);
+  terrain.draw(cam.p.p);
   
   
   if (true) {
-  
+  cam.update();
     if (!pause) {
          body.update();
 wheel1.update();
@@ -708,8 +732,8 @@ wheel2.update();
 wheel1.draw();
 wheel2.draw();
 
-cam_spring.update();
- cam.update();
+//cam_spring.update();
+ 
   
   boolean dir = false;
   boolean drive = false;
@@ -756,7 +780,7 @@ cam_spring.update();
   }
   
   } else {
-    translate(-cam.p.x + width/2,0);//-cam.p.y);
+    translate(-cam.p.p.x + width/2,0);//-cam.p.y);
     sp1.update();
      sp2.update();
       sp3.update();
