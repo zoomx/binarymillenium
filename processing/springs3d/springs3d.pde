@@ -26,7 +26,7 @@ class Cam
   {
     float f = 0.1;
     p.p.x =  (1.0 - f) * p.p.x + f * (follow.p.x + width/4);
-    p.p.y =  (1.0 - f) * p.p.y + f * (follow.p.y - height/8);
+    p.p.y =  (1.0 - f) * p.p.y + f * (follow.p.y/* - height/8*/);
   }
 }
 
@@ -37,6 +37,9 @@ class Terrain
 {
   float ht[];
   
+  // background
+  float bg[];
+  
   float bwd;
   
   Terrain()
@@ -44,17 +47,24 @@ class Terrain
     final int len = 8192;
     ht = new float[8192];
     
+    bg = new float[8192];
+    
     println("new terrain");
       
     bwd = 25.0;
     
+    // make terrain to drive on 
     float sc = bwd*130.0;
     for (int i = 0; i < ht.length; i++)
     {
       float f = (float) i;
-      ht[i] = /*-i/2 +*/ 2.5*sc/6 + sc/60.0*noise(f/5.0,t) + 
+      ht[i] =  sc/60.0*noise(f/5.0,t) + 
       sc/10.0*noise(f/50.0,t) + sc/8.0*noise(f/250.0,t) + sc*noise(f/2000.0,t);
     
+      if (noise(f/450.0  +100.0,t) > 0.2) ht[i] -=sc/14.0 * noise(f/450.0,t);
+    
+      if (noise(f/150.0,t) > 0.4) ht[i] -=sc/24.0 * noise(f/4.0,t);
+      
       if (noise(f/6.0,t) > 0.2) ht[i]+= bwd*2.3;
     }
     
@@ -62,6 +72,28 @@ class Terrain
      for (int i = 0; i < ht.length; i++)
     {
       ht[i] -= first; 
+    }
+    
+    t+=0.1;
+    // make terrain for background 
+     sc = bwd*130.0;
+    for (int i = 0; i < bg.length; i++)
+    {
+      float f = (float) i;
+      bg[i] =  sc/60.0*noise(f/5.0,t) + 
+      sc/10.0*noise(f/50.0,t) + sc/18.0*noise(f/250.0,t); /*+ sc*noise(f/2000.0,t)*/
+    
+      if (noise(f/450.0  +100.0,t) > 0.2) bg[i] -=sc/19.0 * noise(f/450.0,t);
+    
+      if (noise(f/150.0,t) > 0.4) bg[i] -=sc/34.0 * noise(f/4.0,t);
+      
+      //if (noise(f/6.0,t) > 0.2) bg[i]+= bwd*2.3;
+    }
+    
+    first = bg[0] -140;
+     for (int i = 0; i < bg.length; i++)
+    {
+      bg[i] -= first ; 
     }
     
     t+=1.0;
@@ -77,19 +109,61 @@ class Terrain
     return ht[yi];
   }
   
+    float getBgHeight(float y)
+  {
+    int yi  = (int)(y/(bwd/2.0));
+    
+    if (yi < 0) yi = 0;
+    if (yi > bg.length-1) yi = bg.length-1;
+    
+    return bg[yi];
+  }
+  
   void draw(PVector cam_pos)
   {
     int wd = width;
     int ht = height/2;
     
-    fill(190,150,80);
-    //noStroke();
-    strokeWeight(5.0);
+       // draw background
+    
+    noStroke();
+    
     beginShape();
-    vertex(0,height);
+    fill(140,190,10);
+    vertex(0,height*1.5);
+    fill(155,150,160);
+    float tbwd = bwd/2.0;
+    for (int i = 0; i < wd/tbwd + 4; i++)
+    { 
+      float dx = cam_pos.x/2.0 - (int)(cam_pos.x/2.0 * 1.0/tbwd)*tbwd;
+      
+      float x1 = (i-1)*tbwd - dx;
+      float x2 = i*tbwd - dx;
+      float y1 = -cam_pos.y/2.0  + getBgHeight(x1 + cam_pos.x/2.0 /*- wd/2*/);
+      float y2 = -cam_pos.y/2.0  + getBgHeight(x2 + cam_pos.x/2.0 /*- wd/2*/);
+      // center the terrain on the cam_pos
+      //line(x1 , y1, x2, y2);
+      //fill(255);
+      //ellipse(x2,y2,5,5);
+       vertex(x1,y1);     
+           //-cam_pos.y +ht + getHeight(i + cam_pos.x - wd/2));
+    }
+    fill(140,190,10);
+    vertex(width,height*1.5);
+    endShape(CLOSE); 
+    
+    
+    
+    noStroke();
+    //strokeWeight(5.0);
+    
+    beginShape();
+    fill(10,30,10);
+    vertex(0,height*1.5);
+    fill(50,130,10);
     for (int i = 0; i < wd/bwd + 3; i++)
     {
-      stroke(10,230,10);
+      
       
       float dx = cam_pos.x - (int)(cam_pos.x/bwd)*bwd;
       
@@ -104,8 +178,11 @@ class Terrain
        vertex(x1,y1);     
            //-cam_pos.y +ht + getHeight(i + cam_pos.x - wd/2));
     }
-    vertex(width,height);
+    fill(10,30,10);
+    vertex(width,height*1.5);
     endShape(CLOSE); 
+    
+ 
   }
   
 }
@@ -476,7 +553,7 @@ class Structure
     Cf = new_Cf; //0.09;s
     spring_dist = new_spring_dist;
     
-    max_torque = 5.0;
+    max_torque = 4.0;
     cur_torque = 0.0;
 
   for (int k = 0; k < Z_NM; k++) {
@@ -708,10 +785,10 @@ class Car
     float spring_dist = SP*(3.0 + random(-1.0,1.0));
     float Kf = 1.95 + random(-0.2, 0.2);
     float Cf = 0.005 + random(-0.002,0.002);
-    int wheel_diameter1 = 8 + (int)random(-2, 3);
-    int wheel_diameter2 = 8 + (int)random(-2, 3);
-    int wheel_circ1 = 19 + (int)random(-5, 1);
-    int wheel_circ2 = 19 + (int)random(-5, 1);
+    int wheel_diameter1 = 8 + (int)random(-1, 3);
+    int wheel_diameter2 = 8 + (int)random(-1, 3);
+    int wheel_circ1 = 19 + (int)random(-4, 1);
+    int wheel_circ2 = 19 + (int)random(-4, 1);
     wheel_rad = SP*wheel_diameter1/2.0;
     //wheel_rad2 = SP*wheel_diameter2/2.0;
     
@@ -846,7 +923,7 @@ Car car;
 void setup() 
 {
   size(1200, 600, P2D);  
-  frameRate(20);
+  frameRate(30);
   
   gravity = new PVector(0.0, 0.11, 0.0);
   terrain = new Terrain();
