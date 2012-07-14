@@ -212,9 +212,17 @@ class Particle
       //if (v.y > 0)
         v.y = -v.y*0.8; //.99;
        
+       
        float depth = abs(p.y -ht);
        if (depth <4.0) depth = 4.0;
-       v.x /= depth*depth;
+       
+       if (v.x < 4.0)
+         v.x /= depth*depth/2.0;
+       else if (v.x < 10.0)
+         v.x/= depth;
+       else  
+         v.x *= 0.98;
+       if (v.z < 2.0)
        v.z /= depth*depth;
        
        //println(v.x + "   " + v.z);
