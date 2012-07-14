@@ -30,6 +30,7 @@ class Cam
   }
 }
 
+///////////////////////////////////////
 class Terrain
 {
   float ht[];
@@ -38,7 +39,8 @@ class Terrain
   
   Terrain()
   {
-    ht = new float[4096];
+    final int len = 8192;
+    ht = new float[8192];
       
     bwd = 25.0;
     
@@ -74,12 +76,13 @@ class Terrain
     int wd = width;
     int ht = height/2;
     
-    fill(190,200,80);
+    fill(190,150,80);
+    noStroke();
     beginShape();
     vertex(0,height);
     for (int i = 0; i < wd/bwd + 3; i++)
     {
-      stroke(128);
+      //stroke(128);
       
       float dx = cam_pos.x - (int)(cam_pos.x/bwd)*bwd;
       
@@ -619,7 +622,7 @@ class Structure
   }
 } // Structure
 
-Structure wheel1, wheel2, body;
+
 
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
@@ -637,7 +640,7 @@ float wheel_rad;
 
 void setup() 
 {
-  size(1200, 600);  
+  size(1200, 600, P2D);  
   frameRate(20);
   
   gravity = new PVector(0.0, 0.11, 0.0);
@@ -646,6 +649,46 @@ void setup()
   strokeWeight(1.5);
   
   if (true) {
+    car = new Car();
+    
+    cam = new Cam( (Particle)car.wheel1.cen.get(0) ); //Particle(new PVector(0,0,0), color(255));
+
+  /*
+    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 
+          0.08, 0.89, 
+          false, true, color(255));
+    cam_spring.rest = 0;
+    */
+    //wheel1.springs.add(s); 
+  } else {
+    float Cf = 0.4;
+    float Kf = 0.5;
+    color c = color(255);
+     p1 = new Particle(new PVector(width/2,10,0),c); 
+     p2 = new Particle(new PVector(width/2,40,0),c); 
+     p3 = new Particle(new PVector(width/2 + 20,10,0),c); 
+     sp1 = new Spring(p1, p2, Kf, Cf, true, true,c);
+     //sp1.rest = 15;
+     
+     sp2 = new Spring(p2, p3, Kf, Cf, true, true,c);
+     
+     sp3 = new Spring(p1, p3, Kf, Cf, true, true,c );
+   }
+}
+
+int count = 0;
+boolean pause = false;
+
+//////////////////////////////////////////////////
+
+class Car
+{
+  
+  Structure wheel1, wheel2, body;
+  
+  Car()
+  {
+  
     // distance between springs
     float SP = 25.0;
     float spring_dist = SP*3.0;
@@ -681,57 +724,81 @@ void setup()
     
     wheel1.connectCen(body,wheel_rad*2);
     wheel2.connectCen(body,wheel_rad*2);
+    
+  }
   
-    cam = new Cam( (Particle)wheel1.cen.get(0) ); //Particle(new PVector(0,0,0), color(255));
-
-  /*
-    cam_spring = new Spring((Particle)wheel1.cen.get(0), cam, 
-          0.08, 0.89, 
-          false, true, color(255));
-    cam_spring.rest = 0;
-    */
-    //wheel1.springs.add(s); 
-  } else {
-    float Cf = 0.4;
-    float Kf = 0.5;
-    color c = color(255);
-     p1 = new Particle(new PVector(width/2,10,0),c); 
-     p2 = new Particle(new PVector(width/2,40,0),c); 
-     p3 = new Particle(new PVector(width/2 + 20,10,0),c); 
-     sp1 = new Spring(p1, p2, Kf, Cf, true, true,c);
-     //sp1.rest = 15;
+  void update()
+  {
+    body.update();
+    wheel1.update();
+    wheel2.update();
+  }
+  
+  void draw()
+  {
+    body.draw();
+    wheel1.draw();
+    wheel2.draw(); 
+  }
+  
+  void jumpUp()
+  {
+   PVector jump = new PVector(0,-5,0);
+      for (int i = 0; i < body.masses.size(); i++) {
+        Particle pr = (Particle) body.masses.get(i);
+        pr.addForce(jump);
+      } 
+      jump.mult(0.5);
+      for (int i = 0; i < wheel1.masses.size(); i++) {
+        Particle pr = (Particle) wheel1.masses.get(i);
+        pr.addForce(jump);
+      } 
+      for (int i = 0; i < wheel2.masses.size(); i++) {
+        Particle pr = (Particle) wheel2.masses.get(i);
+        pr.addForce(jump);
+      }  
+  }
+  
+  void drive(boolean dir)
+  {
+       
+   Particle cn = (Particle)wheel1.cen.get(0);
+     wheel1.addTorque( dir, cn, wheel_rad*1.2);
+     body.addTorque( !dir, cn, wheel_rad/2.0);
      
-     sp2 = new Spring(p2, p3, Kf, Cf, true, true,c);
-     
-     sp3 = new Spring(p1, p3, Kf, Cf, true, true,c );
-   }
+     Particle cn2 = (Particle)wheel2.cen.get(0);
+     wheel2.addTorque( dir, cn2, wheel_rad*1.2);
+     body.addTorque( !dir, cn2, wheel_rad/2.0);  
+  }
 }
 
-int count = 0;
-boolean pause = false;
+Car car;
 
 /////////////////////////////////////////////////
 void draw()
 {
-  background(0,0,0);
+  float altitude = -cam.p.p.y + 10.0;
+  //background(255 - altitude/10.0,255- altitude/10.0,255- altitude/2kkkkkkk0.0);
   //fill(0,180);
+  beginShape();
+  fill(255 - 5*altitude/10.0,255- 5*altitude/10.0,255- 5*altitude/20.0);
+  vertex(0,0);
+  vertex(width,0);
+  fill(255 - altitude/10.0,255- altitude/10.0,255- altitude/20.0);
+  vertex(width, height);
+  vertex(0, height);
+  endShape(CLOSE);
   //rect(0,0,width,height);
   
   terrain.draw(cam.p.p);
   
-  
   if (true) {
-  cam.update();
+    cam.update();
     if (!pause) {
-         body.update();
-wheel1.update();
-wheel2.update();
-
+       car.update();
     }
-    body.draw();
-wheel1.draw();
-wheel2.draw();
 
+ car.draw();
 //cam_spring.update();
  
   
@@ -752,31 +819,13 @@ wheel2.draw();
     
     if (key == 'q') {
      // jump
-     PVector jump = new PVector(0,-5,0);
-      for (int i = 0; i < body.masses.size(); i++) {
-        Particle pr = (Particle) body.masses.get(i);
-        pr.addForce(jump);
-      } 
-      jump.mult(0.5);
-      for (int i = 0; i < wheel1.masses.size(); i++) {
-        Particle pr = (Particle) wheel1.masses.get(i);
-        pr.addForce(jump);
-      } 
-       for (int i = 0; i < wheel2.masses.size(); i++) {
-        Particle pr = (Particle) wheel2.masses.get(i);
-        pr.addForce(jump);
-      } 
+     car.jumpUp();
     }
   }
   
   if (drive){ 
-   Particle cn = (Particle)wheel1.cen.get(0);
-     wheel1.addTorque( dir, cn, wheel_rad*1.2);
-     body.addTorque( !dir, cn, wheel_rad/2.0);
-     
-     Particle cn2 = (Particle)wheel2.cen.get(0);
-     wheel2.addTorque( dir, cn2, wheel_rad*1.2);
-     body.addTorque( !dir, cn2, wheel_rad/2.0);  
+    car.drive(dir);
+ 
   }
   
   } else {
