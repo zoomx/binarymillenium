@@ -218,10 +218,10 @@ class Particle
        
        if (v.x < 4.0)
          v.x /= depth*depth/2.0;
-       else if (v.x < 10.0)
+       else if (v.x < 8.0)
          v.x/= depth;
        else  
-         v.x *= 0.98;
+         v.x *= 0.98; // now sliding instead of friction
        if (v.z < 2.0)
        v.z /= depth*depth;
        
@@ -572,7 +572,7 @@ class Structure
   translate(-cam.p.p.x + width/2, -cam.p.p.y + height/2);
  
   ////////////////////////////////////////
-  for (int i = 0; i < springs.size(); i+=4) {
+  for (int i = 0; i < springs.size(); i+=2) {
     Spring sp = (Spring) springs.get(i);
     sp.draw();
   }
@@ -696,34 +696,36 @@ class Car
   {
   
     // distance between springs
-    float SP = 25.0;
-    float spring_dist = SP*3.0;
-    float Kf = 1.95;
-    float Cf = 0.005;
-    int wheel_diameter = 9;
-    int wheel_circ = 19;
-    
-    wheel_rad = SP*wheel_diameter/2.0;
+    float SP = 20.0 + random(10.0);
+    float spring_dist = SP*(3.0 + random(-1.0,1.0));
+    float Kf = 1.95 + random(-0.2, 0.2);
+    float Cf = 0.005 + random(-0.002,0.002);
+    int wheel_diameter1 = 8 + (int)random(-2, 3);
+    int wheel_diameter2 = 8 + (int)random(-2, 3);
+    int wheel_circ1 = 19 + (int)random(-5, 1);
+    int wheel_circ2 = 19 + (int)random(-5, 1);
+    wheel_rad = SP*wheel_diameter1/2.0;
+    //wheel_rad2 = SP*wheel_diameter2/2.0;
     
     color c1 = color(64,64,64);
-    wheel1 = new Structure(wheel_diameter,wheel_circ, SP, 
-                        new PVector(-200,-50,0) , 
+    wheel1 = new Structure(wheel_diameter1,wheel_circ1, SP, 
+                        new PVector(-200 + random(-20,20),-100 + random(-20,40),0) , 
                         true , c1,
                          Kf, Cf, 
                          spring_dist);
                          
-    wheel2 = new Structure(wheel_diameter,wheel_circ, SP, 
-                        new PVector(0,-50,0) , 
+    wheel2 = new Structure(wheel_diameter2,wheel_circ2, SP+ random(-5.0,5.0), 
+                        new PVector(0 + random(-20,20),-100 + random(-20,40),0) , 
                         true, c1,
                          Kf, Cf, 
                          spring_dist);
     
-    SP *= 1.7;
+    SP *= 1.7*random(0.8,1.2);
     spring_dist = SP*2.1;
     
     color c2 = color(128,64,64);
-    body   = new Structure(8,5, SP, 
-                        new PVector(-100,-100,0) , 
+    body   = new Structure(8 + int (random(-2,2)),5 + int(random(-2,2)), SP, 
+                        new PVector(-100,-150,0) , 
                         false, c2,
                         Kf, Cf, 
                         spring_dist);
@@ -907,6 +909,14 @@ void keyReleased()
       drive_right = false; 
     }
     
+  }
+  
+  if (key == 'r')
+  {
+    car = new Car();
+   
+        cam.follow =  (Particle)car.wheel1.cen.get(0); //Particle(new PVector(0,0,0), color(255));
+
   }
   
 }
