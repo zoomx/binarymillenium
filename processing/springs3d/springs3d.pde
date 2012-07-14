@@ -717,7 +717,7 @@ class Structure
      }
      
      float norm_torque = cur_torque;///count;
-     println(cur_torque +" torque " +norm_torque);
+     //println(cur_torque +" torque " +norm_torque);
      
      for (int i = 0; i < masses.size(); i++) {
        Particle pr = (Particle) masses.get(i);
@@ -918,11 +918,9 @@ int count = 0;
 boolean pause = false;
 Car car;
 
-
-
 void setup() 
 {
-  size(1200, 600, P2D);  
+  size(1280, 720, P2D);  
   frameRate(30);
   
   gravity = new PVector(0.0, 0.11, 0.0);
