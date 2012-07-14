@@ -774,14 +774,51 @@ class Car
 
 Car car;
 
+  //boolean dir = false;
+  boolean drive_left = false;
+  boolean drive_right = false;
+  
+void keyPressed()
+{
+   if (key == CODED) {
+    if (keyCode == UP) {
+      car.jumpUp();
+    }
+    if (keyCode == RIGHT) {
+      drive_left = true; 
+    }
+    if (keyCode == LEFT) {
+
+      drive_right = true; 
+    }
+    
+   }
+}
+
+void keyReleased()
+{   
+  if (key == CODED) {
+    if (keyCode == UP) {
+      //car.jumpUp();
+    }
+    if (keyCode == RIGHT) {
+      drive_left = false; 
+    }
+    if (keyCode == LEFT) {
+      drive_right = false; 
+    }
+  }
+  
+}
+
 /////////////////////////////////////////////////
 void draw()
 {
-  float altitude = -cam.p.p.y + 10.0;
+  float altitude = -cam.p.p.y + 20.0;
   //background(255 - altitude/10.0,255- altitude/10.0,255- altitude/2kkkkkkk0.0);
   //fill(0,180);
   beginShape();
-  fill(255 - 5*altitude/10.0,255- 5*altitude/10.0,255- 5*altitude/20.0);
+  fill(255 - 6*altitude/10.0,255- 6*altitude/10.0,255- 6*altitude/20.0);
   vertex(0,0);
   vertex(width,0);
   fill(255 - altitude/10.0,255- altitude/10.0,255- altitude/20.0);
@@ -801,30 +838,10 @@ void draw()
  car.draw();
 //cam_spring.update();
  
+ 
   
-  boolean dir = false;
-  boolean drive = false;
-  
-  if (keyPressed)
-  {
-    if ((key == 'j') || (key == 'k')) {
-      dir = (key=='j' ? true : false);
-     drive = true;
-    }
-    
-    if (key == 'p') {
-      pause= !pause;
-      println("paused " + pause);
-    }
-    
-    if (key == 'q') {
-     // jump
-     car.jumpUp();
-    }
-  }
-  
-  if (drive){ 
-    car.drive(dir);
+  if (drive_left || drive_right){ 
+    car.drive(drive_right);
  
   }
   
