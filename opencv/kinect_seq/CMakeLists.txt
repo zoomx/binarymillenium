@@ -14,6 +14,7 @@ include_directories( $ENV{HOME}/other/install/include )
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 ###############################################################################
+if (false)
 set(CMAKE_FIND_LIBRARY_SUFFICES ".a;.so")
 find_library(OPEN_CV2 opencv_core opencv_imgproc opencv_highgui opencv_calib3d $ENV{HOME}/other/install/lib )
 
@@ -33,8 +34,9 @@ opencv_flann
 set(SOME_LIBS ${OPEN_CV2}  
 ${CV_LIBS}
  )
+endif()
 
-
+find_package(OpenCV)
 ###############################################################################
 
 add_executable(${PROJECT_NAME}
@@ -42,7 +44,8 @@ kinect_maps.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} 
-${SOME_LIBS} 
+#${SOME_LIBS} 
+${OpenCV_LIBS}
 )
 
 
