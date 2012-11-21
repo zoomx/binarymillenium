@@ -1,0 +1,27 @@
+[general] 
+creator=R package 'raster' 
+created= 2011-11-12 16:24:31 
+[georeference] 
+nrows= 230 
+ncols= 500 
+xmin= -179.1 
+ymin= 18.8166666666667 
+xmax= -64.9 
+ymax= 71.35 
+projection= +proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0 
+[data] 
+datatype= INT2S 
+byteorder= little 
+nbands= 1 
+bandorder= BIL 
+categorical= FALSE 
+minvalue= 0 
+maxvalue= 23504 
+nodatavalue= -9999 
+[legend] 
+legendtype=  
+values=  
+color=  
+[description] 
+layername= usa_msk_pop 
+history=  
