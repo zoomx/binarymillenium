@@ -25,6 +25,48 @@
 #include <cstdio>
 using namespace std;
 
+bool drawBody(
+  SDL_Renderer* renderer,
+b2Body* body, int r, int g, int b ) 
+{ 
+  SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+  int ox = 320;
+  int oy = 240;
+  float sc = 40.0;
+  //http://box2d.org/forum/viewtopic.php?f=3&t=1933
+  for( b2Fixture *fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext() )
+  {
+    if( fixture->GetType() == b2Shape::e_polygon )
+    {
+      b2PolygonShape *poly = (b2PolygonShape*)fixture->GetShape();
+
+      const int count = poly->GetVertexCount();
+
+      for( int i = 0; i < count; i++ )
+      {
+        int ind0 = (i + 1) % count ;
+        b2Vec2 p0 = body->GetWorldPoint(  poly->GetVertex( ind0 ) );
+        b2Vec2 p1 = body->GetWorldPoint(  poly->GetVertex(i) );
+
+#if 0
+        std::cout << i << " " << ind0 << " " 
+          << p0.x << " " << p0.y << " "
+          << p1.x << " " << p1.y << " "
+          << std::endl;
+#endif
+
+        SDL_RenderDrawLine(renderer, 
+            sc * p0.x + ox, -sc * p0.y + oy ,
+            sc * p1.x + ox, -sc * p1.y + oy
+            );
+
+      }
+      //verts now contains world co-ords of all the verts
+    }
+  }
+}
+
+
 // This is a simple example of building and running a simulation
 // using Box2D. Here we create a large ground box and a small dynamic
 // box.
@@ -141,46 +183,16 @@ int main(int argc, char** argv)
 
     SDL_SetRenderDrawColor(renderer, 100, 100, 250, 255);
     SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-    int ox = 320;
-    int oy = 240;
-    float sc = 40.0;
-    //http://box2d.org/forum/viewtopic.php?f=3&t=1933
-    for( b2Fixture *fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext() )
-    {
-      if( fixture->GetType() == b2Shape::e_polygon )
-      {
-        b2PolygonShape *poly = (b2PolygonShape*)fixture->GetShape();
 
-        const int count = poly->GetVertexCount();
+    drawBody(renderer, groundBody, 255,255,155);
+    drawBody(renderer, body, 255,255,255);
 
-        for( int i = 0; i < count; i++ )
-        {
-          int ind0 = (i + 1) % count ;
-          b2Vec2 p0 = body->GetWorldPoint(  poly->GetVertex( ind0 ) );
-          b2Vec2 p1 = body->GetWorldPoint(  poly->GetVertex(i) );
-         
-          #if 0
-          std::cout << i << " " << ind0 << " " 
-            << p0.x << " " << p0.y << " "
-            << p1.x << " " << p1.y << " "
-            << std::endl;
-          #endif
-
-          SDL_RenderDrawLine(renderer, 
-              sc * p0.x + ox, -sc * p0.y + oy ,
-              sc * p1.x + ox, -sc * p1.y + oy
-              );
-
-        }
-        //verts now contains world co-ords of all the verts
-      }
-    } 
     SDL_RenderPresent(renderer);
     SDL_Delay(20);  // Wait for 3000 milliseconds, for example
-	}
+  }
 
+    
 	// When the world destructor is called, all bodies and joints are freed. This can
 	// create orphaned pointers, so be careful about your world management.
 
