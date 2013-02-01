@@ -19,19 +19,21 @@
 #include <iostream>
 
 #include <SDL2/SDL.h>
-
 #include <Box2D/Box2D.h>
 
 #include <cstdio>
+
 using namespace std;
 
 bool drawBody(
   SDL_Renderer* renderer,
-b2Body* body, int r, int g, int b ) 
+  b2Body* body, 
+  int r, int g, int b 
+  ) 
 { 
   SDL_SetRenderDrawColor(renderer, r, g, b, 255);
   int ox = 320;
-  int oy = 240;
+  int oy = 400;
   float sc = 40.0;
   //http://box2d.org/forum/viewtopic.php?f=3&t=1933
   for( b2Fixture *fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext() )
@@ -74,6 +76,8 @@ b2Body* body, int r, int g, int b )
 // with your rendering engine in your game engine.
 int main(int argc, char** argv)
 {
+
+  /// SDL stuff
   SDL_Init(SDL_INIT_VIDEO);
   SDL_Window *window;
 
@@ -109,9 +113,12 @@ int main(int argc, char** argv)
   SDL_RenderPresent(renderer);
   
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-  //////////////////////////
-  //
-	B2_NOT_USED(argc);
+  /////////////////////////////////////////////////////
+
+
+  // BOX2D stuff
+	
+  B2_NOT_USED(argc);
 	B2_NOT_USED(argv);
 
 	// Define the gravity vector.
@@ -168,9 +175,13 @@ int main(int argc, char** argv)
 	int32 velocityIterations = 6;
 	int32 positionIterations = 2;
 
+  int event_pending = 0;
+  SDL_Event event;
+
 	// This is our little game loop.
-	for (int32 i = 0; i < 90; ++i)
-	{
+  bool do_loop = true;
+	while (do_loop)
+  {
 		// Instruct the world to perform a single step of simulation.
 		// It is generally best to keep the time step and iterations fixed.
 		world.Step(timeStep, velocityIterations, positionIterations);
@@ -190,6 +201,18 @@ int main(int argc, char** argv)
 
     SDL_RenderPresent(renderer);
     SDL_Delay(20);  // Wait for 3000 milliseconds, for example
+    
+    {
+      event_pending = SDL_PollEvent(&event);
+
+      if (event_pending == 0) continue;
+    
+      if (event.type == SDL_KEYDOWN) {
+        if (event.key.keysym.sym = SDLK_q) do_loop = false;
+        if (event.key.keysym.sym = SDLK_ESCAPE) do_loop = false;
+        
+      }
+    }
   }
 
     
