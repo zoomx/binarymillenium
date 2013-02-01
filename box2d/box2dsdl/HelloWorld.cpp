@@ -28,13 +28,13 @@ using namespace std;
 bool drawBody(
   SDL_Renderer* renderer,
   b2Body* body, 
-  int r, int g, int b 
+  int r, int g, int b,
+  int ox,
+  int oy,
+  int sc
   ) 
 { 
   SDL_SetRenderDrawColor(renderer, r, g, b, 255);
-  int ox = 320;
-  int oy = 400;
-  float sc = 40.0;
   //http://box2d.org/forum/viewtopic.php?f=3&t=1933
   for( b2Fixture *fixture = body->GetFixtureList(); fixture; fixture = fixture->GetNext() )
   {
@@ -68,6 +68,18 @@ bool drawBody(
   }
 }
 
+#if 0
+float random()
+{
+  return std::rand() / static_cast<float>(RAND_MAX);
+}
+#endif
+float randomRange( float low, float high )
+{
+  float range = high - low;
+  return static_cast<float>(random()/static_cast<float>(RAND_MAX) * range) + low;
+}
+
 
 // This is a simple example of building and running a simulation
 // using Box2D. Here we create a large ground box and a small dynamic
@@ -76,6 +88,8 @@ bool drawBody(
 // with your rendering engine in your game engine.
 int main(int argc, char** argv)
 {
+
+    //std::srand(std::time(0));
 
   /// SDL stuff
   SDL_Init(SDL_INIT_VIDEO);
@@ -164,6 +178,8 @@ int main(int argc, char** argv)
 
 	// Override the default friction.
 	fixtureDef.friction = 0.3f;
+  
+  fixtureDef.restitution = 0.6f;
 
 	// Add the shape to the body.
 	body->CreateFixture(&fixtureDef);
@@ -178,7 +194,11 @@ int main(int argc, char** argv)
   int event_pending = 0;
   SDL_Event event;
 
-	// This is our little game loop.
+  float ox = 320;
+  float oy = 400;
+  float sc = 20.0;
+	
+  // This is our little game loop.
   bool do_loop = true;
 	while (do_loop)
   {
@@ -196,11 +216,11 @@ int main(int argc, char** argv)
     SDL_RenderClear(renderer);
 
 
-    drawBody(renderer, groundBody, 255,255,155);
-    drawBody(renderer, body, 255,255,255);
+    drawBody(renderer, groundBody, 255,255,155, ox, oy, sc);
+    drawBody(renderer, body, 255,255,255, ox, oy, sc);
 
     SDL_RenderPresent(renderer);
-    SDL_Delay(20);  // Wait for 3000 milliseconds, for example
+    SDL_Delay(10);  // Wait for 3000 milliseconds, for example
     
     {
       event_pending = SDL_PollEvent(&event);
@@ -208,12 +228,42 @@ int main(int argc, char** argv)
       if (event_pending == 0) continue;
     
       if (event.type == SDL_KEYDOWN) {
-        if (event.key.keysym.sym = SDLK_q) do_loop = false;
-        if (event.key.keysym.sym = SDLK_ESCAPE) do_loop = false;
+        if (event.key.keysym.sym == SDLK_q) do_loop = false;
+        if (event.key.keysym.sym == SDLK_ESCAPE) do_loop = false;
+
+        if (event.key.keysym.sym == SDLK_r) {
+          const float x1 = randomRange(0, 10.0);
+          const float y1 = randomRange(0, 10.0);
+          const float a1 = randomRange(0, M_PI);
+          //std::cout << "x1 " << x1 <<std::endl;
+          body->SetTransform(b2Vec2(0.0f + x1, 1.0 + y1), a1);
+        }
+       
+        const float fr = 3.0;
         
-      }
-    }
-  }
+        if (event.key.keysym.sym == SDLK_UP) {
+          oy += 2.0*sc/fr;
+        }
+        if (event.key.keysym.sym == SDLK_DOWN) {
+          oy -= 1.9*sc/fr;
+        }
+        if (event.key.keysym.sym == SDLK_RIGHT) {
+          ox -= 1.9*sc/fr;
+        }
+        if (event.key.keysym.sym == SDLK_LEFT) {
+          ox += 1.9*sc/fr;
+        }
+        if (event.key.keysym.sym == SDLK_t) {
+          sc *= 1.05;
+        }
+        if (event.key.keysym.sym == SDLK_g) {
+          sc *= 0.97;
+        }
+
+      } // keydown
+    } // key stuff
+
+  } // event loop
 
     
 	// When the world destructor is called, all bodies and joints are freed. This can
