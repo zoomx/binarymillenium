@@ -17,6 +17,7 @@
 */
 
 #include <iostream>
+#include <vector>
 
 #include <SDL2/SDL.h>
 #include <Box2D/Box2D.h>
@@ -135,6 +136,8 @@ int main(int argc, char** argv)
   B2_NOT_USED(argc);
 	B2_NOT_USED(argv);
 
+  std::vector<b2Body*> all_bodies;
+
 	// Define the gravity vector.
 	b2Vec2 gravity(0.0f, -10.0f);
 
@@ -149,6 +152,7 @@ int main(int argc, char** argv)
 	// from a pool and creates the ground box shape (also from a pool).
 	// The body is also added to the world.
 	b2Body* groundBody = world.CreateBody(&groundBodyDef);
+  all_bodies.push_back(groundBody);
 
 	// Define the ground box shape.
 	b2PolygonShape groundBox;
@@ -159,30 +163,38 @@ int main(int argc, char** argv)
 	// Add the ground fixture to the ground body.
 	groundBody->CreateFixture(&groundBox, 0.0f);
 
-	// Define the dynamic body. We set its position and call the body factory.
-	b2BodyDef bodyDef;
-	bodyDef.type = b2_dynamicBody;
-	bodyDef.position.Set(0.0f, 4.0f);
-	b2Body* body = world.CreateBody(&bodyDef);
+  {
+    // Define the dynamic body. We set its position and call the body factory.
+    b2BodyDef bodyDef;
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position.Set(0.0f, 4.0f);
+    b2Body* body = world.CreateBody(&bodyDef);
+    all_bodies.push_back(body);
 
-	// Define another box shape for our dynamic body.
-	b2PolygonShape dynamicBox;
-	dynamicBox.SetAsBox(1.0f, 1.0f, bodyDef.position, 1.0);
+    // Define another box shape for our dynamic body.
+    b2PolygonShape dynamicBox;
+    dynamicBox.SetAsBox(1.0f, 1.0f, bodyDef.position, 1.0);
 
-	// Define the dynamic body fixture.
-	b2FixtureDef fixtureDef;
-	fixtureDef.shape = &dynamicBox;
+    // Define the dynamic body fixture.
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &dynamicBox;
 
-	// Set the box density to be non-zero, so it will be dynamic.
-	fixtureDef.density = 1.0f;
+    // Set the box density to be non-zero, so it will be dynamic.
+    fixtureDef.density = 1.0f;
 
-	// Override the default friction.
-	fixtureDef.friction = 0.3f;
-  
-  fixtureDef.restitution = 0.6f;
+    // Override the default friction.
+    fixtureDef.friction = 0.3f;
 
-	// Add the shape to the body.
-	body->CreateFixture(&fixtureDef);
+    fixtureDef.restitution = 0.6f;
+
+    // Add the shape to the body.
+    body->CreateFixture(&fixtureDef);
+  }
+
+  {
+
+
+  }
 
 	// Prepare for simulation. Typically we use a time step of 1/60 of a
 	// second (60Hz) and 10 iterations. This provides a high quality simulation
@@ -206,18 +218,13 @@ int main(int argc, char** argv)
 		// It is generally best to keep the time step and iterations fixed.
 		world.Step(timeStep, velocityIterations, positionIterations);
 
-		// Now print the position and angle of the body.
-		b2Vec2 position = body->GetPosition();
-		float32 angle = body->GetAngle();
-
-		//printf("%4.2f %4.2f %4.2f\n", position.x, position.y, angle);
-
     SDL_SetRenderDrawColor(renderer, 100, 100, 250, 255);
     SDL_RenderClear(renderer);
 
-
-    drawBody(renderer, groundBody, 255,255,155, ox, oy, sc);
-    drawBody(renderer, body, 255,255,255, ox, oy, sc);
+    for (int i = 0; i < all_bodies.size(); i++) {
+      drawBody(renderer, all_bodies[i], 255,255,155, ox, oy, sc);
+    }
+    //drawBody(renderer, body, 255,255,255, ox, oy, sc);
 
     SDL_RenderPresent(renderer);
     SDL_Delay(10);  // Wait for 3000 milliseconds, for example
@@ -236,22 +243,22 @@ int main(int argc, char** argv)
           const float y1 = randomRange(0, 10.0);
           const float a1 = randomRange(0, M_PI);
           //std::cout << "x1 " << x1 <<std::endl;
-          body->SetTransform(b2Vec2(0.0f + x1, 1.0 + y1), a1);
+          all_bodies[1]->SetTransform(b2Vec2(0.0f + x1, 4.0 + y1), a1);
         }
        
         const float fr = 3.0;
         
         if (event.key.keysym.sym == SDLK_UP) {
-          oy += 2.0*sc/fr;
+          oy += 6.0*sc/fr;
         }
         if (event.key.keysym.sym == SDLK_DOWN) {
-          oy -= 1.9*sc/fr;
+          oy -= 5.9*sc/fr;
         }
         if (event.key.keysym.sym == SDLK_RIGHT) {
-          ox -= 1.9*sc/fr;
+          ox -= 5.9*sc/fr;
         }
         if (event.key.keysym.sym == SDLK_LEFT) {
-          ox += 1.9*sc/fr;
+          ox += 6.0*sc/fr;
         }
         if (event.key.keysym.sym == SDLK_t) {
           sc *= 1.05;
