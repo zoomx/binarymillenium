@@ -101,7 +101,36 @@ bool drawBody(
   }
 }
 
-  bool addLeg(
+void increaseMotor(b2RevoluteJoint* joint)
+{
+  float vel = joint->GetMotorSpeed();
+  //std::cout << "j " << vel << std::endl;
+  
+  vel = 100;
+  #if 0
+  if (vel <= 0) 
+    vel *= 1.1; 
+  else 
+    vel *= 0.9;
+  vel -= 0.2;
+  #endif
+  joint->SetMotorSpeed(vel);
+}
+
+void decreaseMotor(b2RevoluteJoint* joint)
+{
+  float vel = joint->GetMotorSpeed();
+  //std::cout << "k " << vel << std::endl;
+  if (vel >= 0) 
+    vel *= 1.1;
+  else 
+    vel *= 0.9;
+  vel += 0.2;
+  vel = -100;
+  joint->SetMotorSpeed(vel);
+}
+
+bool addLeg(
       b2World& the_world,
       b2Body* trunk, 
       b2Body*& leg, 
@@ -130,7 +159,14 @@ bool drawBody(
  
     // now attach with joint
     b2RevoluteJointDef joint_def;
+    
     joint_def.Initialize(trunk, leg, b2Vec2(2*jx,2*jy)); 
+    joint_def.lowerAngle = -0.15f * b2_pi; // -90 degrees
+    joint_def.upperAngle = 0.15f * b2_pi; // 45 degrees
+    joint_def.enableLimit = true;
+    joint_def.maxMotorTorque = 30.0f;
+    joint_def.motorSpeed = 0.0f;
+    joint_def.enableMotor = true;
     joint = (b2RevoluteJoint*)the_world.CreateJoint(&joint_def);
   }
 #if 0
@@ -339,6 +375,34 @@ int main(int argc, char** argv)
         }
         if (event.key.keysym.sym == SDLK_g) {
           sc *= 0.97;
+        }
+       
+        /////////////////////////////////////
+        if (event.key.keysym.sym == SDLK_j) {
+          increaseMotor(all_rev_joints[0]);
+        }
+        if (event.key.keysym.sym == SDLK_k) {
+          decreaseMotor(all_rev_joints[0]);
+        }
+        
+        if (event.key.keysym.sym == SDLK_l) {
+          increaseMotor(all_rev_joints[1]);
+        }
+        if (event.key.keysym.sym == SDLK_SEMICOLON) {
+          decreaseMotor(all_rev_joints[1]);
+        }
+
+        if (event.key.keysym.sym == SDLK_a) {
+          increaseMotor(all_rev_joints[2]);
+        }
+        if (event.key.keysym.sym == SDLK_s) {
+          decreaseMotor(all_rev_joints[2]);
+        }
+        if (event.key.keysym.sym == SDLK_d) {
+          increaseMotor(all_rev_joints[3]);
+        }
+        if (event.key.keysym.sym == SDLK_f) {
+          decreaseMotor(all_rev_joints[3]);
         }
 
       } // keydown
