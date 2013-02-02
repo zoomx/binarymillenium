@@ -1,19 +1,21 @@
 /*
-* Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
-*
-* This software is provided 'as-is', without any express or implied
-* warranty.  In no event will the authors be held liable for any damages
-* arising from the use of this software.
-* Permission is granted to anyone to use this software for any purpose,
-* including commercial applications, and to alter it and redistribute it
-* freely, subject to the following restrictions:
-* 1. The origin of this software must not be misrepresented; you must not
-* claim that you wrote the original software. If you use this software
-* in a product, an acknowledgment in the product documentation would be
-* appreciated but is not required.
-* 2. Altered source versions must be plainly marked as such, and must not be
-* misrepresented as being the original software.
-* 3. This notice may not be removed or altered from any source distribution.
+  (c) Lucas Walter 2013
+
+  a walking robot/animal box2d simulation
+
+    This is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this.  If not, see <http://www.gnu.org/licenses/>.
+ 
 */
 
 #include <iostream>
@@ -36,17 +38,20 @@ bool drawGrid(
 { 
   SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 
-  for (int x = -30; x < 30; x++) {
+  const int mx = 30;
+  for (int x = -mx; x <= mx; x++) {
+    //SDL_SetRenderDrawColor(renderer, 255*(float)abs(x)/mx, g, b, 255);
     SDL_RenderDrawLine(renderer, 
-            sc * x + ox, -sc * (-30) + oy ,
-            sc * x + ox, -sc * (30) + oy
+            sc * x + ox, -sc * (-mx) + oy ,
+            sc * x + ox, -sc * (mx) + oy
             );
 
   }
-  for (int y = -30; y < 30; y++) {
+  for (int y = -30; y <= 30; y++) {
+   // SDL_SetRenderDrawColor(renderer, r,g,255*(float)abs(y)/mx, 255);
     SDL_RenderDrawLine(renderer, 
-            sc * (-30) + ox, -sc * y + oy ,
-            sc * (30) + ox, -sc * y + oy
+            sc * (-mx) + ox, -sc * y + oy ,
+            sc * (mx) + ox, -sc * y + oy
             );
   }
 
@@ -109,11 +114,6 @@ float randomRange( float low, float high )
 }
 
 
-// This is a simple example of building and running a simulation
-// using Box2D. Here we create a large ground box and a small dynamic
-// box.
-// There are no graphics for this example. Box2D is meant to be used
-// with your rendering engine in your game engine.
 int main(int argc, char** argv)
 {
 
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
       0, //SDL_WINDOWPOS_UNDEFINED,  //    int x: initial x position
       0, //SDL_WINDOWPOS_UNDEFINED,  //    int y: initial y position
       640,                      //    int w: width, in pixels
-      480,                      //    int h: height, in pixels
+      360,                      //    int h: height, in pixels
       SDL_WINDOW_SHOWN          //    Uint32 flags: window options, see docs
       );
 
@@ -144,53 +144,36 @@ int main(int argc, char** argv)
 
   renderer = SDL_CreateRenderer(window, -1, 0);
 
-  // Select the color for drawing. It is set to red here.
   SDL_SetRenderDrawColor(renderer, 100, 100, 250, 255);
-
-  // Clear the entire screen to our selected color.
   SDL_RenderClear(renderer);
 
-  // Up until now everything was drawn behind the scenes.
-  // This will show the new, red contents of the window.
+  // swap buffers or equivalent
   SDL_RenderPresent(renderer);
   
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   /////////////////////////////////////////////////////
 
-
   // BOX2D stuff
-	
-  B2_NOT_USED(argc);
-	B2_NOT_USED(argv);
 
   std::vector<b2Body*> all_bodies;
-  std::vector<b2Joint*> all_joints;
+  std::vector<b2RevoluteJoint*> all_rev_joints;
 
-	// Define the gravity vector.
-	b2Vec2 gravity(0.0f, -10.0f);
+	b2Vec2 gravity(0.0f, -1.0f);
 
-	// Construct a the_world object, which will hold and simulate the rigid bodies.
 	b2World the_world(gravity);
 
-	// Define the ground body.
-	b2BodyDef groundBodyDef;
-	groundBodyDef.position.Set(0.0f, -10.0f);
+	b2BodyDef ground_body_def;
+	ground_body_def.position.Set(0.0f, -10.0f);
 
-	// Call the body factory which allocates memory for the ground body
-	// from a pool and creates the ground box shape (also from a pool).
-	// The body is also added to the the_world.
-	b2Body* groundBody = the_world.CreateBody(&groundBodyDef);
-  all_bodies.push_back(groundBody);
+	b2Body* ground_body = the_world.CreateBody(&ground_body_def);
+  all_bodies.push_back(ground_body);
 
-	// Define the ground box shape.
-	b2PolygonShape groundBox;
+	b2PolygonShape ground_box;
 
-	// The extents are the half-widths of the box.
-	groundBox.SetAsBox(50.0f, 10.0f);
+	ground_box.SetAsBox(50.0f, 10.0f);
 
-	// Add the ground fixture to the ground body.
-	groundBody->CreateFixture(&groundBox, 0.0f);
+	ground_body->CreateFixture(&ground_box, 0.0f);
 
+  // the main trunk 
   {
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
@@ -198,19 +181,20 @@ int main(int argc, char** argv)
     b2Body* body = the_world.CreateBody(&bodyDef);
     all_bodies.push_back(body);
 
-    b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(1.0f, 1.0f, bodyDef.position, 0.0);
+    b2PolygonShape dynamic_box;
+    dynamic_box.SetAsBox(4.0f, 1.0f, bodyDef.position, 0.0);
 
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = &dynamicBox;
+    b2FixtureDef fixture_def;
+    fixture_def.shape = &dynamic_box;
     
-    fixtureDef.density = 1.0f;
-    fixtureDef.friction = 0.3f;
-    fixtureDef.restitution = 0.6f;
+    fixture_def.density = 1.0f;
+    fixture_def.friction = 0.3f;
+    fixture_def.restitution = 0.6f;
 
-    body->CreateFixture(&fixtureDef);
+    body->CreateFixture(&fixture_def);
   }
 
+  // add legs
   {
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
@@ -218,60 +202,61 @@ int main(int argc, char** argv)
     b2Body* body = the_world.CreateBody(&bodyDef);
     all_bodies.push_back(body);
 
-    b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(1.0f, 1.0f, bodyDef.position, 0.0);
+    b2PolygonShape dynamic_box;
+    dynamic_box.SetAsBox(1.0f, 1.0f, bodyDef.position, 0.0);
 
-    b2FixtureDef fixtureDef;
-    fixtureDef.shape = &dynamicBox;
+    b2FixtureDef fixture_def;
+    fixture_def.shape = &dynamic_box;
     
-    fixtureDef.density = 1.0f;
-    fixtureDef.friction = 0.3f;
-    fixtureDef.restitution = 0.6f;
+    fixture_def.density = 1.0f;
+    fixture_def.friction = 0.3f;
+    fixture_def.restitution = 0.6f;
 
-    body->CreateFixture(&fixtureDef);
-  }
+    body->CreateFixture(&fixture_def);
   
-  // join last two bodies together 
-  b2RevoluteJoint* joint;
-  {
-    b2RevoluteJointDef jointDef;
-    b2Body* b2a = all_bodies[all_bodies.size()-1];
-    b2Body* b2b = all_bodies[all_bodies.size()-2];
-    b2Vec2 pa = b2a->GetPosition();
-    b2Vec2 pb = b2b->GetPosition();
-    b2Vec2 pj = pa + pb;
-    // there seems to be a scale factor of 2 in joint position vs. body position, I don't get it
-    pj; // = 0.5 * pj;
-    std::cout
-      << pa.x << " " << pa.y << ", " 
-      << pb.x << " " << pb.y << ", "
-      << pj.x << " " << pj.y << std::endl;
-    jointDef.Initialize(b2a, b2b, pj); 
+    // join last two bodies together 
+    b2RevoluteJoint* joint;
+    {
+      b2RevoluteJointDef joint_def;
+      b2Body* b2a = all_bodies[all_bodies.size()-1];
+      b2Body* b2b = all_bodies[all_bodies.size()-2];
+      b2Vec2 pa = b2a->GetPosition();
+      b2Vec2 pb = b2b->GetPosition();
+      b2Vec2 pj = pa + pb;
+      // there seems to be a scale factor of 2 in joint position vs. body position, I don't get it
+      pj; // = 0.5 * pj;
+      std::cout
+        << pa.x << " " << pa.y << ", " 
+        << pb.x << " " << pb.y << ", "
+        << pj.x << " " << pj.y << std::endl;
+      joint_def.Initialize(b2a, b2b, pj); 
 
-    joint = (b2RevoluteJoint*)the_world.CreateJoint(&jointDef);
-    //b2Vec2 t1 = joint->GetAnchorA(); 
-    //b2Vec2 t2 = joint->GetAnchorB();
-    //std::cout << t1.x << " " << t1.y << ", " << t2.x << " " << t2.y << std::endl;
+      joint = (b2RevoluteJoint*)the_world.CreateJoint(&joint_def);
+      all_rev_joints.push_back(joint);
+      //b2Vec2 t1 = joint->GetAnchorA(); 
+      //b2Vec2 t2 = joint->GetAnchorB();
+      //std::cout << t1.x << " " << t1.y << ", " << t2.x << " " << t2.y << std::endl;
+    }
   }
 
-	float32 timeStep = 1.0f / 60.0f;
-	int32 velocityIterations = 6;
-	int32 positionIterations = 2;
+	float32 time_step = 1.0f / 60.0f;
+	int32 velocity_iterations = 6;
+	int32 position_iterations = 2;
 
   int event_pending = 0;
   SDL_Event event;
 
   float ox = 320;
-  float oy = 400;
+  float oy = 300;
   float sc = 20.0;
 
   /////////////////////////////////////
   bool do_loop = true;
 	while (do_loop)
   {
-		the_world.Step(timeStep, velocityIterations, positionIterations);
+		the_world.Step(time_step, velocity_iterations, position_iterations);
 
-    SDL_SetRenderDrawColor(renderer, 100, 100, 250, 255);
+    SDL_SetRenderDrawColor(renderer, 50, 50, 100, 255);
     SDL_RenderClear(renderer);
 
     drawGrid(renderer, 10,10,10, ox, oy, sc);
@@ -281,7 +266,8 @@ int main(int argc, char** argv)
     }
     
     // draw joint crosshairs
-    {
+    for (int i = 0; i < all_rev_joints.size(); i++) {
+      b2Joint* joint = all_rev_joints[i];
       b2Vec2 t1 = joint->GetAnchorA(); 
       b2Vec2 t2 = joint->GetAnchorB();
       b2Vec2 t3 = joint->GetAnchorB();
@@ -347,20 +333,8 @@ int main(int argc, char** argv)
 
   } // event loop
 
-    
-	// When the the_world destructor is called, all bodies and joints are freed. This can
-	// create orphaned pointers, so be careful about your the_world management.
-
-   
-    
-  // The window is open: enter program loop (see SDL_PollEvent)
-  
-  // Close and destroy the window
-  SDL_DestroyWindow(window); 
-  
-  // Clean up SDL2 and exit the program
+	SDL_DestroyWindow(window); 
   SDL_Quit(); 
-
 
 	return 0;
 }

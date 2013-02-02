@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-# Hello World examples
 
-include_directories (${Box2D_SOURCE_DIR})
 include_directories($ENV{HOME}/other/install/include)
 link_directories($ENV{HOME}/other/install/lib)
 
@@ -13,8 +11,8 @@ link_directories($ENV{HOME}/other/install/lib)
 #  OUTPUT_VARIABLE SDL_LIBS
 #  )
 
-add_executable(HelloWorld HelloWorld.cpp)
-target_link_libraries (HelloWorld 
+add_executable(walker walker.cpp)
+target_link_libraries (walker 
   Box2D
   SDL2
   )
