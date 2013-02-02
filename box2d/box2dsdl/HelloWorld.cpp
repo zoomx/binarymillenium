@@ -64,7 +64,7 @@ bool drawBody(
             );
 
       }
-      //verts now contains world co-ords of all the verts
+      //verts now contains the_world co-ords of all the verts
     }
   }
 }
@@ -137,12 +137,13 @@ int main(int argc, char** argv)
 	B2_NOT_USED(argv);
 
   std::vector<b2Body*> all_bodies;
+  std::vector<b2Joint*> all_joints;
 
 	// Define the gravity vector.
 	b2Vec2 gravity(0.0f, -10.0f);
 
-	// Construct a world object, which will hold and simulate the rigid bodies.
-	b2World world(gravity);
+	// Construct a the_world object, which will hold and simulate the rigid bodies.
+	b2World the_world(gravity);
 
 	// Define the ground body.
 	b2BodyDef groundBodyDef;
@@ -150,8 +151,8 @@ int main(int argc, char** argv)
 
 	// Call the body factory which allocates memory for the ground body
 	// from a pool and creates the ground box shape (also from a pool).
-	// The body is also added to the world.
-	b2Body* groundBody = world.CreateBody(&groundBodyDef);
+	// The body is also added to the the_world.
+	b2Body* groundBody = the_world.CreateBody(&groundBodyDef);
   all_bodies.push_back(groundBody);
 
 	// Define the ground box shape.
@@ -164,41 +165,68 @@ int main(int argc, char** argv)
 	groundBody->CreateFixture(&groundBox, 0.0f);
 
   {
-    // Define the dynamic body. We set its position and call the body factory.
     b2BodyDef bodyDef;
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(0.0f, 4.0f);
-    b2Body* body = world.CreateBody(&bodyDef);
+    b2Body* body = the_world.CreateBody(&bodyDef);
     all_bodies.push_back(body);
 
-    // Define another box shape for our dynamic body.
     b2PolygonShape dynamicBox;
-    dynamicBox.SetAsBox(1.0f, 1.0f, bodyDef.position, 1.0);
+    dynamicBox.SetAsBox(1.0f, 1.0f, bodyDef.position, 0.0);
 
-    // Define the dynamic body fixture.
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &dynamicBox;
-
-    // Set the box density to be non-zero, so it will be dynamic.
+    
     fixtureDef.density = 1.0f;
-
-    // Override the default friction.
     fixtureDef.friction = 0.3f;
-
     fixtureDef.restitution = 0.6f;
 
-    // Add the shape to the body.
     body->CreateFixture(&fixtureDef);
   }
 
   {
+    b2BodyDef bodyDef;
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position.Set(1.0f, 5.0f);
+    b2Body* body = the_world.CreateBody(&bodyDef);
+    all_bodies.push_back(body);
 
+    b2PolygonShape dynamicBox;
+    dynamicBox.SetAsBox(1.0f, 1.0f, bodyDef.position, 0.0);
 
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &dynamicBox;
+    
+    fixtureDef.density = 1.0f;
+    fixtureDef.friction = 0.3f;
+    fixtureDef.restitution = 0.6f;
+
+    body->CreateFixture(&fixtureDef);
+  }
+  
+  // join last two bodies together 
+  b2RevoluteJoint* joint;
+  {
+    b2RevoluteJointDef jointDef;
+    b2Body* b2a = all_bodies[all_bodies.size()-1];
+    b2Body* b2b = all_bodies[all_bodies.size()-2];
+    b2Vec2 pa = b2a->GetPosition();
+    b2Vec2 pb = b2b->GetPosition();
+    b2Vec2 pj = pa + pb;
+    // there seems to be a scale factor of 2 in joint position vs. body position, I don't get it
+    pj; // = 0.5 * pj;
+    std::cout
+      << pa.x << " " << pa.y << ", " 
+      << pb.x << " " << pb.y << ", "
+      << pj.x << " " << pj.y << std::endl;
+    jointDef.Initialize(b2a, b2b, pj); 
+
+    joint = (b2RevoluteJoint*)the_world.CreateJoint(&jointDef);
+    //b2Vec2 t1 = joint->GetAnchorA(); 
+    //b2Vec2 t2 = joint->GetAnchorB();
+    //std::cout << t1.x << " " << t1.y << ", " << t2.x << " " << t2.y << std::endl;
   }
 
-	// Prepare for simulation. Typically we use a time step of 1/60 of a
-	// second (60Hz) and 10 iterations. This provides a high quality simulation
-	// in most game scenarios.
 	float32 timeStep = 1.0f / 60.0f;
 	int32 velocityIterations = 6;
 	int32 positionIterations = 2;
@@ -209,14 +237,12 @@ int main(int argc, char** argv)
   float ox = 320;
   float oy = 400;
   float sc = 20.0;
-	
-  // This is our little game loop.
+
+  /////////////////////////////////////
   bool do_loop = true;
 	while (do_loop)
   {
-		// Instruct the world to perform a single step of simulation.
-		// It is generally best to keep the time step and iterations fixed.
-		world.Step(timeStep, velocityIterations, positionIterations);
+		the_world.Step(timeStep, velocityIterations, positionIterations);
 
     SDL_SetRenderDrawColor(renderer, 100, 100, 250, 255);
     SDL_RenderClear(renderer);
@@ -224,10 +250,30 @@ int main(int argc, char** argv)
     for (int i = 0; i < all_bodies.size(); i++) {
       drawBody(renderer, all_bodies[i], 255,255,155, ox, oy, sc);
     }
-    //drawBody(renderer, body, 255,255,255, ox, oy, sc);
+    
+    // draw joint crosshairs
+    {
+      b2Vec2 t1 = joint->GetAnchorA(); 
+      b2Vec2 t2 = joint->GetAnchorB();
+      b2Vec2 t3 = joint->GetAnchorB();
+   
+    SDL_RenderDrawLine(renderer, 
+            sc * t1.x + ox, -sc * t1.y + oy ,
+            sc * t1.x + ox, -sc * t1.y + oy
+            );
+
+      SDL_RenderDrawLine(renderer, 
+            sc * t1.x + ox - 10, -sc * t1.y + oy ,
+            sc * t1.x + ox + 10, -sc * t1.y + oy
+            );
+      SDL_RenderDrawLine(renderer, 
+            sc * t2.x + ox, -sc * t2.y + oy - 10 ,
+            sc * t2.x + ox, -sc * t2.y + oy + 10
+            );
+    }
 
     SDL_RenderPresent(renderer);
-    SDL_Delay(10);  // Wait for 3000 milliseconds, for example
+    SDL_Delay(10);  
     
     {
       event_pending = SDL_PollEvent(&event);
@@ -273,8 +319,8 @@ int main(int argc, char** argv)
   } // event loop
 
     
-	// When the world destructor is called, all bodies and joints are freed. This can
-	// create orphaned pointers, so be careful about your world management.
+	// When the the_world destructor is called, all bodies and joints are freed. This can
+	// create orphaned pointers, so be careful about your the_world management.
 
    
     
