@@ -26,6 +26,33 @@
 
 using namespace std;
 
+bool drawGrid(
+  SDL_Renderer* renderer,
+  int r, int g, int b,
+  int ox,
+  int oy,
+  int sc
+  ) 
+{ 
+  SDL_SetRenderDrawColor(renderer, r, g, b, 255);
+
+  for (int x = -30; x < 30; x++) {
+    SDL_RenderDrawLine(renderer, 
+            sc * x + ox, -sc * (-30) + oy ,
+            sc * x + ox, -sc * (30) + oy
+            );
+
+  }
+  for (int y = -30; y < 30; y++) {
+    SDL_RenderDrawLine(renderer, 
+            sc * (-30) + ox, -sc * y + oy ,
+            sc * (30) + ox, -sc * y + oy
+            );
+  }
+
+  return true;
+}
+
 bool drawBody(
   SDL_Renderer* renderer,
   b2Body* body, 
@@ -247,6 +274,8 @@ int main(int argc, char** argv)
     SDL_SetRenderDrawColor(renderer, 100, 100, 250, 255);
     SDL_RenderClear(renderer);
 
+    drawGrid(renderer, 10,10,10, ox, oy, sc);
+    
     for (int i = 0; i < all_bodies.size(); i++) {
       drawBody(renderer, all_bodies[i], 255,255,155, ox, oy, sc);
     }
