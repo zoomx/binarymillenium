@@ -19,6 +19,7 @@
 */
 
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 #include <SDL2/SDL.h>
@@ -27,6 +28,43 @@
 #include <cstdio>
 
 using namespace std;
+static void
+ScreenShot(SDL_Renderer *renderer, const int ind=0)
+{
+    SDL_Rect viewport;
+    SDL_Surface *surface;
+
+    if (!renderer) {
+        return;
+    }
+
+    SDL_RenderGetViewport(renderer, &viewport);
+    surface = SDL_CreateRGBSurface(0, viewport.w, viewport.h, 24,
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+                    0x00FF0000, 0x0000FF00, 0x000000FF,
+#else
+                    0x000000FF, 0x0000FF00, 0x00FF0000,
+#endif
+                    0x00000000);
+    if (!surface) {
+        fprintf(stderr, "Couldn't create surface: %s\n", SDL_GetError());
+        return;
+    }
+
+    if (SDL_RenderReadPixels(renderer, NULL, surface->format->format,
+                             surface->pixels, surface->pitch) < 0) {
+        fprintf(stderr, "Couldn't read screen: %s\n", SDL_GetError());
+        return;
+    }
+    
+  stringstream ss;
+ss << "screen_" << ind << ".bmp";
+    if (SDL_SaveBMP(surface, ss.str().c_str()) < 0) {
+        fprintf(stderr, "Couldn't save screenshot.bmp: %s\n", SDL_GetError());
+        return;
+    }
+}
+
 
 bool drawGrid(
   SDL_Renderer* renderer,
@@ -152,7 +190,7 @@ bool addLeg(
     leg = the_world.CreateBody(&body_def);
 
     b2PolygonShape dynamic_box;
-    dynamic_box.SetAsBox(0.5f, 2.0f, body_def.position, 0.0);
+    dynamic_box.SetAsBox(0.5f, 1.0f, body_def.position, 0.0);
 
     b2FixtureDef fixture_def;
     fixture_def.filter.categoryBits = 0x0002;
@@ -276,22 +314,45 @@ int main(int argc, char** argv)
   // add legs
   {
     b2Body* leg;
+    b2Body* foot;
     b2RevoluteJoint* joint;
+   
+    float hip_y = 3.5f;
+    float hip_cy = 3.0f;
+    float knee_y = 2.5f;
+    float knee_cy = 2.0f;
+    // 'front' legs
+    addLeg(the_world, trunk, leg, joint, 1.8f, hip_cy, 1.8f, hip_y ); 
+    all_bodies.push_back(leg);
+    all_rev_joints.push_back(joint);
+
+    addLeg(the_world, leg, foot, joint, 1.8f, knee_cy, 1.8f, knee_y ); 
+    all_bodies.push_back(foot);
+    all_rev_joints.push_back(joint);
     
-    addLeg(the_world, trunk, leg, joint, 1.8f, 3.0f, 1.8f, 4.0f ); 
+    addLeg(the_world, trunk, leg, joint, 2.0f, hip_cy, 2.0f, hip_y ); 
     all_bodies.push_back(leg);
     all_rev_joints.push_back(joint);
 
-    addLeg(the_world, trunk, leg, joint, 2.0f, 3.0f, 2.0f, 4.0f ); 
+    addLeg(the_world, leg, foot, joint, 2.0f, knee_cy, 2.0f, knee_y ); 
+    all_bodies.push_back(foot);
+    all_rev_joints.push_back(joint);
+   
+    // 'back' legs
+    addLeg(the_world, trunk, leg, joint, -2.0f, hip_cy, -2.0f, hip_y ); 
     all_bodies.push_back(leg);
     all_rev_joints.push_back(joint);
 
-    addLeg(the_world, trunk, leg, joint, -2.0f, 3.0f, -2.0f, 4.0f ); 
+    addLeg(the_world, leg, foot, joint, -2.0f, knee_cy, -2.0f, knee_y ); 
+    all_bodies.push_back(foot);
+    all_rev_joints.push_back(joint);
+    
+    addLeg(the_world, trunk, leg, joint, -1.8f, hip_cy, -1.8f, hip_y ); 
     all_bodies.push_back(leg);
     all_rev_joints.push_back(joint);
-
-    addLeg(the_world, trunk, leg, joint, -1.8f, 3.0f, -1.8f, 4.0f ); 
-    all_bodies.push_back(leg);
+    
+    addLeg(the_world, leg, foot, joint, -1.8f, knee_cy, -1.8f, knee_y ); 
+    all_bodies.push_back(foot);
     all_rev_joints.push_back(joint);
   }
 
@@ -308,6 +369,7 @@ int main(int argc, char** argv)
   float sc = 20.0;
 
   /////////////////////////////////////
+  int ind = 0;
   bool do_loop = true;
 	while (do_loop)
   {
@@ -345,7 +407,9 @@ int main(int argc, char** argv)
     }
 
     SDL_RenderPresent(renderer);
-    SDL_Delay(10);  
+    ScreenShot(renderer, ind + 100000); 
+    ind += 1; 
+    //SDL_Delay(10);  
     
     {
       event_pending = SDL_PollEvent(&event);
@@ -386,38 +450,16 @@ int main(int argc, char** argv)
         }
        
         /////////////////////////////////////
-        if (event.key.keysym.sym == SDLK_u) {reverseMotor(all_rev_joints[0]); } 
-        if (event.key.keysym.sym == SDLK_i) {reverseMotor(all_rev_joints[1]); } 
-        if (event.key.keysym.sym == SDLK_o) {reverseMotor(all_rev_joints[2]); } 
-        if (event.key.keysym.sym == SDLK_p) {reverseMotor(all_rev_joints[3]); } 
+        if (event.key.keysym.sym == SDLK_j) {reverseMotor(all_rev_joints[0]); } 
+        if (event.key.keysym.sym == SDLK_k) {reverseMotor(all_rev_joints[1]); } 
+        if (event.key.keysym.sym == SDLK_l) {reverseMotor(all_rev_joints[2]); } 
+        if (event.key.keysym.sym == SDLK_SEMICOLON) {reverseMotor(all_rev_joints[3]); } 
         
-        if (event.key.keysym.sym == SDLK_j) {
-          increaseMotor(all_rev_joints[0]);
-        }
-        if (event.key.keysym.sym == SDLK_k) {
-          decreaseMotor(all_rev_joints[0]);
-        }
-        
-        if (event.key.keysym.sym == SDLK_l) {
-          increaseMotor(all_rev_joints[1]);
-        }
-        if (event.key.keysym.sym == SDLK_SEMICOLON) {
-          decreaseMotor(all_rev_joints[1]);
-        }
-
-        if (event.key.keysym.sym == SDLK_a) {
-          increaseMotor(all_rev_joints[2]);
-        }
-        if (event.key.keysym.sym == SDLK_s) {
-          decreaseMotor(all_rev_joints[2]);
-        }
-        if (event.key.keysym.sym == SDLK_d) {
-          increaseMotor(all_rev_joints[3]);
-        }
-        if (event.key.keysym.sym == SDLK_f) {
-          decreaseMotor(all_rev_joints[3]);
-        }
-
+        if (event.key.keysym.sym == SDLK_a) {reverseMotor(all_rev_joints[4]); } 
+        if (event.key.keysym.sym == SDLK_s) {reverseMotor(all_rev_joints[5]); } 
+        if (event.key.keysym.sym == SDLK_d) {reverseMotor(all_rev_joints[6]); } 
+        if (event.key.keysym.sym == SDLK_f) {reverseMotor(all_rev_joints[7]); } 
+       
       } // keydown
     } // key stuff
 
