@@ -101,6 +101,36 @@ bool drawBody(
   }
 }
 
+  bool addLeg(
+      b2World& the_world,
+      b2Body* trunk, 
+      b2Body*& leg, 
+      b2RevoluteJoint*& joint,
+      const float bx, const float by, const float jx, const float jy
+      )
+  {
+    b2BodyDef body_def;
+    body_def.type = b2_dynamicBody;
+    body_def.position.Set(bx, by);
+    leg = the_world.CreateBody(&body_def);
+
+    b2PolygonShape dynamic_box;
+    dynamic_box.SetAsBox(0.5f, 2.0f, body_def.position, 0.0);
+
+    b2FixtureDef fixture_def;
+    fixture_def.shape = &dynamic_box;
+    
+    fixture_def.density = 1.0f;
+    fixture_def.friction = 0.3f;
+    fixture_def.restitution = 0.6f;
+
+    leg->CreateFixture(&fixture_def);
+ 
+    // now attach with joint
+    b2RevoluteJointDef joint_def;
+    joint_def.Initialize(trunk, leg, b2Vec2(2*jx,2*jy)); 
+    joint = (b2RevoluteJoint*)the_world.CreateJoint(&joint_def);
+  }
 #if 0
 float random()
 {
@@ -161,28 +191,31 @@ int main(int argc, char** argv)
 
 	b2World the_world(gravity);
 
-	b2BodyDef ground_body_def;
-	ground_body_def.position.Set(0.0f, -10.0f);
-
-	b2Body* ground_body = the_world.CreateBody(&ground_body_def);
-  all_bodies.push_back(ground_body);
-
-	b2PolygonShape ground_box;
-
-	ground_box.SetAsBox(50.0f, 10.0f);
-
-	ground_body->CreateFixture(&ground_box, 0.0f);
-
-  // the main trunk 
   {
-    b2BodyDef bodyDef;
-    bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(0.0f, 4.0f);
-    b2Body* body = the_world.CreateBody(&bodyDef);
-    all_bodies.push_back(body);
+    b2BodyDef ground_body_def;
+    ground_body_def.position.Set(0.0f, -10.0f);
+
+    b2Body* ground_body = the_world.CreateBody(&ground_body_def);
+    all_bodies.push_back(ground_body);
+
+    b2PolygonShape ground_box;
+
+    ground_box.SetAsBox(50.0f, 10.0f);
+
+    ground_body->CreateFixture(&ground_box, 0.0f);
+  }
+
+  // the main trunk
+  b2Body* trunk;
+  {
+    b2BodyDef body_def;
+    body_def.type = b2_dynamicBody;
+    body_def.position.Set(0.0f, 4.0f);
+    trunk = the_world.CreateBody(&body_def);
+    all_bodies.push_back(trunk);
 
     b2PolygonShape dynamic_box;
-    dynamic_box.SetAsBox(4.0f, 1.0f, bodyDef.position, 0.0);
+    dynamic_box.SetAsBox(4.0f, 1.0f, body_def.position, 0.0);
 
     b2FixtureDef fixture_def;
     fixture_def.shape = &dynamic_box;
@@ -191,53 +224,31 @@ int main(int argc, char** argv)
     fixture_def.friction = 0.3f;
     fixture_def.restitution = 0.6f;
 
-    body->CreateFixture(&fixture_def);
+    trunk->CreateFixture(&fixture_def);
   }
 
   // add legs
   {
-    b2BodyDef bodyDef;
-    bodyDef.type = b2_dynamicBody;
-    bodyDef.position.Set(1.0f, 5.0f);
-    b2Body* body = the_world.CreateBody(&bodyDef);
-    all_bodies.push_back(body);
-
-    b2PolygonShape dynamic_box;
-    dynamic_box.SetAsBox(1.0f, 1.0f, bodyDef.position, 0.0);
-
-    b2FixtureDef fixture_def;
-    fixture_def.shape = &dynamic_box;
-    
-    fixture_def.density = 1.0f;
-    fixture_def.friction = 0.3f;
-    fixture_def.restitution = 0.6f;
-
-    body->CreateFixture(&fixture_def);
-  
-    // join last two bodies together 
+    b2Body* leg;
     b2RevoluteJoint* joint;
-    {
-      b2RevoluteJointDef joint_def;
-      b2Body* b2a = all_bodies[all_bodies.size()-1];
-      b2Body* b2b = all_bodies[all_bodies.size()-2];
-      b2Vec2 pa = b2a->GetPosition();
-      b2Vec2 pb = b2b->GetPosition();
-      b2Vec2 pj = pa + pb;
-      // there seems to be a scale factor of 2 in joint position vs. body position, I don't get it
-      pj; // = 0.5 * pj;
-      std::cout
-        << pa.x << " " << pa.y << ", " 
-        << pb.x << " " << pb.y << ", "
-        << pj.x << " " << pj.y << std::endl;
-      joint_def.Initialize(b2a, b2b, pj); 
+    
+    addLeg(the_world, trunk, leg, joint, 1.8f, 3.0f, 1.8f, 4.0f ); 
+    all_bodies.push_back(leg);
+    all_rev_joints.push_back(joint);
 
-      joint = (b2RevoluteJoint*)the_world.CreateJoint(&joint_def);
-      all_rev_joints.push_back(joint);
-      //b2Vec2 t1 = joint->GetAnchorA(); 
-      //b2Vec2 t2 = joint->GetAnchorB();
-      //std::cout << t1.x << " " << t1.y << ", " << t2.x << " " << t2.y << std::endl;
-    }
+    addLeg(the_world, trunk, leg, joint, 2.0f, 3.0f, 2.0f, 4.0f ); 
+    all_bodies.push_back(leg);
+    all_rev_joints.push_back(joint);
+
+    addLeg(the_world, trunk, leg, joint, -2.0f, 3.0f, -2.0f, 4.0f ); 
+    all_bodies.push_back(leg);
+    all_rev_joints.push_back(joint);
+
+    addLeg(the_world, trunk, leg, joint, -1.8f, 3.0f, -1.8f, 4.0f ); 
+    all_bodies.push_back(leg);
+    all_rev_joints.push_back(joint);
   }
+
 
 	float32 time_step = 1.0f / 60.0f;
 	int32 velocity_iterations = 6;
