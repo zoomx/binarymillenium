@@ -101,6 +101,14 @@ bool drawBody(
   }
 }
 
+void reverseMotor(b2RevoluteJoint* joint)
+{
+
+  float vel = joint->GetMotorSpeed();
+  
+  if (vel >= 0) joint->SetMotorSpeed(-100);
+  else joint->SetMotorSpeed(100);
+}
 void increaseMotor(b2RevoluteJoint* joint)
 {
   float vel = joint->GetMotorSpeed();
@@ -378,6 +386,11 @@ int main(int argc, char** argv)
         }
        
         /////////////////////////////////////
+        if (event.key.keysym.sym == SDLK_u) {reverseMotor(all_rev_joints[0]); } 
+        if (event.key.keysym.sym == SDLK_i) {reverseMotor(all_rev_joints[1]); } 
+        if (event.key.keysym.sym == SDLK_o) {reverseMotor(all_rev_joints[2]); } 
+        if (event.key.keysym.sym == SDLK_p) {reverseMotor(all_rev_joints[3]); } 
+        
         if (event.key.keysym.sym == SDLK_j) {
           increaseMotor(all_rev_joints[0]);
         }
