@@ -118,6 +118,8 @@ bool drawBody(
     dynamic_box.SetAsBox(0.5f, 2.0f, body_def.position, 0.0);
 
     b2FixtureDef fixture_def;
+    fixture_def.filter.categoryBits = 0x0002;
+    fixture_def.filter.maskBits = 0x0005;
     fixture_def.shape = &dynamic_box;
     
     fixture_def.density = 1.0f;
