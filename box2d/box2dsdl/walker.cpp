@@ -183,7 +183,11 @@ bool addLeg(
       b2RevoluteJoint*& joint,
       const float bx, const float by, const float jx, const float jy,
       const float hw = 0.75f,
-      const float hh = 1.0f
+      const float hh = 1.0f,
+      const float friction = 0.5f,
+      const float max_torque = 65.0f,
+      const float max_angle = 0.13f,
+      const bool enable_motor = true
       )
   {
     b2BodyDef body_def;
@@ -200,8 +204,8 @@ bool addLeg(
     fixture_def.shape = &dynamic_box;
     
     fixture_def.density = 1.0f;
-    fixture_def.friction = 0.3f;
-    fixture_def.restitution = 0.6f;
+    fixture_def.friction = friction;
+    fixture_def.restitution = 0.2f;
 
     leg->CreateFixture(&fixture_def);
  
@@ -209,12 +213,12 @@ bool addLeg(
     b2RevoluteJointDef joint_def;
     
     joint_def.Initialize(trunk, leg, b2Vec2(2*jx,2*jy)); 
-    joint_def.lowerAngle = -0.15f * b2_pi; // -90 degrees
-    joint_def.upperAngle = 0.15f * b2_pi; // 45 degrees
-    joint_def.enableLimit = true;
-    joint_def.maxMotorTorque = 30.0f;
+    joint_def.lowerAngle = -max_angle * b2_pi; // -90 degrees
+    joint_def.upperAngle = max_angle * b2_pi; // 45 degrees
+    joint_def.enableLimit = true; //enable_motor; //true;
+    joint_def.maxMotorTorque = max_torque;
     joint_def.motorSpeed = 0.0f;
-    joint_def.enableMotor = true;
+    joint_def.enableMotor = true; //enable_motor;
     joint = (b2RevoluteJoint*)the_world.CreateJoint(&joint_def);
   }
 #if 0
@@ -326,62 +330,33 @@ int main(int argc, char** argv)
     float knee_cy = 2.0f;
     const float ankle_y = 1.5f;
     const float ankle_cy = 1.25f;
-    const float wd = 1.8f;
-    // 'front' legs
-    addLeg(the_world, trunk, leg, joint, 1.8f, hip_cy, 1.8f, hip_y ); 
-    all_bodies.push_back(leg);
-    all_rev_joints.push_back(joint);
-
-    addLeg(the_world, leg, calf, joint, 1.8f, knee_cy, 1.8f, knee_y ); 
-    all_bodies.push_back(calf);
-    all_rev_joints.push_back(joint);
-   
-    addLeg(the_world, calf, foot, joint, 1.8f, ankle_cy, 1.8f, ankle_y, 1.0, 0.5 ); 
-    all_bodies.push_back(foot);
-    all_rev_joints.push_back(joint);
-   
-
-    //
+    const float pos_x1 = 1.7f;
+    const float pos_x2 = -pos_x1;
+    const float friction = 1.0f;
     
-    addLeg(the_world, trunk, leg, joint, 2.0f, hip_cy, 2.0f, hip_y ); 
-    all_bodies.push_back(leg);
-    all_rev_joints.push_back(joint);
+    vector<float> pos_x;
+    pos_x.push_back(pos_x1);
+    pos_x.push_back(pos_x1-0.1);
+    pos_x.push_back(-pos_x1+0.1);
+    pos_x.push_back(-pos_x1);
+    for (int i = 0; i < pos_x.size(); i++) {
+      // 'front' legs
+      addLeg(the_world, trunk, leg, joint, pos_x[i], hip_cy, pos_x[i], hip_y ); 
+      all_bodies.push_back(leg);
+      all_rev_joints.push_back(joint);
 
-    addLeg(the_world, leg, calf, joint, 2.0f, knee_cy, 2.0f, knee_y ); 
-    all_bodies.push_back(calf);
-    all_rev_joints.push_back(joint);
-   
-    addLeg(the_world, calf, foot, joint, 2.0f, ankle_cy, 2.0f, ankle_y, 1.0, 0.5 ); 
-    all_bodies.push_back(foot);
-    all_rev_joints.push_back(joint);
-   
+      addLeg(the_world, leg, calf, joint, pos_x[i], knee_cy, pos_x[i], knee_y ); 
+      all_bodies.push_back(calf);
+      all_rev_joints.push_back(joint);
 
-    // 'back' legs
-    addLeg(the_world, trunk, leg, joint, -2.0f, hip_cy, -2.0f, hip_y ); 
-    all_bodies.push_back(leg);
-    all_rev_joints.push_back(joint);
-
-    addLeg(the_world, leg, calf, joint, -2.0f, knee_cy, -2.0f, knee_y ); 
-    all_bodies.push_back(calf);
-    all_rev_joints.push_back(joint);
-   
-    addLeg(the_world, calf, foot, joint, -2.0f, ankle_cy, -2.0f, ankle_y, 1.0, 0.5 ); 
-    all_bodies.push_back(foot);
-    all_rev_joints.push_back(joint);
-    //
-    
-    addLeg(the_world, trunk, leg, joint, -1.8f, hip_cy, -1.8f, hip_y ); 
-    all_bodies.push_back(leg);
-    all_rev_joints.push_back(joint);
-    
-    addLeg(the_world, leg, calf, joint, -1.8f, knee_cy, -1.8f, knee_y ); 
-    all_bodies.push_back(calf);
-    all_rev_joints.push_back(joint);
-    
-    addLeg(the_world, calf, foot, joint, -1.8f, ankle_cy, -1.8f, ankle_y, 1.0, 0.5 ); 
-    all_bodies.push_back(foot);
-    all_rev_joints.push_back(joint);
-  }
+      const float foot_torque = 35.0;
+      const float foot_angle = 0.4;
+      addLeg(the_world, calf, foot, joint, pos_x[i], ankle_cy, pos_x[i], ankle_y, 
+          1.0, 0.5, friction, foot_torque, foot_angle,false ); 
+      all_bodies.push_back(foot);
+      all_rev_joints.push_back(joint);
+    } 
+  } // legs
 
 
 	float32 time_step = 1.0f / 60.0f;
@@ -436,8 +411,20 @@ int main(int argc, char** argv)
     SDL_RenderPresent(renderer);
     //ScreenShot(renderer, ind + 100000); 
     ind += 1; 
-    //SDL_Delay(10);  
-    
+    //SDL_Delay(10); 
+    #if 1
+    std::cout << "angle " 
+      << all_rev_joints[2]->GetJointAngle() << " "
+      << all_bodies[2]->GetAngle() << " "
+      //<< all_rev_joints[5]->GetJointAngle()
+      << std::endl;
+    #endif
+    int bind = 2; 
+    {
+      float angle = all_bodies[bind]->GetAngle();
+      all_rev_joints[bind]->SetMotorSpeed(-0.5f * angle);
+    }
+
     {
       event_pending = SDL_PollEvent(&event);
 
@@ -486,7 +473,7 @@ int main(int argc, char** argv)
         if (event.key.keysym.sym == SDLK_s) {reverseMotor(all_rev_joints[7]); } 
         if (event.key.keysym.sym == SDLK_d) {reverseMotor(all_rev_joints[9]); } 
         if (event.key.keysym.sym == SDLK_f) {reverseMotor(all_rev_joints[10]); } 
-       
+      
       } // keydown
     } // key stuff
 
