@@ -181,7 +181,9 @@ bool addLeg(
       b2Body* trunk, 
       b2Body*& leg, 
       b2RevoluteJoint*& joint,
-      const float bx, const float by, const float jx, const float jy
+      const float bx, const float by, const float jx, const float jy,
+      const float hw = 0.75f,
+      const float hh = 1.0f
       )
   {
     b2BodyDef body_def;
@@ -190,7 +192,7 @@ bool addLeg(
     leg = the_world.CreateBody(&body_def);
 
     b2PolygonShape dynamic_box;
-    dynamic_box.SetAsBox(0.5f, 1.0f, body_def.position, 0.0);
+    dynamic_box.SetAsBox(hw, hh, body_def.position, 0.0);
 
     b2FixtureDef fixture_def;
     fixture_def.filter.categoryBits = 0x0002;
@@ -299,7 +301,7 @@ int main(int argc, char** argv)
     all_bodies.push_back(trunk);
 
     b2PolygonShape dynamic_box;
-    dynamic_box.SetAsBox(4.0f, 1.0f, body_def.position, 0.0);
+    dynamic_box.SetAsBox(4.4f, 1.6f, body_def.position, 0.0);
 
     b2FixtureDef fixture_def;
     fixture_def.shape = &dynamic_box;
@@ -314,6 +316,7 @@ int main(int argc, char** argv)
   // add legs
   {
     b2Body* leg;
+    b2Body* calf;
     b2Body* foot;
     b2RevoluteJoint* joint;
    
@@ -321,37 +324,61 @@ int main(int argc, char** argv)
     float hip_cy = 3.0f;
     float knee_y = 2.5f;
     float knee_cy = 2.0f;
+    const float ankle_y = 1.5f;
+    const float ankle_cy = 1.25f;
+    const float wd = 1.8f;
     // 'front' legs
     addLeg(the_world, trunk, leg, joint, 1.8f, hip_cy, 1.8f, hip_y ); 
     all_bodies.push_back(leg);
     all_rev_joints.push_back(joint);
 
-    addLeg(the_world, leg, foot, joint, 1.8f, knee_cy, 1.8f, knee_y ); 
+    addLeg(the_world, leg, calf, joint, 1.8f, knee_cy, 1.8f, knee_y ); 
+    all_bodies.push_back(calf);
+    all_rev_joints.push_back(joint);
+   
+    addLeg(the_world, calf, foot, joint, 1.8f, ankle_cy, 1.8f, ankle_y, 1.0, 0.5 ); 
     all_bodies.push_back(foot);
     all_rev_joints.push_back(joint);
+   
+
+    //
     
     addLeg(the_world, trunk, leg, joint, 2.0f, hip_cy, 2.0f, hip_y ); 
     all_bodies.push_back(leg);
     all_rev_joints.push_back(joint);
 
-    addLeg(the_world, leg, foot, joint, 2.0f, knee_cy, 2.0f, knee_y ); 
+    addLeg(the_world, leg, calf, joint, 2.0f, knee_cy, 2.0f, knee_y ); 
+    all_bodies.push_back(calf);
+    all_rev_joints.push_back(joint);
+   
+    addLeg(the_world, calf, foot, joint, 2.0f, ankle_cy, 2.0f, ankle_y, 1.0, 0.5 ); 
     all_bodies.push_back(foot);
     all_rev_joints.push_back(joint);
    
+
     // 'back' legs
     addLeg(the_world, trunk, leg, joint, -2.0f, hip_cy, -2.0f, hip_y ); 
     all_bodies.push_back(leg);
     all_rev_joints.push_back(joint);
 
-    addLeg(the_world, leg, foot, joint, -2.0f, knee_cy, -2.0f, knee_y ); 
+    addLeg(the_world, leg, calf, joint, -2.0f, knee_cy, -2.0f, knee_y ); 
+    all_bodies.push_back(calf);
+    all_rev_joints.push_back(joint);
+   
+    addLeg(the_world, calf, foot, joint, -2.0f, ankle_cy, -2.0f, ankle_y, 1.0, 0.5 ); 
     all_bodies.push_back(foot);
     all_rev_joints.push_back(joint);
+    //
     
     addLeg(the_world, trunk, leg, joint, -1.8f, hip_cy, -1.8f, hip_y ); 
     all_bodies.push_back(leg);
     all_rev_joints.push_back(joint);
     
-    addLeg(the_world, leg, foot, joint, -1.8f, knee_cy, -1.8f, knee_y ); 
+    addLeg(the_world, leg, calf, joint, -1.8f, knee_cy, -1.8f, knee_y ); 
+    all_bodies.push_back(calf);
+    all_rev_joints.push_back(joint);
+    
+    addLeg(the_world, calf, foot, joint, -1.8f, ankle_cy, -1.8f, ankle_y, 1.0, 0.5 ); 
     all_bodies.push_back(foot);
     all_rev_joints.push_back(joint);
   }
@@ -407,7 +434,7 @@ int main(int argc, char** argv)
     }
 
     SDL_RenderPresent(renderer);
-    ScreenShot(renderer, ind + 100000); 
+    //ScreenShot(renderer, ind + 100000); 
     ind += 1; 
     //SDL_Delay(10);  
     
@@ -452,13 +479,13 @@ int main(int argc, char** argv)
         /////////////////////////////////////
         if (event.key.keysym.sym == SDLK_j) {reverseMotor(all_rev_joints[0]); } 
         if (event.key.keysym.sym == SDLK_k) {reverseMotor(all_rev_joints[1]); } 
-        if (event.key.keysym.sym == SDLK_l) {reverseMotor(all_rev_joints[2]); } 
-        if (event.key.keysym.sym == SDLK_SEMICOLON) {reverseMotor(all_rev_joints[3]); } 
+        if (event.key.keysym.sym == SDLK_l) {reverseMotor(all_rev_joints[3]); } 
+        if (event.key.keysym.sym == SDLK_SEMICOLON) {reverseMotor(all_rev_joints[4]); } 
         
-        if (event.key.keysym.sym == SDLK_a) {reverseMotor(all_rev_joints[4]); } 
-        if (event.key.keysym.sym == SDLK_s) {reverseMotor(all_rev_joints[5]); } 
-        if (event.key.keysym.sym == SDLK_d) {reverseMotor(all_rev_joints[6]); } 
-        if (event.key.keysym.sym == SDLK_f) {reverseMotor(all_rev_joints[7]); } 
+        if (event.key.keysym.sym == SDLK_a) {reverseMotor(all_rev_joints[6]); } 
+        if (event.key.keysym.sym == SDLK_s) {reverseMotor(all_rev_joints[7]); } 
+        if (event.key.keysym.sym == SDLK_d) {reverseMotor(all_rev_joints[9]); } 
+        if (event.key.keysym.sym == SDLK_f) {reverseMotor(all_rev_joints[10]); } 
        
       } // keydown
     } // key stuff
