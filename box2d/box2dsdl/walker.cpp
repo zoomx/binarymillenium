@@ -302,7 +302,6 @@ int main(int argc, char** argv)
     body_def.type = b2_dynamicBody;
     body_def.position.Set(0.0f, 4.0f);
     trunk = the_world.CreateBody(&body_def);
-    all_bodies.push_back(trunk);
 
     b2PolygonShape dynamic_box;
     dynamic_box.SetAsBox(4.4f, 1.6f, body_def.position, 0.0);
@@ -358,6 +357,8 @@ int main(int argc, char** argv)
     } 
   } // legs
 
+  // preserve indices by adding this now
+  all_bodies.push_back(trunk);
 
 	float32 time_step = 1.0f / 60.0f;
 	int32 velocity_iterations = 6;
@@ -369,7 +370,8 @@ int main(int argc, char** argv)
   float ox = 320;
   float oy = 300;
   float sc = 20.0;
-
+  
+  bool center_feet = true;
   /////////////////////////////////////
   int ind = 0;
   bool do_loop = true;
@@ -412,19 +414,25 @@ int main(int argc, char** argv)
     //ScreenShot(renderer, ind + 100000); 
     ind += 1; 
     //SDL_Delay(10); 
-    #if 1
+    #if 0
     std::cout << "angle " 
-      << all_rev_joints[2]->GetJointAngle() << " "
-      << all_bodies[2]->GetAngle() << " "
+      << all_rev_joints[bind]->GetJointAngle() << " "
+      << all_bodies[bind+1]->GetAngle() << " "
       //<< all_rev_joints[5]->GetJointAngle()
       << std::endl;
     #endif
-    int bind = 2; 
-    {
-      float angle = all_bodies[bind]->GetAngle();
+    
+    for (int i = 0 ; i<4; i++) {
+      const int bind = i*3 + 2;
+      if (center_feet) {
+      float angle = all_bodies[bind+1]->GetAngle();
       all_rev_joints[bind]->SetMotorSpeed(-0.5f * angle);
+      } else {
+        all_rev_joints[bind]->SetMotorSpeed(-100);
+      }
     }
 
+    bool used_key = true;
     {
       event_pending = SDL_PollEvent(&event);
 
@@ -473,9 +481,29 @@ int main(int argc, char** argv)
         if (event.key.keysym.sym == SDLK_s) {reverseMotor(all_rev_joints[7]); } 
         if (event.key.keysym.sym == SDLK_d) {reverseMotor(all_rev_joints[9]); } 
         if (event.key.keysym.sym == SDLK_f) {reverseMotor(all_rev_joints[10]); } 
+        
+        if (event.key.keysym.sym == SDLK_n) {
+          center_feet = true;
+        //  b2RevoluteJoint* joint = all_rev_joints[bind]; 
+        //  joint->SetMotorSpeed(-50);
+        } else  
+          if (event.key.keysym.sym == SDLK_m) {
+            center_feet = false;
+     //     b2RevoluteJoint* joint = all_rev_joints[bind]; 
+       //   joint->SetMotorSpeed(50);
+        } else {
+          used_key = false;
+        } 
       
       } // keydown
     } // key stuff
+
+    #if 0
+    if (!used_key) {
+      b2RevoluteJoint* joint = all_rev_joints[bind]; 
+      joint->SetMotorSpeed(0);
+    }
+    #endif
 
   } // event loop
 
