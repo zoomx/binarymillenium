@@ -144,8 +144,8 @@ void reverseMotor(b2RevoluteJoint* joint)
 
   float vel = joint->GetMotorSpeed();
   
-  if (vel >= 0) joint->SetMotorSpeed(-100);
-  else joint->SetMotorSpeed(100);
+  if (vel >= 0) joint->SetMotorSpeed(-0.2);
+  else joint->SetMotorSpeed(0.2);
 }
 void increaseMotor(b2RevoluteJoint* joint)
 {
@@ -182,11 +182,13 @@ bool addLeg(
       b2Body*& leg, 
       b2RevoluteJoint*& joint,
       const float bx, const float by, const float jx, const float jy,
+      const float min_angle = -0.13f,
+      const float max_angle = 0.13f,
+      const float max_torque = 95.0f,
+     
       const float hw = 0.75f,
       const float hh = 1.0f,
       const float friction = 0.5f,
-      const float max_torque = 95.0f,
-      const float max_angle = 0.13f,
       const bool enable_motor = true
       )
   {
@@ -213,7 +215,7 @@ bool addLeg(
     b2RevoluteJointDef joint_def;
     
     joint_def.Initialize(trunk, leg, b2Vec2(2*jx,2*jy)); 
-    joint_def.lowerAngle = -max_angle * b2_pi; // -90 degrees
+    joint_def.lowerAngle = min_angle * b2_pi; // -90 degrees
     joint_def.upperAngle = max_angle * b2_pi; // 45 degrees
     joint_def.enableLimit = true; //enable_motor; //true;
     joint_def.maxMotorTorque = max_torque;
@@ -339,19 +341,25 @@ int main(int argc, char** argv)
     pos_x.push_back(-pos_x1+0.1);
     pos_x.push_back(-pos_x1);
     for (int i = 0; i < pos_x.size(); i++) {
-      // 'front' legs
-      addLeg(the_world, trunk, leg, joint, pos_x[i], hip_cy, pos_x[i], hip_y ); 
+      // thigh
+      addLeg(the_world, trunk, leg, joint, pos_x[i], hip_cy, pos_x[i], hip_y, -0.13f, 0.20f,
+          200.0f); 
       all_bodies.push_back(leg);
       all_rev_joints.push_back(joint);
 
-      addLeg(the_world, leg, calf, joint, pos_x[i], knee_cy, pos_x[i], knee_y ); 
+      // foreleg 
+      addLeg(the_world, leg, calf, joint, pos_x[i], knee_cy, pos_x[i], knee_y, -0.65f,0.0f ); 
       all_bodies.push_back(calf);
       all_rev_joints.push_back(joint);
-
+      
+      // foot
       const float foot_torque = 35.0;
       const float foot_angle = 0.4;
       addLeg(the_world, calf, foot, joint, pos_x[i], ankle_cy, pos_x[i], ankle_y, 
-          1.0, 0.5, friction, foot_torque, foot_angle,false ); 
+          -foot_angle, foot_angle, 
+          foot_torque, 
+          1.0, 0.5, friction, 
+          false ); 
       all_bodies.push_back(foot);
       all_rev_joints.push_back(joint);
     } 
@@ -423,14 +431,23 @@ int main(int argc, char** argv)
       //<< all_rev_joints[5]->GetJointAngle()
       << std::endl;
     #endif
-    
+   
+    const float motor_vel  = 0.2f;
     for (int i = 0 ; i<4; i++) {
       const int bind = i*3 + 2;
       if (center_feet[i]) {
         float angle = all_bodies[bind+1]->GetAngle();
         all_rev_joints[bind]->SetMotorSpeed(-0.5f * angle);
+        
+        float knee_angle =
+            all_bodies[bind-1]->GetAngle() - 
+            all_bodies[bind]->GetAngle();
+
+        //all_rev_joints[bind-1]->SetMotorSpeed(-0.2f * angle);
+        all_rev_joints[bind-1]->SetMotorSpeed(motor_vel);
       } else {
-        all_rev_joints[bind]->SetMotorSpeed(-100);
+        all_rev_joints[bind]->SetMotorSpeed(-motor_vel);
+        all_rev_joints[bind-1]->SetMotorSpeed(-motor_vel);
       }
     }
 
@@ -475,43 +492,28 @@ int main(int argc, char** argv)
        
         /////////////////////////////////////
         if (event.key.keysym.sym == SDLK_j) {
+          if (center_feet[0]) {
           //all_rev_joints[0]->SetMotorSpeed(-50);
-          all_rev_joints[1]->SetMotorSpeed(-50);
           center_feet[0] = false;
+          } else {
+            center_feet[0] = true;
+          }
         } 
         if (event.key.keysym.sym == SDLK_k) {
-          //all_rev_joints[3]->SetMotorSpeed(-50);
-          all_rev_joints[4]->SetMotorSpeed(-50);
-          center_feet[1] = false;
+          if (center_feet[1]) {
+            center_feet[1] = false;
+          } else center_feet[1] = true;
         }
         if (event.key.keysym.sym == SDLK_l) {
-          //all_rev_joints[6]->SetMotorSpeed(-50);
-          all_rev_joints[7]->SetMotorSpeed(-50);
-          center_feet[2] = false;
+          if (center_feet[2]) {
+            center_feet[2] = false;
+          } else center_feet[2] = true;
         } 
         if (event.key.keysym.sym == SDLK_SEMICOLON) {
-          //all_rev_joints[9]->SetMotorSpeed(-50);
-          all_rev_joints[10]->SetMotorSpeed(-50);
-          center_feet[3] = false;
+          if (center_feet[3]) {
+            center_feet[3] = false;
+          } else center_feet[3] = true;
         } 
-        
-        if (event.key.keysym.sym == SDLK_u) {
-          all_rev_joints[1]->SetMotorSpeed(0);
-          center_feet[0] = true;
-        } 
-        if (event.key.keysym.sym == SDLK_i) {
-          all_rev_joints[4]->SetMotorSpeed(0);
-          center_feet[1] = true;
-        }
-        if (event.key.keysym.sym == SDLK_o) {
-          all_rev_joints[7]->SetMotorSpeed(0);
-          center_feet[2] = true;
-        } 
-        if (event.key.keysym.sym == SDLK_p) {
-          all_rev_joints[10]->SetMotorSpeed(0);
-          center_feet[3] = true;
-        } 
-        
 
         if (event.key.keysym.sym == SDLK_a) {
           reverseMotor(all_rev_joints[0]); 
