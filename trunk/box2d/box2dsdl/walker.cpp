@@ -28,6 +28,9 @@
 #include <cstdio>
 
 using namespace std;
+
+std::vector<SDL_Surface*> surfaces;
+
 static void
 ScreenShot(SDL_Renderer *renderer, const int ind=0)
 {
@@ -56,13 +59,22 @@ ScreenShot(SDL_Renderer *renderer, const int ind=0)
         fprintf(stderr, "Couldn't read screen: %s\n", SDL_GetError());
         return;
     }
-    
-  stringstream ss;
-ss << "screen_" << ind << ".bmp";
-    if (SDL_SaveBMP(surface, ss.str().c_str()) < 0) {
-        fprintf(stderr, "Couldn't save screenshot.bmp: %s\n", SDL_GetError());
-        return;
+   
+   surfaces.push_back(surface);
+}
+
+void saveSurfaces() 
+{
+  
+  for (int ind = 0; ind < surfaces.size(); ind++) {
+    stringstream ss;
+    ss << "screen_" << ind << ".bmp";
+    std::cout << ss.str() << std::endl;
+    if (SDL_SaveBMP(surfaces[ind], ss.str().c_str()) < 0) {
+      fprintf(stderr, "Couldn't save screenshot.bmp: %s\n", SDL_GetError());
+      return;
     }
+  }
 }
 
 
@@ -343,7 +355,7 @@ int main(int argc, char** argv)
     for (int i = 0; i < pos_x.size(); i++) {
       // thigh
       addLeg(the_world, trunk, leg, joint, pos_x[i], hip_cy, pos_x[i], hip_y, -0.13f, 0.20f,
-          200.0f); 
+          170.0f); 
       all_bodies.push_back(leg);
       all_rev_joints.push_back(joint);
 
@@ -522,6 +534,11 @@ int main(int argc, char** argv)
         if (event.key.keysym.sym == SDLK_d) {reverseMotor(all_rev_joints[6]); } 
         if (event.key.keysym.sym == SDLK_f) {reverseMotor(all_rev_joints[9]); } 
        
+        if (event.key.keysym.sym == SDLK_n) {
+          for (int i = 0; i< center_feet.size() ; i++) {
+            center_feet[i] = !center_feet[i];
+          }
+        }
        #if 0
         if (event.key.keysym.sym == SDLK_n) {
           center_feet = true;
@@ -548,6 +565,8 @@ int main(int argc, char** argv)
     #endif
 
   } // event loop
+
+  saveSurfaces();
 
 	SDL_DestroyWindow(window); 
   SDL_Quit(); 
