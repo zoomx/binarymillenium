@@ -185,7 +185,7 @@ bool addLeg(
       const float hw = 0.75f,
       const float hh = 1.0f,
       const float friction = 0.5f,
-      const float max_torque = 65.0f,
+      const float max_torque = 95.0f,
       const float max_angle = 0.13f,
       const bool enable_motor = true
       )
@@ -371,7 +371,9 @@ int main(int argc, char** argv)
   float oy = 300;
   float sc = 20.0;
   
-  bool center_feet = true;
+  vector<bool> center_feet;
+  center_feet.resize(4);
+  for (int i = 0; i < 4; i++) center_feet[i] = true;
   /////////////////////////////////////
   int ind = 0;
   bool do_loop = true;
@@ -424,9 +426,9 @@ int main(int argc, char** argv)
     
     for (int i = 0 ; i<4; i++) {
       const int bind = i*3 + 2;
-      if (center_feet) {
-      float angle = all_bodies[bind+1]->GetAngle();
-      all_rev_joints[bind]->SetMotorSpeed(-0.5f * angle);
+      if (center_feet[i]) {
+        float angle = all_bodies[bind+1]->GetAngle();
+        all_rev_joints[bind]->SetMotorSpeed(-0.5f * angle);
       } else {
         all_rev_joints[bind]->SetMotorSpeed(-100);
       }
@@ -472,16 +474,53 @@ int main(int argc, char** argv)
         }
        
         /////////////////////////////////////
-        if (event.key.keysym.sym == SDLK_j) {reverseMotor(all_rev_joints[0]); } 
-        if (event.key.keysym.sym == SDLK_k) {reverseMotor(all_rev_joints[1]); } 
-        if (event.key.keysym.sym == SDLK_l) {reverseMotor(all_rev_joints[3]); } 
-        if (event.key.keysym.sym == SDLK_SEMICOLON) {reverseMotor(all_rev_joints[4]); } 
+        if (event.key.keysym.sym == SDLK_j) {
+          //all_rev_joints[0]->SetMotorSpeed(-50);
+          all_rev_joints[1]->SetMotorSpeed(-50);
+          center_feet[0] = false;
+        } 
+        if (event.key.keysym.sym == SDLK_k) {
+          //all_rev_joints[3]->SetMotorSpeed(-50);
+          all_rev_joints[4]->SetMotorSpeed(-50);
+          center_feet[1] = false;
+        }
+        if (event.key.keysym.sym == SDLK_l) {
+          //all_rev_joints[6]->SetMotorSpeed(-50);
+          all_rev_joints[7]->SetMotorSpeed(-50);
+          center_feet[2] = false;
+        } 
+        if (event.key.keysym.sym == SDLK_SEMICOLON) {
+          //all_rev_joints[9]->SetMotorSpeed(-50);
+          all_rev_joints[10]->SetMotorSpeed(-50);
+          center_feet[3] = false;
+        } 
         
-        if (event.key.keysym.sym == SDLK_a) {reverseMotor(all_rev_joints[6]); } 
-        if (event.key.keysym.sym == SDLK_s) {reverseMotor(all_rev_joints[7]); } 
-        if (event.key.keysym.sym == SDLK_d) {reverseMotor(all_rev_joints[9]); } 
-        if (event.key.keysym.sym == SDLK_f) {reverseMotor(all_rev_joints[10]); } 
+        if (event.key.keysym.sym == SDLK_u) {
+          all_rev_joints[1]->SetMotorSpeed(0);
+          center_feet[0] = true;
+        } 
+        if (event.key.keysym.sym == SDLK_i) {
+          all_rev_joints[4]->SetMotorSpeed(0);
+          center_feet[1] = true;
+        }
+        if (event.key.keysym.sym == SDLK_o) {
+          all_rev_joints[7]->SetMotorSpeed(0);
+          center_feet[2] = true;
+        } 
+        if (event.key.keysym.sym == SDLK_p) {
+          all_rev_joints[10]->SetMotorSpeed(0);
+          center_feet[3] = true;
+        } 
         
+
+        if (event.key.keysym.sym == SDLK_a) {
+          reverseMotor(all_rev_joints[0]); 
+        } 
+        if (event.key.keysym.sym == SDLK_s) {reverseMotor(all_rev_joints[3]); } 
+        if (event.key.keysym.sym == SDLK_d) {reverseMotor(all_rev_joints[6]); } 
+        if (event.key.keysym.sym == SDLK_f) {reverseMotor(all_rev_joints[9]); } 
+       
+       #if 0
         if (event.key.keysym.sym == SDLK_n) {
           center_feet = true;
         //  b2RevoluteJoint* joint = all_rev_joints[bind]; 
@@ -494,6 +533,7 @@ int main(int argc, char** argv)
         } else {
           used_key = false;
         } 
+        #endif
       
       } // keydown
     } // key stuff
