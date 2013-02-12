@@ -199,9 +199,10 @@ bool addLeg(
       const float max_torque = 95.0f,
      
       const float hw = 0.75f,
-      const float hh = 1.0f,
+      const float hh = 1.5f,
       const float friction = 0.5f,
-      const bool enable_motor = true
+      const bool enable_motor = true,
+      const float density = 1.0f
       )
   {
     b2BodyDef body_def;
@@ -217,7 +218,7 @@ bool addLeg(
     fixture_def.filter.maskBits = 0x0005;
     fixture_def.shape = &dynamic_box;
     
-    fixture_def.density = 1.0f;
+    fixture_def.density = density;
     fixture_def.friction = friction;
     fixture_def.restitution = 0.2f;
 
@@ -314,11 +315,11 @@ int main(int argc, char** argv)
   {
     b2BodyDef body_def;
     body_def.type = b2_dynamicBody;
-    body_def.position.Set(0.0f, 4.0f);
+    body_def.position.Set(0.0f, 4.6f);
     trunk = the_world.CreateBody(&body_def);
 
     b2PolygonShape dynamic_box;
-    dynamic_box.SetAsBox(4.4f, 1.6f, body_def.position, 0.0);
+    dynamic_box.SetAsBox(3.7f, 1.2f, body_def.position, 0.0);
 
     b2FixtureDef fixture_def;
     fixture_def.shape = &dynamic_box;
@@ -337,9 +338,9 @@ int main(int argc, char** argv)
     b2Body* foot;
     b2RevoluteJoint* joint;
    
-    float hip_y = 3.5f;
-    float hip_cy = 3.0f;
-    float knee_y = 2.5f;
+    float hip_y = 4.0f;
+    float hip_cy = 3.5f;
+    float knee_y = 2.7f;
     float knee_cy = 2.0f;
     const float ankle_y = 1.5f;
     const float ankle_cy = 1.25f;
@@ -354,13 +355,15 @@ int main(int argc, char** argv)
     pos_x.push_back(-pos_x1);
     for (int i = 0; i < pos_x.size(); i++) {
       // thigh
-      addLeg(the_world, trunk, leg, joint, pos_x[i], hip_cy, pos_x[i], hip_y, -0.13f, 0.20f,
-          170.0f); 
+      addLeg(the_world, trunk, leg, joint, pos_x[i], hip_cy, pos_x[i], hip_y, 
+          -0.13f, 0.27f,
+          204.0f); 
       all_bodies.push_back(leg);
       all_rev_joints.push_back(joint);
 
       // foreleg 
-      addLeg(the_world, leg, calf, joint, pos_x[i], knee_cy, pos_x[i], knee_y, -0.65f,0.0f ); 
+      addLeg(the_world, leg, calf, joint, pos_x[i], knee_cy, pos_x[i], knee_y, -0.65f,0.0f,
+        20.0f); 
       all_bodies.push_back(calf);
       all_rev_joints.push_back(joint);
       
@@ -376,9 +379,37 @@ int main(int argc, char** argv)
       all_rev_joints.push_back(joint);
     } 
   } // legs
-
+  /*
+   * const float bx, const float by, const float jx, const float jy,
+      const float min_angle = -0.13f,
+      const float max_angle = 0.13f,
+      const float max_torque = 95.0f,
+     
+      const float hw = 0.75f,
+      const float hh = 1.5f,
+      const float friction = 0.5f,
+      const bool enable_motor = true,
+      const float density = 1.0f
+      
+   */
   // preserve indices by adding this now
   all_bodies.push_back(trunk);
+
+  // head
+  {
+  b2Body* head;
+   b2RevoluteJoint* joint;
+   
+  addLeg(the_world, trunk, head, joint, 2.4, 5.0, 2.0, 5.0, 
+      -0.13, 0.13, 10.0f, 
+      1.9f, 0.8f, // hw hh
+      0.5f,
+      false, // motor 
+      2.2 // density
+      ); // -0.13f, 0.20f,
+      all_bodies.push_back(head);
+      all_rev_joints.push_back(joint);
+  }
 
 	float32 time_step = 1.0f / 60.0f;
 	int32 velocity_iterations = 6;
@@ -387,7 +418,7 @@ int main(int argc, char** argv)
   int event_pending = 0;
   SDL_Event event;
 
-  float ox = 320;
+  float ox = 220;
   float oy = 300;
   float sc = 20.0;
   
@@ -407,7 +438,7 @@ int main(int argc, char** argv)
     drawGrid(renderer, 10,10,10, ox, oy, sc);
     
     for (int i = 0; i < all_bodies.size(); i++) {
-      drawBody(renderer, all_bodies[i], 255,255,155, ox, oy, sc);
+      drawBody(renderer, all_bodies[i], 255,(55 * (i%2)) +200,255, ox, oy, sc);
     }
     
     // draw joint crosshairs
@@ -539,6 +570,13 @@ int main(int argc, char** argv)
             center_feet[i] = !center_feet[i];
           }
         }
+        
+        if (event.key.keysym.sym == SDLK_m) {
+          reverseMotor(all_rev_joints[0]); 
+          reverseMotor(all_rev_joints[3]); 
+          reverseMotor(all_rev_joints[6]); 
+          reverseMotor(all_rev_joints[9]); 
+        } 
        #if 0
         if (event.key.keysym.sym == SDLK_n) {
           center_feet = true;
