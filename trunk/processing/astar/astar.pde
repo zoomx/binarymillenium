@@ -119,16 +119,11 @@ void setup() {
   raw_map = new float[MAP_SIZE][MAP_SIZE];
   visited_map = new visited_point[MAP_SIZE][MAP_SIZE];
 
-  init();
-}
-
-void init() {
   start_x = (int)random(0,MAP_SIZE-2)+1;
   start_y = (int)random(0,MAP_SIZE-2)+1;
 
   goal_x = (int)random(0,MAP_SIZE-2)+1;
   goal_y = (int)random(0,MAP_SIZE-2)+1;  
-
 
   //////////////////////////////////////////
   // fill in cost map
@@ -346,7 +341,6 @@ void visit(int test_x, int test_y, int old_x, int old_y, boolean init) {
 void move() {
 
   if (to_expand.length > 0) {
-
     /// take the first position and remove it from the queue, then evaluate it
     pos first = to_expand[0];
     pos new_to_expand[] = new pos[to_expand.length-1];
@@ -409,7 +403,6 @@ void draw() {
       noStroke();
       rect(i*draw_scale,j*draw_scale,draw_scale,draw_scale);
 
-
       if (false) {
         /// draw the estimated cost map
         c = (int)(255*(1.0-estimated_cost_map[i][j]/max_estimate));
@@ -418,7 +411,6 @@ void draw() {
         noStroke();
         rect(i*draw_scale+draw_scale/2,j*draw_scale+draw_scale/2,draw_scale/4,draw_scale/4);
       }
-
   }} // draw map
 
   ////////////////////////////////////////////////////////////////////////////////////// 
@@ -475,7 +467,6 @@ void draw() {
     color c4 = color(10,255,10);
     stroke(c4);
     do {
-
       int from_x = visited_map[x][y].from_x;
       int from_y = visited_map[x][y].from_y;
       line(from_x*draw_scale + draw_scale/2+1,
@@ -497,24 +488,22 @@ void draw() {
     fill(c3);
     noStroke();
 
-    rect(to_expand[i].x*draw_scale + draw_scale/4,to_expand[i].y*draw_scale + draw_scale/4,
-        draw_scale/3.8,draw_scale/3.5);
-
+    rect(to_expand[i].x*draw_scale + draw_scale/4,
+        to_expand[i].y*draw_scale + draw_scale/4,
+        draw_scale/3.8,
+        draw_scale/3.5);
   }
 
   // draw the current position
   color c3 = color(0,0,255);
   fill(c3);
-  rect(cur_x*draw_scale + draw_scale/4,cur_y*draw_scale + draw_scale/4,draw_scale/2,draw_scale/2);
+  rect(cur_x*draw_scale + draw_scale/4,cur_y*draw_scale + draw_scale/4,
+      draw_scale/2,draw_scale/2);
 
   move();
-
   // fonts are broken with export it seems
   // fill(color(220,190,230));
   // textFont(fontA, 20);
   // text("binarymillenium.com", 80, MAP_SIZE*draw_scale-15);
-
-}
-
-
+} //draw
 
