@@ -111,20 +111,18 @@ float worst_cost;
 ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 void setup() {
-
   size(MAP_SIZE*draw_scale,MAP_SIZE*draw_scale);
-
   frameRate(20);
 
   //fontA = loadFont("AlArabiya-20.vlw");
-
-
   estimated_cost_map = new float[MAP_SIZE][MAP_SIZE];
-
   raw_map = new float[MAP_SIZE][MAP_SIZE];
-
   visited_map = new visited_point[MAP_SIZE][MAP_SIZE];
 
+  init();
+}
+
+void init() {
   start_x = (int)random(0,MAP_SIZE-2)+1;
   start_y = (int)random(0,MAP_SIZE-2)+1;
 
@@ -133,7 +131,7 @@ void setup() {
 
 
   //////////////////////////////////////////
-  // make cost map
+  // fill in cost map
   for (int i = 0; i < MAP_SIZE; i++) {
     for (int j = 0; j < MAP_SIZE; j++) {
       float temp_noise =  (noise(i/DIV,  j/DIV));
@@ -143,7 +141,7 @@ void setup() {
         raw_map[i][j] = MAX_COST;
       } else {
         //else temp_noise = 0.01;
-        raw_map[i][j] = 0; // MAX_COST * temp_noise;
+        raw_map[i][j] = 0.04; // MAX_COST * temp_noise;
       }
 
       visited_map[i][j] = new visited_point();
@@ -179,9 +177,7 @@ boolean on_goal_path(int test_x, int test_y) {
   if (visited_map[goal_x][goal_y].visited == false) return false;
 
   do {
-
     /// moving costs 1.0 -- could just have raw_map have minimum of 1.0 also
-
     if ((x == test_x) && (y == test_y)) return true;
 
     int from_x =  visited_map[x][y].from_x;
@@ -189,11 +185,9 @@ boolean on_goal_path(int test_x, int test_y) {
 
     x = from_x;
     y = from_y;
-
   } while ((x != start_x) || (y != start_y));
 
   return false;
-
 }
 
 ///
@@ -214,7 +208,6 @@ float get_total_cost(int end_x, int end_y)
 
   float total_cost = 0;
   do {
-
     /// moving costs 1.0 -- could just have raw_map have minimum of 1.0 also
     total_cost += 1.0 + raw_map[x][y];
 
@@ -223,7 +216,6 @@ float get_total_cost(int end_x, int end_y)
 
     x = from_x;
     y = from_y;
-
   } while ((x != start_x) || (y != start_y));
 
   return total_cost;
@@ -247,7 +239,6 @@ pos[] append_in_order(pos[] old, pos newpos) {
       sorted[i+1] = newpos;
       arraycopy(old, i+1, sorted, i+2, old.length - (i+1) );
 
-
       return sorted;
     }     
   }
@@ -258,7 +249,7 @@ pos[] append_in_order(pos[] old, pos newpos) {
   return sorted;  
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 boolean test_pos(int test_x, int test_y, int x, int y, int old_x, int old_y, float new_cost) {
 
   /// valid point on the map?
@@ -267,13 +258,13 @@ boolean test_pos(int test_x, int test_y, int x, int y, int old_x, int old_y, flo
   //(visited_map[test_x][test_y].expanded != true)   && 
 
   /// black squares are impassable
-  if ( raw_map[test_x][test_y] > 0.99*MAX_COST) return false;
+  if (raw_map[test_x][test_y] > 0.99*MAX_COST) return false;
 
   /// don't backtrack
   if ((test_x == old_x) && (test_y == old_y)) return false;  
 
   /// if the total cost to get to this point has been found and is lower than this route, don't bother
-  if ( get_total_cost(test_x,test_y) <= new_cost + EPS) return false;
+  if (get_total_cost(test_x,test_y) <= new_cost + EPS) return false;
 
   /// don't retrace a completed path
   if ((visited_map[test_x][test_y].from_x == x) && (visited_map[test_x][test_y].from_y == y)) return false; 
@@ -320,7 +311,6 @@ void visit(int test_x, int test_y, int old_x, int old_y, boolean init) {
   }
 
   /////////////////////////////////////////
-
   cost_pos next[] = new cost_pos[4];
 
   for (int i = 0; i < next.length; i++) {
@@ -331,7 +321,6 @@ void visit(int test_x, int test_y, int old_x, int old_y, boolean init) {
   next[1].x = test_x-1;  next[1].y = test_y;
   next[2].x = test_x;    next[2].y = test_y+1;
   next[3].x = test_x;    next[3].y = test_y-1;
-
 
   for (int i = 0; i < next.length; i++) {
 
@@ -350,16 +339,8 @@ void visit(int test_x, int test_y, int old_x, int old_y, boolean init) {
     }
   }
 
-
-
-
-
   //visited_map[test_x][test_y].expanded = true;
-
 }
-
-
-//////////////////////////////////
 
 /////////////////////////////////////////////////
 void move() {
@@ -377,7 +358,6 @@ void move() {
     cur_x = first.x;
     cur_y = first.y;
 
-
     /// detect first finish
     if ((to_expand.length == 0) && (finished == false)) {
       noLoop();
@@ -388,20 +368,17 @@ void move() {
         int y = goal_y;
 
         do {
-
-
           final int from_x = visited_map[x][y].from_x;
           final int from_y = visited_map[x][y].from_y;
           // print("to " + x + ", " + y + " from " + from_x + ", " + from_y +"\n");
 
           x = from_x;
           y = from_y;
-
         } while ((x != start_x) || (y != start_y));
 
       }
 
-    }
+    } // detect finish
 
     k++;
 
@@ -416,11 +393,7 @@ void move() {
 
 int k = 0;
 
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-
+///////////////////////////////////////////////////////////////////////////////
 void draw() {
 
   rect(10,10,10,10);
@@ -465,9 +438,9 @@ void draw() {
         int y2 = j*draw_scale + draw_scale/2;
         
         // draw outline
-        fill(0);
-        strokeWeight(4);
-        line(x1,y1,x2,y2);
+        //fill(0);
+        //strokeWeight(4);
+        //line(x1,y1,x2,y2);
 
         float c = (int)(255*(1.0-get_total_cost(i,j)/worst_cost));
         color c1 = color(c/2,c,c/2+0.5);
