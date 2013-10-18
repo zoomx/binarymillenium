@@ -43,14 +43,13 @@ final int draw_scale = 19;
 
 int start_x;
 int start_y;
-
 int goal_x;
 int goal_y;
-
 int cur_x;
 int cur_y;
 
 boolean finished = false;
+int min_counter = 0;
 
 /// estimate of the cost to get to the goal
 float estimated_cost_map[][];
@@ -113,12 +112,21 @@ class pos {
 
 pos to_expand[];
 
-
+int finished_count = 0;
 ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 void setup() {
   size(MAP_SIZE_X * draw_scale, MAP_SIZE_Y * draw_scale);
   frameRate(20);
+  init_maps();
+}
+
+void init_maps() {
+  finished_count = 0;
+  max_estimate = 0.0;
+  worst_cost = 0.0;
+  finished = false;
+  min_counter = 0;
 
   //fontA = loadFont("AlArabiya-20.vlw");
   estimated_cost_map = new float[MAP_SIZE_X][MAP_SIZE_Y];
@@ -164,7 +172,7 @@ void setup() {
 
   to_expand = new pos[0];
 
-  visit(start_x,start_y, start_x,start_y, true );
+  visit(start_x,start_y, start_x,start_y, true);
 }
 
 /////////////////////////////////
@@ -213,8 +221,8 @@ float get_total_cost(int end_x, int end_y)
     /// moving costs 1.0 -- could just have raw_map have minimum of 1.0 also
     total_cost += 1.0 + raw_map[x][y];
 
-    int from_x =  visited_map[x][y].from_x;
-    int from_y =  visited_map[x][y].from_y;
+    int from_x = visited_map[x][y].from_x;
+    int from_y = visited_map[x][y].from_y;
 
     x = from_x;
     y = from_y;
@@ -258,7 +266,9 @@ pos[] append_in_order(pos[] old, pos newpos) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-boolean test_pos(int test_x, int test_y, int x, int y, int old_x, int old_y, float new_cost) {
+boolean test_pos(int test_x, int test_y, 
+    int x, int y, 
+    int old_x, int old_y, float new_cost) {
 
   /// valid point on the map?
   if (test_only_pos(test_x, test_y) == false) return false;
@@ -271,18 +281,20 @@ boolean test_pos(int test_x, int test_y, int x, int y, int old_x, int old_y, flo
   /// don't backtrack
   if ((test_x == old_x) && (test_y == old_y)) return false;  
 
-  /// if the total cost to get to this point has been found and is lower than this route, don't bother
+  /// if the total cost to get to this point has already been found and is 
+  /// lower than this new proposed route, don't bother
   if (get_total_cost(test_x,test_y) <= new_cost + EPS) return false;
 
   /// don't retrace a completed path
   if ((visited_map[test_x][test_y].from_x == x) && (visited_map[test_x][test_y].from_y == y)) return false; 
 
+  // if the estimated total cost is more than the alread discovered
+  // cost to get to the goal, then nothing is to be done
   if ((new_cost + estimated_cost_map[test_x][test_y]) > get_total_cost(goal_x,goal_y)) return false;      
 
   return true;
 }
 
-int min_counter = 0;
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 void visit(int test_x, int test_y, int old_x, int old_y) {
@@ -334,8 +346,8 @@ void visit(int test_x, int test_y, int old_x, int old_y, boolean init) {
 
     if (test_only_pos(next[i].x,next[i].y)) {
       /// this is somewhat redundant- pass the estimated cost in instead?
-      float estimated_cost2 = new_cost + 1.0 + raw_map[next[i].x][next[i].y];
-
+      //float estimated_cost2 = new_cost + 1.0 + raw_map[next[i].x][next[i].y];
+      float estimated_cost2 = new_cost + raw_map[next[i].x][next[i].y];
 
       if (test_pos(next[i].x,next[i].y,test_x, test_y, old_x,old_y, estimated_cost2)) { 
 
@@ -367,7 +379,6 @@ void move() {
 
     /// detect first finish
     if ((to_expand.length == 0) && (finished == false)) {
-      noLoop();
       finished = true;
 
       if (false && visited_map[goal_x][goal_y].visited) {
@@ -394,9 +405,19 @@ void move() {
       //      ", min_cost " + get_total_cost(goal_x,goal_y) + ", new_cost " + get_total_cost(cur_x,cur_y) + "\n");
 
     }
+  } else {
+    finished_count++;
+    if (finished_count >= 40) {
+      init_maps();
+    }
   }
 
-}
+  if (keyPressed) {
+    if (key == 'r') {
+      init_maps();
+    }
+  } // handle keys
+} // move
 
 int k = 0;
 
@@ -518,5 +539,7 @@ void draw() {
   // fill(color(220,190,230));
   // textFont(fontA, 20);
   // text("binarymillenium.com", 80, MAP_SIZE*draw_scale-15);
+
+  //saveFrame("astar_########.png");
 } //draw
 
