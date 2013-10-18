@@ -26,7 +26,8 @@
   <a href="http://code.google.com/p/binarymillenium/wiki/AStarSearch">more discussion</a>
   */
 
-final int MAP_SIZE  = 25;
+final int MAP_SIZE_X = 64;
+final int MAP_SIZE_Y = 36;
 final float MAX_COST = 1.5;
 /// granulariti of cost_map
 final float DIV = 3.0;
@@ -116,24 +117,24 @@ pos to_expand[];
 ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 void setup() {
-  size(MAP_SIZE*draw_scale,MAP_SIZE*draw_scale);
+  size(MAP_SIZE_X * draw_scale, MAP_SIZE_Y * draw_scale);
   frameRate(20);
 
   //fontA = loadFont("AlArabiya-20.vlw");
-  estimated_cost_map = new float[MAP_SIZE][MAP_SIZE];
-  raw_map = new float[MAP_SIZE][MAP_SIZE];
-  visited_map = new visited_point[MAP_SIZE][MAP_SIZE];
+  estimated_cost_map = new float[MAP_SIZE_X][MAP_SIZE_Y];
+  raw_map = new float[MAP_SIZE_X][MAP_SIZE_Y];
+  visited_map = new visited_point[MAP_SIZE_X][MAP_SIZE_Y];
 
-  start_x = (int)random(0,MAP_SIZE-2)+1;
-  start_y = (int)random(0,MAP_SIZE-2)+1;
+  start_x = (int)random(0,MAP_SIZE_Y-2)+1;
+  start_y = (int)random(0,MAP_SIZE_Y-2)+1;
 
-  goal_x = (int)random(0,MAP_SIZE-2)+1;
-  goal_y = (int)random(0,MAP_SIZE-2)+1;  
+  goal_x = (int)random(0,MAP_SIZE_Y-2)+1;
+  goal_y = (int)random(0,MAP_SIZE_Y-2)+1;  
 
   //////////////////////////////////////////
   // fill in cost map
-  for (int i = 0; i < MAP_SIZE; i++) {
-    for (int j = 0; j < MAP_SIZE; j++) {
+  for (int i = 0; i < MAP_SIZE_X; i++) {
+    for (int j = 0; j < MAP_SIZE_Y; j++) {
       float temp_noise =  (noise(i/DIV,  j/DIV));
       temp_noise*= 1.9/MAX_COST;
       if (temp_noise > 1.0/MAX_COST) {
@@ -192,7 +193,8 @@ boolean on_goal_path(int test_x, int test_y) {
 
 ///
 boolean test_only_pos(int test_x, int test_y) {
-  if ((test_x < MAP_SIZE) &&  (test_y  < MAP_SIZE)  && (test_x >= 0) && (test_y >= 0)) 
+  if ((test_x < MAP_SIZE_X) && (test_y < MAP_SIZE_Y) && 
+      (test_x >= 0) && (test_y >= 0)) 
     return true;
   else 
     return false;
@@ -249,7 +251,7 @@ pos[] append_in_order(pos[] old, pos newpos) {
     }     
   }
 
-  /// the newpos must have a high cost than all the others in old   
+  /// the newpos must have a higher cost than all the others in old   
   sorted = (pos[]) append(old, newpos);           
 
   return sorted;  
@@ -404,8 +406,8 @@ void draw() {
   rect(10,10,10,10);
 
   // draw map
-  for (int i = 0; i < MAP_SIZE; i++) {
-    for (int j = 0; j < MAP_SIZE; j++) {
+  for (int i = 0; i < MAP_SIZE_X; i++) {
+    for (int j = 0; j < MAP_SIZE_Y; j++) {
 
       /// draw the cost map
       int c = (int)(255*(1.0-(raw_map[i][j]/MAX_COST)));
@@ -426,8 +428,8 @@ void draw() {
 
   ////////////////////////////////////////////////////////////////////////////////////// 
   /// draw the visited cost
-  for (int i = 0; i < MAP_SIZE; i++) {
-    for (int j = 0; j < MAP_SIZE; j++) {
+  for (int i = 0; i < MAP_SIZE_X; i++) {
+    for (int j = 0; j < MAP_SIZE_Y; j++) {
 
       if (visited_map[i][j].visited == true) {
         /// draw
