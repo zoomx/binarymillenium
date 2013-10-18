@@ -51,6 +51,12 @@ int cur_y;
 
 boolean finished = false;
 
+/// estimate of the cost to get to the goal
+float estimated_cost_map[][];
+float max_estimate;
+/// the worst cost found so far to anywhere
+float worst_cost;
+
 class visited_point {
 
   /// where this node was visited from
@@ -97,16 +103,15 @@ class pos {
     flag = false;
   }
 
-}
+  float getCost() {
+    float total_cost = cost;
+    total_cost += estimated_cost_map[x][y];
+    return total_cost;
+  }
+} // pos
 
 pos to_expand[];
 
-/// estimate of the cost to get to the goal
-float estimated_cost_map[][];
-float max_estimate;
-
-/// the worst cost found so far to anywhere
-float worst_cost;
 
 ///////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -220,15 +225,21 @@ float get_total_cost(int end_x, int end_y)
 pos[] append_in_order(pos[] old, pos newpos) {
   pos sorted[] = new pos[old.length + 1];
 
-  if ((old.length > 0) && (newpos.cost <= old[0].cost)) {
-    sorted[0] = newpos;
-    arraycopy(old, 0, sorted, 1, old.length);
+  // if the current node has less accumulated cost than
+  // any other, so add it to start
+  if (old.length > 0) {
+    if (newpos.getCost() <= old[0].getCost()) {
+      sorted[0] = newpos;
+      arraycopy(old, 0, sorted, 1, old.length);
 
-    return sorted;  
+      return sorted;  
+    }
   }
-
+  
+  // otherwise insert it somewhere in middle
   for (int i = 0; i < old.length-1; i++) {
-    if ((newpos.cost > old[i].cost) && (newpos.cost <= old[i+1].cost )) {
+    if ((newpos.getCost() >  old[i].getCost()) && 
+        (newpos.getCost() <= old[i+1].getCost() )) {
       /// insert the new pos
       arraycopy(old, sorted, i+1);
       sorted[i+1] = newpos;
@@ -347,7 +358,7 @@ void move() {
     arraycopy(to_expand, 1, new_to_expand, 0, to_expand.length-1);
     to_expand = new_to_expand;
 
-    visit( first.x,first.y, first.old_x, first.old_y);
+    visit(first.x, first.y, first.old_x, first.old_y);
 
     cur_x = first.x;
     cur_y = first.y;
